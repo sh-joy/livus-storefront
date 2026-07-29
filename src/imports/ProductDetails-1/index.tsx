@@ -6,14 +6,16 @@ import { SiteNav } from '@/figma-components/SiteNav';
 import { SiteFooter } from '@/figma-components/SiteFooter';
 import { SizingGuideModal } from '@/figma-components/SizingGuideModal';
 import { useDrawer } from '@/figma-components/DrawerContext';
+import { useCartStore } from '@/lib/store/cart-store';
 import imgImage115 from "./147bb3d7a50a487cfcb2163c878fc1a5c25e19e6.png";
 import imgImage114 from "./71b3cd582dab7174e13346a8d88abe33548d2aa7.png";
 import imgFrame1597881192 from "./cd8123b8a9ab8a34443daf47f95966a2cb8719ce.png";
 
-// Color Variants with independent gallery image arrays
+// Color Variants with independent gallery image arrays & stock status
 const colorVariants = [
   {
     name: "Yellow",
+    isLowStock: true, // Red (Low Stock) indicator as requested
     thumbnail: typeof imgFrame1597881192 === 'string' ? imgFrame1597881192 : imgFrame1597881192?.src,
     images: [
       typeof imgFrame1597881192 === 'string' ? imgFrame1597881192 : imgFrame1597881192?.src,
@@ -23,6 +25,7 @@ const colorVariants = [
   },
   {
     name: "Black",
+    isLowStock: false,
     thumbnail: typeof imgImage115 === 'string' ? imgImage115 : imgImage115?.src,
     images: [
       typeof imgImage115 === 'string' ? imgImage115 : imgImage115?.src,
@@ -35,6 +38,7 @@ const colorVariants = [
   },
   {
     name: "Grey",
+    isLowStock: false,
     thumbnail: typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src,
     images: [
       typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src,
@@ -56,7 +60,8 @@ export default function ProductDetails() {
   const [isHoveringImage, setIsHoveringImage] = useState(false);
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
-  const { openCart } = useDrawer();
+  const { openCart: openCartDrawer } = useDrawer();
+  const addItemToCart = useCartStore((state) => state.addItem);
 
   // Stock-out sizes logic
   const stockOutSizes = ["XXL"];
@@ -100,7 +105,18 @@ export default function ProductDetails() {
   };
 
   const handleAddToCart = () => {
-    openCart();
+    addItemToCart(
+      {
+        id: `oakwood-long-sleeve-${activeColor.name.toLowerCase()}`,
+        name: 'Oakwood Long sleeve',
+        price: '৳899 BDT',
+        color: activeColor.name,
+        size: selectedSize,
+        imageUrl: currentImage,
+      },
+      quantity
+    );
+    openCartDrawer();
   };
 
   return (
@@ -131,11 +147,11 @@ export default function ProductDetails() {
             transition={{ duration: 0.3 }}
           />
 
-          {/* Web Custom Floating Circle Cursor ("NEXT" or "PREVIOUS" - No Icon) */}
+          {/* Web Custom Floating Larger Circle Cursor ("NEXT" or "PREVIOUS" - Increased Size) */}
           <AnimatePresence>
             {showCursor && (
               <motion.div
-                className="pointer-events-none absolute z-30 flex items-center justify-center rounded-full bg-[#050505] text-white size-[88px] shadow-xl -translate-x-1/2 -translate-y-1/2"
+                className="pointer-events-none absolute z-30 flex items-center justify-center rounded-full bg-[#050505] text-white size-[108px] shadow-2xl -translate-x-1/2 -translate-y-1/2"
                 style={{
                   left: cursorPos.x,
                   top: cursorPos.y,
@@ -145,7 +161,7 @@ export default function ProductDetails() {
                 exit={{ scale: 0, opacity: 0 }}
                 transition={{ type: "spring", damping: 22, stiffness: 320 }}
               >
-                <span className="font-sans text-[13px] font-semibold uppercase tracking-[1px] text-white">
+                <span className="font-sans text-[15px] font-bold uppercase tracking-[1.5px] text-white">
                   {cursorText}
                 </span>
               </motion.div>
@@ -177,7 +193,7 @@ export default function ProductDetails() {
         <div className="w-full min-h-[calc(100vh-64px)] flex items-start justify-center p-[36px] shrink-0 self-stretch">
           <div className="content-stretch flex flex-col gap-[28px] items-start relative shrink-0 w-full max-w-[460px]">
             
-            {/* Header Title & Price (Big Shoulders Font, 28px, 32px line-height, 600 weight) */}
+            {/* Header Title & Price */}
             <div className="content-stretch flex flex-col gap-[20px] items-start relative shrink-0 w-full">
               <div className="[word-break:break-word] content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full whitespace-nowrap">
                 <p
@@ -209,10 +225,15 @@ export default function ProductDetails() {
               </div>
             </div>
 
-            {/* Color Swatch Selectors (1px border on active swatch) */}
+            {/* Color Swatch Selectors (Red Low Stock Warning when applicable) */}
             <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full">
               <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#1c1c1c] text-[17px] tracking-[-0.34px] whitespace-nowrap">
                 Color: <span className="font-medium">{activeColor.name}</span>
+                {activeColor.isLowStock && (
+                  <span className="text-[#d4183d] font-normal text-[15px] ml-[6px] tracking-normal font-sans">
+                    (Low Stock)
+                  </span>
+                )}
               </p>
               <div className="content-stretch flex gap-[12px] items-center relative shrink-0">
                 {colorVariants.map((c, idx) => (
@@ -297,7 +318,7 @@ export default function ProductDetails() {
               </div>
             </div>
 
-            {/* Primary Add to Cart Button (12px padding) */}
+            {/* Primary Add to Cart Button */}
             <button
               type="button"
               onClick={handleAddToCart}

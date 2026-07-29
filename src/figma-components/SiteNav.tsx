@@ -1,4 +1,5 @@
 'use client';
+import { useCartStore } from '@/lib/store/cart-store';
 
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -26,6 +27,14 @@ export function SiteNav({
   const router = useRouter();
   const pathname = usePathname();
   const { openMenu, openCart } = useDrawer();
+  const cartItems = useCartStore((state) => state.items);
+  const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  const storeOpenCart = useCartStore((state) => state.openCart);
+
+  const handleCartClick = () => {
+    openCart();
+    storeOpenCart();
+  };
 
   // Exclude marquee on signin, signup, profile, and checkout pages
   const excludedMarqueeRoutes = ["/signin", "/signup", "/profile", "/checkout"];
@@ -167,7 +176,7 @@ export function SiteNav({
 
           <button
             type="button"
-            onClick={openCart}
+            onClick={handleCartClick}
             className="nav-link"
             style={{
               ...navLinkStyle,
@@ -177,7 +186,7 @@ export function SiteNav({
               margin: 0,
             }}
           >
-            <p className="relative shrink-0" style={{ margin: 0, cursor: "pointer", fontSize: "17px" }}>CART</p>
+            <p className="relative shrink-0" style={{ margin: 0, cursor: "pointer", fontSize: "17px" }}>CART {cartCount > 0 ? `(${cartCount})` : ""}</p>
           </button>
 
           <Link

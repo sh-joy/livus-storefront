@@ -10,15 +10,42 @@ import imgImage115 from "./147bb3d7a50a487cfcb2163c878fc1a5c25e19e6.png";
 import imgImage114 from "./71b3cd582dab7174e13346a8d88abe33548d2aa7.png";
 import imgFrame1597881192 from "./cd8123b8a9ab8a34443daf47f95966a2cb8719ce.png";
 
-// Swatch color variants
-const colors = [
-  { name: "Yellow", img: typeof imgFrame1597881192 === 'string' ? imgFrame1597881192 : imgFrame1597881192?.src },
-  { name: "Black", img: typeof imgImage115 === 'string' ? imgImage115 : imgImage115?.src },
-  { name: "Grey", img: typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src },
+// Color Variants with independent gallery image arrays
+const colorVariants = [
+  {
+    name: "Yellow",
+    thumbnail: typeof imgFrame1597881192 === 'string' ? imgFrame1597881192 : imgFrame1597881192?.src,
+    images: [
+      typeof imgFrame1597881192 === 'string' ? imgFrame1597881192 : imgFrame1597881192?.src,
+      typeof imgImage115 === 'string' ? imgImage115 : imgImage115?.src,
+      typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src,
+    ],
+  },
+  {
+    name: "Black",
+    thumbnail: typeof imgImage115 === 'string' ? imgImage115 : imgImage115?.src,
+    images: [
+      typeof imgImage115 === 'string' ? imgImage115 : imgImage115?.src,
+      typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src,
+      typeof imgFrame1597881192 === 'string' ? imgFrame1597881192 : imgFrame1597881192?.src,
+      typeof imgImage115 === 'string' ? imgImage115 : imgImage115?.src,
+      typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src,
+      typeof imgFrame1597881192 === 'string' ? imgFrame1597881192 : imgFrame1597881192?.src,
+    ],
+  },
+  {
+    name: "Grey",
+    thumbnail: typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src,
+    images: [
+      typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src,
+      typeof imgImage115 === 'string' ? imgImage115 : imgImage115?.src,
+    ],
+  },
 ];
 
 export default function ProductDetails() {
   const [selectedColorIdx, setSelectedColorIdx] = useState(0);
+  const [currentImageIdx, setCurrentImageIdx]   = useState(0);
   const [selectedSize, setSelectedSize]         = useState("XL");
   const [quantity, setQuantity]                 = useState(3);
   const [showGuide, setShowGuide]               = useState(false);
@@ -30,11 +57,13 @@ export default function ProductDetails() {
 
   const { openCart } = useDrawer();
 
-  // Out of stock sizes logic
+  // Stock-out sizes logic
   const stockOutSizes = ["XXL"];
   const sizes = ["S", "M", "XL", "XXL"];
 
-  const activeColor = colors[selectedColorIdx];
+  const activeColor = colorVariants[selectedColorIdx];
+  const activeGallery = activeColor.images;
+  const currentImage = activeGallery[currentImageIdx] || activeColor.thumbnail;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!imageContainerRef.current) return;
@@ -46,7 +75,12 @@ export default function ProductDetails() {
   };
 
   const handleNextImage = () => {
-    setSelectedColorIdx((prev) => (prev + 1) % colors.length);
+    setCurrentImageIdx((prev) => (prev + 1) % activeGallery.length);
+  };
+
+  const handleSelectColor = (idx: number) => {
+    setSelectedColorIdx(idx);
+    setCurrentImageIdx(0); // Reset gallery pagination to 0 for selected color
   };
 
   const handleAddToCart = () => {
@@ -58,8 +92,8 @@ export default function ProductDetails() {
       <SiteNav />
       <SizingGuideModal isOpen={showGuide} onClose={() => setShowGuide(false)} />
 
-      {/* Main Product Hero Grid: 1.5fr on left, 1fr on right, items-center */}
-      <div className="w-full grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] items-center relative shrink-0">
+      {/* Main Product Hero Grid: 1.5fr on left, 1fr on right, items-start */}
+      <div className="w-full grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] items-start relative shrink-0">
         
         {/* Left: 1.5fr Image Container with unconstrained height & custom "DRAG ->" cursor */}
         <div
@@ -72,10 +106,10 @@ export default function ProductDetails() {
         >
           {/* Main Display Image */}
           <motion.img
-            key={activeColor.img}
+            key={currentImage}
             alt="Oakwood Long sleeve"
             className="absolute inset-0 size-full object-cover"
-            src={activeColor.img}
+            src={currentImage}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
@@ -105,18 +139,18 @@ export default function ProductDetails() {
             )}
           </AnimatePresence>
 
-          {/* Bottom Center Pagination Indicators (Corner radius 0, Active color BLACK #050505) */}
+          {/* Bottom Center Pagination Indicators (Corner radius 0, Active color BLACK #050505, dynamic count per color gallery) */}
           <div className="absolute bottom-[24px] left-1/2 -translate-x-1/2 z-20 flex gap-[6px] items-center">
-            {colors.map((_, idx) => (
+            {activeGallery.map((_, idx) => (
               <button
                 key={idx}
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setSelectedColorIdx(idx);
+                  setCurrentImageIdx(idx);
                 }}
                 className={`h-[6px] transition-all duration-300 cursor-pointer rounded-none ${
-                  selectedColorIdx === idx
+                  currentImageIdx === idx
                     ? "w-[24px] bg-[#050505]"
                     : "w-[16px] bg-[#d0d0d0] hover:bg-neutral-400"
                 }`}
@@ -126,14 +160,22 @@ export default function ProductDetails() {
           </div>
         </div>
 
-        {/* Right: 1fr Product Details Panel (Aligned Vertically Center) */}
-        <div className="w-full min-h-[calc(100vh-64px)] flex items-center justify-center p-[36px] shrink-0 self-stretch">
+        {/* Right: 1fr Product Details Panel */}
+        <div className="w-full flex items-start justify-center p-[36px] shrink-0">
           <div className="content-stretch flex flex-col gap-[28px] items-start relative shrink-0 w-full max-w-[460px]">
             
-            {/* Header Title & Price */}
+            {/* Header Title & Price (Exact 28px, 32px line-height, 600 weight, Barlow Semi Condensed) */}
             <div className="content-stretch flex flex-col gap-[20px] items-start relative shrink-0 w-full">
               <div className="[word-break:break-word] content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full whitespace-nowrap">
-                <p className="font-serif font-semibold leading-[36px] relative shrink-0 text-[#1c1c1c] text-[32px] tracking-[-0.64px]">
+                <p
+                  className="font-sans font-semibold relative shrink-0 text-[#1c1c1c]"
+                  style={{
+                    fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                    fontSize: "28px",
+                    lineHeight: "32px",
+                    fontWeight: 600,
+                  }}
+                >
                   Oakwood Long sleeve
                 </p>
                 <div className="content-stretch flex font-sans gap-[8px] items-start leading-[24px] relative shrink-0">
@@ -154,21 +196,21 @@ export default function ProductDetails() {
               </div>
             </div>
 
-            {/* Color Swatches */}
+            {/* Color Swatch Selectors */}
             <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full">
               <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#1c1c1c] text-[17px] tracking-[-0.34px] whitespace-nowrap">
                 Color: <span className="font-medium">{activeColor.name}</span>
               </p>
               <div className="content-stretch flex gap-[12px] items-center relative shrink-0">
-                {colors.map((c, idx) => (
+                {colorVariants.map((c, idx) => (
                   <div
                     key={c.name}
-                    onClick={() => setSelectedColorIdx(idx)}
+                    onClick={() => handleSelectColor(idx)}
                     className={`bg-[#f0f0f0] content-stretch flex h-[90px] items-center justify-center relative shrink-0 w-[80px] cursor-pointer transition-all overflow-hidden ${
                       selectedColorIdx === idx ? "border-2 border-black scale-105" : "opacity-75 hover:opacity-100"
                     }`}
                   >
-                    <img alt={c.name} className="size-full object-cover" src={c.img} />
+                    <img alt={c.name} className="size-full object-cover" src={c.thumbnail} />
                   </div>
                 ))}
               </div>

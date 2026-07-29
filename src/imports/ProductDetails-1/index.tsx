@@ -127,7 +127,7 @@ export default function ProductDetails() {
         </div>
 
         {/* Right: 1fr Product Details Panel (Aligned Vertically Center) */}
-        <div className="w-full flex items-center justify-center p-[36px] shrink-0">
+        <div className="w-full min-h-[calc(100vh-64px)] flex items-center justify-center p-[36px] shrink-0 self-stretch">
           <div className="content-stretch flex flex-col gap-[28px] items-start relative shrink-0 w-full max-w-[460px]">
             
             {/* Header Title & Price */}
@@ -246,7 +246,7 @@ export default function ProductDetails() {
             <button
               type="button"
               onClick={handleAddToCart}
-              className="group relative shrink-0 w-full border border-black bg-transparent py-[14px] px-[20px] cursor-pointer transition-all duration-200 hover:bg-[#050505]"
+              className="group relative shrink-0 w-full border border-black bg-transparent py-[12px] px-[20px] cursor-pointer transition-all duration-200 hover:bg-[#050505]"
             >
               <p className="font-sans leading-[24px] text-[17px] text-black group-hover:text-white uppercase tracking-[0.85px] font-medium transition-colors">
                 Add to cart

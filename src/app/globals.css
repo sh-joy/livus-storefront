@@ -263,3 +263,11 @@ select option[value=""][disabled] {
 select:has(option[value=""][disabled]:checked) {
   color: #808080 !important;
 }
+
+/* ALL PRODUCT CARDS MOUSE POINTER */
+[data-product-card],
+[data-product-card] *,
+[class*="justify-self-stretch"],
+[class*="justify-self-stretch"] * {
+  cursor: pointer !important;
+}

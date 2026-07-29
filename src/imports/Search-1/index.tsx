@@ -48,7 +48,7 @@ function Frame7() {
 
 function Frame13() {
   return (
-    <div className="content-stretch flex flex-col gap-[16px] items-start justify-self-stretch relative self-start shrink-0">
+    <div data-product-card="true" className="content-stretch flex flex-col gap-[16px] items-start justify-self-stretch relative self-start shrink-0 cursor-pointer hover:opacity-95 transition-all">
       <Frame23 />
       <Frame7 />
     </div>
@@ -73,7 +73,7 @@ function Frame8() {
 
 function Frame14() {
   return (
-    <div className="content-stretch flex flex-col gap-[16px] items-start justify-self-stretch relative self-start shrink-0">
+    <div data-product-card="true" className="content-stretch flex flex-col gap-[16px] items-start justify-self-stretch relative self-start shrink-0 cursor-pointer hover:opacity-95 transition-all">
       <div className="aspect-[1000/1334] relative shrink-0 w-full" data-name="image 120">
         <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={typeof imgFrame1597881192 === 'string' ? imgFrame1597881192 : imgFrame1597881192?.src} />
       </div>
@@ -100,7 +100,7 @@ function Frame9() {
 
 function Frame15() {
   return (
-    <div className="content-stretch flex flex-col gap-[16px] items-start justify-self-stretch relative self-start shrink-0">
+    <div data-product-card="true" className="content-stretch flex flex-col gap-[16px] items-start justify-self-stretch relative self-start shrink-0 cursor-pointer hover:opacity-95 transition-all">
       <div className="aspect-[1000/1334] relative shrink-0 w-full" data-name="image 120">
         <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={typeof imgFrame1597881192 === 'string' ? imgFrame1597881192 : imgFrame1597881192?.src} />
       </div>

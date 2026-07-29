@@ -467,7 +467,7 @@ function Frame22() {
 
 function Frame34() {
   return (
-    <div className="content-stretch flex flex-col gap-[16px] items-start justify-self-stretch relative self-start shrink-0">
+    <div data-product-card="true" className="content-stretch flex flex-col gap-[16px] items-start justify-self-stretch relative self-start shrink-0 cursor-pointer hover:opacity-95 transition-all">
       <Frame52 />
       <Frame22 />
     </div>
@@ -492,7 +492,7 @@ function Frame25() {
 
 function Frame35() {
   return (
-    <div className="content-stretch flex flex-col gap-[16px] items-start justify-self-stretch relative self-start shrink-0">
+    <div data-product-card="true" className="content-stretch flex flex-col gap-[16px] items-start justify-self-stretch relative self-start shrink-0 cursor-pointer hover:opacity-95 transition-all">
       <div className="aspect-[3/4] relative shrink-0 w-full" data-name="image 121">
         <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={typeof imgImage121 === 'string' ? imgImage121 : imgImage121?.src} />
         <div className="content-stretch flex items-start p-[16px] relative size-full">
@@ -547,7 +547,7 @@ function Frame26() {
 
 function Frame36() {
   return (
-    <div className="content-stretch flex flex-col gap-[16px] items-start justify-self-stretch relative self-start shrink-0">
+    <div data-product-card="true" className="content-stretch flex flex-col gap-[16px] items-start justify-self-stretch relative self-start shrink-0 cursor-pointer hover:opacity-95 transition-all">
       <Frame54 />
       <Frame26 />
     </div>
@@ -592,7 +592,7 @@ function Frame28() {
 
 function Frame27() {
   return (
-    <div className="content-stretch flex flex-col gap-[16px] items-start justify-self-stretch relative self-start shrink-0">
+    <div data-product-card="true" className="content-stretch flex flex-col gap-[16px] items-start justify-self-stretch relative self-start shrink-0 cursor-pointer hover:opacity-95 transition-all">
       <Frame13 />
       <Frame28 />
     </div>
@@ -637,7 +637,7 @@ function Frame31() {
 
 function Frame29() {
   return (
-    <div className="content-stretch flex flex-col gap-[16px] items-start justify-self-stretch relative self-start shrink-0">
+    <div data-product-card="true" className="content-stretch flex flex-col gap-[16px] items-start justify-self-stretch relative self-start shrink-0 cursor-pointer hover:opacity-95 transition-all">
       <Frame14 />
       <Frame31 />
     </div>
@@ -682,7 +682,7 @@ function Frame40() {
 
 function Frame37() {
   return (
-    <div className="content-stretch flex flex-col gap-[16px] items-start justify-self-stretch relative self-start shrink-0">
+    <div data-product-card="true" className="content-stretch flex flex-col gap-[16px] items-start justify-self-stretch relative self-start shrink-0 cursor-pointer hover:opacity-95 transition-all">
       <Frame38 />
       <Frame40 />
     </div>

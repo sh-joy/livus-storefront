@@ -9,7 +9,7 @@ export function NavigationWrapper({ children }: { children: React.ReactNode }) {
   const handleClick = (e: React.MouseEvent) => {
     let el: HTMLElement | null = e.target as HTMLElement;
 
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 10; i++) {
       if (!el) break;
 
       const text = el.textContent?.trim();
@@ -32,22 +32,29 @@ export function NavigationWrapper({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Product Click
+      // Product Card Click detection
       if (
-        text === "Custom Athletic Jersey" ||
-        text === "New York Varsity Tee" ||
-        text === "Pro Match Kit Jersey" ||
-        text === "Apex Geometric Jersey" ||
-        text === "Apex Match Kit" ||
-        text === "Apex Pro Jersey" ||
-        (el.getAttribute?.("class") || "").includes("justify-self-stretch")
+        el.getAttribute?.("data-product-card") === "true" ||
+        (el.getAttribute?.("class") || "").includes("justify-self-stretch") ||
+        (text && (
+          text.includes("OWAYO") ||
+          text.includes("NIXON") ||
+          text.includes("CROSS FADE") ||
+          text.includes("TIME TELLER") ||
+          text.includes("Custom Athletic") ||
+          text.includes("Varsity Tee") ||
+          text.includes("Match Kit") ||
+          text.includes("Geometric")
+        ))
       ) {
-        router.push("/product");
-        return;
+        if (!text?.includes("Copyright") && !text?.includes("Subscribe")) {
+          router.push("/product");
+          return;
+        }
       }
 
       // Search
-      if (text === "Search" || text?.toLowerCase().includes("search")) {
+      if (text === "Search" || text?.toLowerCase() === "search") {
         if (el.tagName === "BUTTON" || el.tagName === "A" || el.tagName === "P" || el.tagName === "DIV") {
           router.push("/search");
           return;

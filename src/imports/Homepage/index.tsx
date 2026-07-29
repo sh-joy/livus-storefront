@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useRouter } from 'next/navigation';
 import { SiteNav } from '@/figma-components/SiteNav';
 import { SiteFooter } from '@/figma-components/SiteFooter';

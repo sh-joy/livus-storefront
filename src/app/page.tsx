@@ -1,11 +1,12 @@
 'use client';
 
 import Homepage from '@/imports/Homepage';
+import { NavigationWrapper } from '@/components/NavigationWrapper';
 
 export default function Page() {
   return (
-    <main className="w-full min-h-screen bg-white">
+    <NavigationWrapper>
       <Homepage />
-    </main>
+    </NavigationWrapper>
   );
 }

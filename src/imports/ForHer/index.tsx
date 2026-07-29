@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { SiteNav } from '@/figma-components/SiteNav';
 import { SiteFooter } from '@/figma-components/SiteFooter';
 import svgPaths from "./svg-uck01nnure";

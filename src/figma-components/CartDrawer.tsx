@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useDrawer } from "./DrawerContext";
-import { useCartStore } from "@/lib/store/cart-store";
+import { useCartStore, getCartItemKey } from "@/lib/store/cart-store";
 import imgImage114 from "@/imports/Cart/71b3cd582dab7174e13346a8d88abe33548d2aa7.png";
 
 function ProductImage({ src }: { src?: string | null }) {
@@ -98,59 +98,63 @@ export function CartDrawer() {
                     <p className="font-sans text-[18px]">Your cart is empty</p>
                   </div>
                 ) : (
-                  items.map((item, index) => (
-                    <div key={item.product.id} className="w-full flex flex-col gap-[20px]">
-                      {index > 0 && <div className="w-full h-px bg-[#E2E2E2] shrink-0" />}
-                      <div className="flex gap-[16px] items-start w-full shrink-0">
-                        <ProductImage src={item.product.imageUrl} />
-                        <div className="flex-1 flex flex-col justify-between py-[3px] self-stretch min-w-0">
-                          <div className="flex items-start justify-between w-full whitespace-nowrap leading-[24px] text-[#1c1c1c]">
-                            <div className="font-sans flex flex-col items-start shrink-0">
-                              <p className="text-[17px] font-medium tracking-[-0.34px]">{item.product.name}</p>
-                              {item.product.color && <p className="text-[17px] tracking-[-0.085px]">Color: {item.product.color}</p>}
-                              {item.product.size && <p className="text-[17px] tracking-[-0.085px]">Size: {item.product.size}</p>}
+                  items.map((item, index) => {
+                    const itemKey = getCartItemKey(item.product);
+                    return (
+                      <div key={itemKey} className="w-full flex flex-col gap-[20px]">
+                        {index > 0 && <div className="w-full h-px bg-[#E2E2E2] shrink-0" />}
+                        <div className="flex gap-[16px] items-start w-full shrink-0">
+                          <ProductImage src={item.product.imageUrl} />
+                          <div className="flex-1 flex flex-col justify-between py-[3px] self-stretch min-w-0">
+                            <div className="flex items-start justify-between w-full whitespace-nowrap leading-[24px] text-[#1c1c1c]">
+                              <div className="font-sans flex flex-col items-start shrink-0">
+                                <p className="text-[17px] font-medium tracking-[-0.34px]">{item.product.name}</p>
+                                {item.product.color && <p className="text-[17px] tracking-[-0.085px]">Color: {item.product.color}</p>}
+                                {item.product.size && <p className="text-[17px] tracking-[-0.085px]">Size: {item.product.size}</p>}
+                              </div>
+                              <p className="font-sans text-[17px] font-medium shrink-0">{item.product.price}</p>
                             </div>
-                            <p className="font-sans text-[17px] font-medium shrink-0">{item.product.price}</p>
-                          </div>
-                          <div className="flex items-center justify-between w-full shrink-0">
-                            <div className="flex gap-[16px] items-center">
-                              <button
-                                type="button"
-                                disabled={item.quantity <= 1}
-                                onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                                className={`size-[20px] flex items-center justify-center transition-opacity ${
-                                  item.quantity <= 1 ? "opacity-30 cursor-not-allowed" : "cursor-pointer hover:opacity-75"
-                                }`}
-                                aria-label="Decrease quantity"
+                            <div className="flex items-center justify-between w-full shrink-0">
+                              <div className="flex gap-[16px] items-center">
+                                <button
+                                  type="button"
+                                  disabled={item.quantity <= 1}
+                                  onClick={() => updateQuantity(itemKey, item.quantity - 1)}
+                                  className={`size-[20px] flex items-center justify-center transition-opacity ${
+                                    item.quantity <= 1 ? "opacity-30 cursor-not-allowed" : "cursor-pointer hover:opacity-75"
+                                  }`}
+                                  aria-label="Decrease quantity"
+                                >
+                                  <svg fill="none" height="20" viewBox="0 0 20 20" width="20" className="block size-full">
+                                    <path d="M2.92893 10H17.0711" stroke="black" strokeLinejoin="round" strokeWidth="1.2" />
+                                  </svg>
+                                </button>
+                                <p className="font-sans leading-[20px] text-[17px] tracking-[-0.34px] text-[#1c1c1c]">
+                                  {item.quantity}
+                                </p>
+                                <button
+                                  type="button"
+                                  onClick={() => updateQuantity(itemKey, item.quantity + 1)}
+                                  className="size-[20px] flex items-center justify-center cursor-pointer"
+                                >
+                                  <svg fill="none" height="20" viewBox="0 0 20 20" width="20" className="block size-full">
+                                    <path d="M10 2.92893V17.0711" stroke="black" strokeLinejoin="round" strokeWidth="1.2" />
+                                    <path d="M2.92893 10H17.0711" stroke="black" strokeLinejoin="round" strokeWidth="1.2" />
+                                  </svg>
+                                </button>
+                              </div>
+                              <p
+                                onClick={() => removeItem(itemKey)}
+                                className="font-sans leading-[24px] text-[17px] tracking-[-0.085px] underline text-[#1c1c1c] cursor-pointer"
                               >
-                                <svg fill="none" height="20" viewBox="0 0 20 20" width="20" className="block size-full">
-                                  <path d="M2.92893 10H17.0711" stroke="black" strokeLinejoin="round" strokeWidth="1.2" />
-                                </svg>
-                              </button>
-                              <p className="font-sans leading-[20px] text-[17px] tracking-[-0.34px] text-[#1c1c1c]">
-                                {item.quantity}
+                                Remove
                               </p>
-                              <button
-                                onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                                className="size-[20px] flex items-center justify-center cursor-pointer"
-                              >
-                                <svg fill="none" height="20" viewBox="0 0 20 20" width="20" className="block size-full">
-                                  <path d="M10 2.92893V17.0711" stroke="black" strokeLinejoin="round" strokeWidth="1.2" />
-                                  <path d="M2.92893 10H17.0711" stroke="black" strokeWidth="1.2" strokeLinejoin="round" />
-                                </svg>
-                              </button>
                             </div>
-                            <p
-                              onClick={() => removeItem(item.product.id)}
-                              className="font-sans leading-[24px] text-[17px] tracking-[-0.085px] underline text-[#1c1c1c] cursor-pointer"
-                            >
-                              Remove
-                            </p>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
 

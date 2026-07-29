@@ -15,14 +15,17 @@ export interface CartItem {
   quantity: number;
 }
 
+export const getCartItemKey = (p: { id: string; color?: string; size?: string }) =>
+  `${p.id}-${p.color || ''}-${p.size || ''}`;
+
 interface CartState {
   items: CartItem[];
   isOpen: boolean;
 
   // Actions
   addItem: (product: CartProduct, quantity?: number) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  removeItem: (itemKey: string) => void;
+  updateQuantity: (itemKey: string, quantity: number) => void;
   clearCart: () => void;
 
   // UI Toggles
@@ -34,22 +37,18 @@ interface CartState {
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
-      // Empty by default as requested by user
       items: [],
       isOpen: false,
 
       addItem: (product, quantity = 1) => {
         const currentItems = get().items;
-        // Key by product id + color + size combination
-        const itemKey = `${product.id}-${product.color || ''}-${product.size || ''}`;
-        const existingItem = currentItems.find(
-          (i) => `${i.product.id}-${i.product.color || ''}-${i.product.size || ''}` === itemKey
-        );
+        const targetKey = getCartItemKey(product);
+        const existingItem = currentItems.find((i) => getCartItemKey(i.product) === targetKey);
 
         if (existingItem) {
           set({
             items: currentItems.map((i) =>
-              `${i.product.id}-${i.product.color || ''}-${i.product.size || ''}` === itemKey
+              getCartItemKey(i.product) === targetKey
                 ? { ...i, quantity: i.quantity + quantity }
                 : i
             ),
@@ -63,18 +62,18 @@ export const useCartStore = create<CartState>()(
         }
       },
 
-      removeItem: (productId) => {
-        set({ items: get().items.filter((i) => i.product.id !== productId) });
+      removeItem: (itemKey: string) => {
+        set({ items: get().items.filter((i) => getCartItemKey(i.product) !== itemKey) });
       },
 
-      updateQuantity: (productId, quantity) => {
+      updateQuantity: (itemKey: string, quantity: number) => {
         if (quantity <= 0) {
-          set({ items: get().items.filter((i) => i.product.id !== productId) });
+          set({ items: get().items.filter((i) => getCartItemKey(i.product) !== itemKey) });
           return;
         }
         set({
           items: get().items.map((i) =>
-            i.product.id === productId ? { ...i, quantity } : i
+            getCartItemKey(i.product) === itemKey ? { ...i, quantity } : i
           ),
         });
       },
@@ -86,7 +85,7 @@ export const useCartStore = create<CartState>()(
       toggleCart: () => set({ isOpen: !get().isOpen }),
     }),
     {
-      name: 'livus-store-cart-v2',
+      name: 'livus-store-cart-v3',
     }
   )
 );

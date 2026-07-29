@@ -1,0 +1,43 @@
+/* LIVUS Design Tokens */
+:root {
+  /* --- Ink (text) --- */
+  --ink: #1a1a1a;
+  --ink-muted: #606060;
+  --ink-faint: #999999;
+  --ink-on-dark: #ffffff;
+  --ink-on-dark-muted: #cccccc;
+
+  /* --- Surfaces --- */
+  --surface: #ffffff;
+  --surface-subtle: #f0f0f0;
+  --surface-dark: #0d0d0d;
+  --surface-dark-raised: #1a1a1a;
+
+  /* --- Borders --- */
+  --border: #e2e2e2;
+  --border-mid: #9a9a9a;
+  --border-on-dark: #404040;
+
+  /* --- CTAs --- */
+  --cta-bg: #0d0d0d;
+  --cta-fg: #ffffff;
+  --cta-inverse-bg: #ffffff;
+  --cta-inverse-fg: #0d0d0d;
+
+  /* --- Overlays --- */
+  --overlay: rgba(0, 0, 0, 0.25);
+  --nav-glass: rgba(255, 255, 255, 0.55);
+
+  /* --- Input states --- */
+  --input-border-default: #9a9a9a;
+  --input-border-active: #1a1a1a;
+  --input-border-complete: #1a1a1a;
+
+  --input-border-dark-default: #404040;
+  --input-border-dark-active: #ffffff;
+  --input-border-dark-complete: #ffffff;
+
+  /* --- Typography --- */
+  --font-display: 'Big Shoulders Display', sans-serif;
+  --font-body: 'Barlow Semi Condensed', sans-serif;
+}

@@ -1,0 +1,1 @@
+chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/content_scripts/express/browser-image-viewer/browser-image-viewer-content-script.js

@@ -1,0 +1,1 @@
+chrome-extension://pccckmaobkjjboncdfnnofkonhgpceea/plugins/mediawiki_a.js

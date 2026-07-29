@@ -1,0 +1,265 @@
+@import "tailwindcss";
+
+/* Local WOFF2 Font-Face Definitions */
+@font-face {
+  font-family: 'Big Shoulders';
+  src: url('/fonts/big-shoulders-display.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Big Shoulders Display';
+  src: url('/fonts/big-shoulders-display.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Barlow Semi Condensed';
+  src: url('/fonts/barlow-semi-condensed.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: 'Barlow Semi Condensed', sans-serif;
+  --font-serif: 'Big Shoulders', 'Big Shoulders Display', sans-serif;
+  --font-heading: 'Big Shoulders', 'Big Shoulders Display', sans-serif;
+}
+
+:root {
+  --font-size: 16px;
+  --background: #ffffff;
+  --foreground: oklch(0.145 0 0);
+  --card: #ffffff;
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: #030213;
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.95 0.0058 264.53);
+  --secondary-foreground: #030213;
+  --muted: #ececf0;
+  --muted-foreground: #717182;
+  --accent: #e9ebef;
+  --accent-foreground: #030213;
+  --destructive: #d4183d;
+  --destructive-foreground: #ffffff;
+  --border: rgba(0, 0, 0, 0.1);
+  --input: transparent;
+  --input-background: #f3f3f5;
+  --switch-background: #cbced4;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --radius: 0.625rem;
+}
+
+/* Base Body Font */
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  overflow-x: clip !important;
+  overflow-y: visible !important;
+  font-family: 'Barlow Semi Condensed', sans-serif;
+  background-color: #ffffff;
+  color: #050505;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  height: 100%;
+}
+
+.size-full {
+  width: 100%;
+  height: 100%;
+}
+
+/* STICKY HEADER & RELATIVE MARQUEE ACCORDING TO SPECIFICATIONS */
+.bg-black.relative.shrink-0.w-full,
+.sticky_bar_marquee {
+  position: relative !important;
+  top: 0px !important;
+  z-index: 10000 !important;
+  margin: 0px !important;
+  display: block !important;
+  height: auto !important;
+  min-height: 40px !important;
+}
+
+.site-header-fixed {
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  top: 0px !important;
+  z-index: 9999 !important;
+  margin: 0px !important;
+  display: flex !important;
+  margin-top: 0px !important;
+  transform: none !important;
+  width: 100% !important;
+}
+
+nav.site-header-fixed[class*="backdrop-blur-[100px]"],
+nav.site-header-fixed,
+.site-header-fixed {
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  top: 0px !important;
+  z-index: 9999 !important;
+  margin: 0px !important;
+  display: flex !important;
+  margin-top: 0px !important;
+  transform: none !important;
+  width: 100% !important;
+}
+
+/* BIG SHOULDERS FOR ALL HEADLINES & SERIF ELEMENTS WITH -1.5% LETTER SPACING */
+.font-serif,
+.font-heading,
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Big Shoulders', 'Big Shoulders Display', sans-serif !important;
+  font-optical-sizing: auto !important;
+  letter-spacing: -0.015em;
+}
+
+/* LIVUS LOGO STYLE: 9px LETTER SPACING & 600 FONT WEIGHT */
+.livus-logo,
+[class*="tracking-[9px]"] {
+  font-family: 'Big Shoulders', 'Big Shoulders Display', sans-serif !important;
+  letter-spacing: 9px !important;
+  font-weight: 600 !important;
+}
+
+/* BARLOW SEMI CONDENSED FOR SANS BODY COPY */
+.font-sans {
+  font-family: 'Barlow Semi Condensed', sans-serif;
+}
+
+/* Navigation items & CTA buttons: Restore pointer cursor */
+.nav-link,
+.nav-link *,
+nav button,
+nav a,
+nav p,
+nav span,
+header button,
+header a,
+[class*="SiteNav"] button,
+[class*="SiteNav"] p,
+[class*="SiteNav"] a,
+.btn-group button,
+.btn-group p,
+.btn-group a,
+[data-name*="Status"],
+.shop-cta-btn,
+.shop-cta-btn * {
+  cursor: pointer !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+/* BUTTON GROUP HOVER FADE ACROSS NAVBAR ITEMS AND FOOTER LINKS */
+.btn-group p,
+.btn-group span,
+.btn-group button,
+.btn-group a,
+.nav-link {
+  transition: opacity 0.2s ease !important;
+}
+
+.btn-group:has(.nav-link:hover) .nav-link:not(:hover),
+.btn-group:has(p:hover) p:not(:hover),
+.btn-group:has(p:hover) button:not(:hover),
+.btn-group:has(p:hover) a:not(:hover),
+.btn-group:has(button:hover) p:not(:hover),
+.btn-group:has(button:hover) button:not(:hover),
+.btn-group:has(button:hover) a:not(:hover),
+.btn-group:has(a:hover) p:not(:hover),
+.btn-group:has(a:hover) button:not(:hover),
+.btn-group:has(a:hover) a:not(:hover) {
+  opacity: 0.4 !important;
+}
+
+/* PRODUCT STRIKETHROUGH ORIGINAL PRICE REGULAR WEIGHT 400 */
+.line-through,
+[class*="line-through"] {
+  font-weight: 400 !important;
+}
+
+/* INPUT RESETS */
+input,
+textarea {
+  background: transparent;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  border: none;
+}
+
+/* PAYMENT METHOD BUTTON STYLES */
+.button-group {
+  display: flex;
+  gap: 10px;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  cursor: pointer;
+  background-color: transparent;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+  border-radius: 0;
+  transition: border-color 0.15s ease;
+  font-family: 'Barlow Semi Condensed', sans-serif;
+  color: #1a1a1a;
+  flex: 1;
+}
+
+.btn-primary {
+  border: 1px solid #1a1a1a !important;
+}
+
+.btn-secondary {
+  border: 1px solid rgb(204, 204, 204) !important;
+}
+
+/* SEAMLESS INFINITE MARQUEE ANIMATION */
+@keyframes livus-marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-livus-marquee {
+  display: flex !important;
+  width: max-content !important;
+  animation: livus-marquee 24s linear infinite !important;
+}
+
+.animate-livus-marquee:hover {
+  animation-play-state: paused !important;
+}
+
+/* UNIFIED PLACEHOLDER & DROPDOWN COLOR SHADE */
+input::placeholder,
+textarea::placeholder,
+.placeholder-muted::placeholder,
+select:invalid,
+select option[value=""][disabled] {
+  color: #808080 !important;
+  opacity: 1 !important;
+}
+
+select:has(option[value=""][disabled]:checked) {
+  color: #808080 !important;
+}

@@ -1,0 +1,1 @@
+chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/content_scripts/chatgpt/chatgpt-convert-to-pdf-fte.js

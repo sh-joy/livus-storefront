@@ -1,0 +1,1 @@
+chrome-extension://pccckmaobkjjboncdfnnofkonhgpceea/plugins/scryfall_a.js

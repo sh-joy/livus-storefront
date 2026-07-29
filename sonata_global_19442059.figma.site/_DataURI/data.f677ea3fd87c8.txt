@@ -1,0 +1,1 @@
+chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/content_scripts/express/google-ai-mode/google-ai-mode-express-fte.js

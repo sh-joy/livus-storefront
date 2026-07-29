@@ -1,0 +1,1 @@
+chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/content_scripts/gdrive/fte/gdrive-convert-attachment-card-fte.js

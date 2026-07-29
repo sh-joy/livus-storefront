@@ -1,0 +1,99 @@
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  height: 100%;
+}
+
+/* ── Responsive overrides ── */
+[class*="w-[1400px]"],
+.w-\[1400px\] {
+  width: 100% !important;
+}
+
+[class*="h-[861px]"] {
+  height: auto !important;
+  min-height: 600px;
+}
+
+.size-full {
+  width: 100%;
+  height: 100%;
+}
+
+[data-name] {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* ── Cursor pointer on all interactive elements ── */
+button,
+a,
+[role="button"],
+[class*="cursor-pointer"] {
+  cursor: pointer;
+}
+
+/* Nav <p> and <span> elements in Figma imports that act as buttons */
+[class*="tracking-[0.85px]"] p,
+[class*="tracking-[0.85px]"] span {
+  cursor: pointer;
+}
+
+/* ── Button group hover fade ──
+   Usage: add class="btn-group" to a flex container of sibling buttons.
+   Hover one → siblings fade to 40%.
+*/
+.btn-group > * {
+  transition: opacity 0.2s ease;
+}
+
+.btn-group:has(> *:hover) > *:not(:hover) {
+  opacity: 0.4;
+}
+
+/* Apply to Figma import nav button groups (right rail: Search / Cart / Sign in) */
+[class*="w-[500px]"][class*="gap-[36px]"] > * {
+  transition: opacity 0.2s ease;
+  cursor: pointer;
+}
+
+[class*="w-[500px]"][class*="gap-[36px]"]:has(> *:hover) > *:not(:hover) {
+  opacity: 0.4;
+}
+
+/* Footer link columns in Figma imports */
+[class*="gap-[16px]"][class*="flex-col"] > p {
+  transition: opacity 0.2s ease;
+  cursor: pointer;
+}
+
+[class*="gap-[16px]"][class*="flex-col"]:has(> p:hover) > p:not(:hover) {
+  opacity: 0.4;
+}
+
+/* ── Input element resets ── */
+input,
+textarea {
+  background: transparent;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  border: none;
+}
+
+input::placeholder {
+  color: var(--ink-faint);
+  font-family: var(--font-body);
+}
+
+/* InputField placeholder variants */
+.livus-input { background: transparent; outline: none; border: none; }
+.livus-input.placeholder-gray::placeholder  { color: #999999; }
+.livus-input.placeholder-muted::placeholder { color: #565454; }

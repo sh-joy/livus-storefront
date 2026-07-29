@@ -1,0 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700&family=Barlow+Semi+Condensed:wght@400;500&display=swap');
+
+/* Map Figma-specific font family names to loaded Google Fonts */
+[class*="Big_Shoulders_Display"] {
+  font-family: 'Big Shoulders Display', sans-serif !important;
+}
+
+[class*="Barlow_Semi_Condensed"] {
+  font-family: 'Barlow Semi Condensed', sans-serif !important;
+}
+

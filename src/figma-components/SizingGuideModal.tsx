@@ -6,7 +6,7 @@ function Row({ label, bold }: { label: string; bold?: boolean }) {
   return (
     <div className="content-stretch flex items-center justify-center py-[12px] relative shrink-0 w-full">
       <div aria-hidden className="absolute border-[#e2e2e2] border-b border-solid inset-0 pointer-events-none" />
-      <p className={`[word-break:break-word] flex-[1_0_0] ${bold ? "font-sans" : "font-sans"} leading-[24px] min-w-px not-italic relative text-[#1a1a1a] text-[17px] tracking-[-0.085px]`}>
+      <p className={`[word-break:break-word] flex-[1_0_0] ${bold ? "font-sans font-medium" : "font-sans"} leading-[24px] min-w-px not-italic relative text-[#1a1a1a] text-[17px] tracking-[-0.085px]`}>
         {label}
       </p>
     </div>
@@ -17,7 +17,7 @@ function Cell({ value, bold }: { value: string; bold?: boolean }) {
   return (
     <div className="content-stretch flex items-center justify-center p-[12px] relative shrink-0">
       <div aria-hidden className="absolute border-[#e2e2e2] border-b border-solid inset-0 pointer-events-none" />
-      <p className={`[word-break:break-word] ${bold ? "font-sans" : "font-sans"} leading-[24px] not-italic relative shrink-0 text-[#1a1a1a] text-[17px] tracking-[-0.085px] w-[40px]`}>
+      <p className={`[word-break:break-word] ${bold ? "font-sans font-medium" : "font-sans"} leading-[24px] not-italic relative shrink-0 text-[#1a1a1a] text-[17px] tracking-[-0.085px] w-[40px]`}>
         {value}
       </p>
     </div>
@@ -32,12 +32,20 @@ const sizes = [
   { size: "XL", length: '26.5"', body: '22"',   sleeve: '10"'  },
 ];
 
-export function SizingGuideModal() {
+interface SizingGuideModalProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export function SizingGuideModal({ isOpen, onClose }: SizingGuideModalProps = {}) {
   const { sizingGuideOpen, closeSizingGuide } = useDrawer();
+
+  const isVisible = isOpen !== undefined ? isOpen : sizingGuideOpen;
+  const handleClose = onClose !== undefined ? onClose : closeSizingGuide;
 
   return (
     <AnimatePresence>
-      {sizingGuideOpen && (
+      {isVisible && (
         <motion.div
           className="fixed inset-0 z-50 flex items-center justify-center"
           style={{ backgroundColor: "rgba(0,0,0,0.25)" }}
@@ -45,7 +53,7 @@ export function SizingGuideModal() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          onClick={closeSizingGuide}
+          onClick={handleClose}
         >
           <motion.div
             className="bg-white content-stretch flex flex-col gap-[12px] items-center overflow-clip p-[20px] w-[560px] max-w-[calc(100vw-32px)]"
@@ -58,7 +66,7 @@ export function SizingGuideModal() {
             {/* Header */}
             <div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
               <p className="[word-break:break-word] font-sans leading-[28px] not-italic relative shrink-0 text-[#1a1a1a] text-[22px] whitespace-nowrap">Size Guide</p>
-              <button onClick={closeSizingGuide} className="relative shrink-0 size-[20px] cursor-pointer" aria-label="Close">
+              <button onClick={handleClose} className="relative shrink-0 size-[20px] cursor-pointer" aria-label="Close">
                 <svg className="absolute block inset-0 size-full" fill="none" height="20" viewBox="0 0 20 20" width="20">
                   <path d="M15 5L5 15" stroke="black" strokeLinejoin="round" strokeWidth="1.2" />
                   <path d="M5 5L15 15" stroke="black" strokeLinejoin="round" strokeWidth="1.2" />

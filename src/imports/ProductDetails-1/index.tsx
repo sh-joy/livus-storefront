@@ -23,7 +23,7 @@ export default function ProductDetails() {
   const [quantity, setQuantity]                 = useState(3);
   const [showGuide, setShowGuide]               = useState(false);
 
-  // Custom "DRAG" cursor state for 1:1 image container
+  // Custom "DRAG ->" cursor state
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
   const [isHoveringImage, setIsHoveringImage] = useState(false);
   const imageContainerRef = useRef<HTMLDivElement>(null);
@@ -58,17 +58,17 @@ export default function ProductDetails() {
       <SiteNav />
       <SizingGuideModal isOpen={showGuide} onClose={() => setShowGuide(false)} />
 
-      {/* Top Main Hero Section: 100vw width, items-center alignment */}
-      <div className="w-full max-w-[100vw] flex flex-col lg:flex-row items-center justify-center relative shrink-0">
+      {/* Main Product Hero Grid: 1.5fr on left, 1fr on right, items-center */}
+      <div className="w-full grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] items-center relative shrink-0">
         
-        {/* Left: 1:1 Aspect Ratio Image Container with Custom "DRAG" Cursor & Pagination */}
+        {/* Left: 1.5fr Image Container with unconstrained height & custom "DRAG ->" cursor */}
         <div
           ref={imageContainerRef}
           onMouseMove={handleMouseMove}
           onMouseEnter={() => setIsHoveringImage(true)}
           onMouseLeave={() => setIsHoveringImage(false)}
           onClick={handleNextImage}
-          className="aspect-square w-full lg:w-1/2 max-w-[700px] bg-[#f0f0f0] relative overflow-hidden shrink-0 cursor-none group select-none"
+          className="w-full aspect-square bg-[#f0f0f0] relative overflow-hidden shrink-0 cursor-none group select-none"
         >
           {/* Main Display Image */}
           <motion.img
@@ -81,11 +81,11 @@ export default function ProductDetails() {
             transition={{ duration: 0.3 }}
           />
 
-          {/* Web Custom Floating "DRAG" Black Circle Cursor */}
+          {/* Web Custom Floating Larger "DRAG ->" Circle Cursor with Arrow */}
           <AnimatePresence>
             {isHoveringImage && (
               <motion.div
-                className="pointer-events-none absolute z-30 flex items-center justify-center rounded-full bg-black text-white size-[64px] shadow-lg -translate-x-1/2 -translate-y-1/2"
+                className="pointer-events-none absolute z-30 flex items-center justify-center gap-[6px] rounded-full bg-[#050505] text-white size-[88px] shadow-xl -translate-x-1/2 -translate-y-1/2"
                 style={{
                   left: cursorPos.x,
                   top: cursorPos.y,
@@ -93,17 +93,20 @@ export default function ProductDetails() {
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0, opacity: 0 }}
-                transition={{ type: "spring", damping: 20, stiffness: 300 }}
+                transition={{ type: "spring", damping: 22, stiffness: 320 }}
               >
-                <p className="font-sans text-[12px] font-medium uppercase tracking-[1px] text-white">
+                <span className="font-sans text-[14px] font-semibold uppercase tracking-[1px] text-white">
                   DRAG
-                </p>
+                </span>
+                <svg fill="none" height="14" viewBox="0 0 14 14" width="14">
+                  <path d="M1 7H13M13 7L7 1M13 7L7 13" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* Bottom Center Pagination Indicators (Rectangles) */}
-          <div className="absolute bottom-[20px] left-1/2 -translate-x-1/2 z-20 flex gap-[8px] items-center">
+          {/* Bottom Center Pagination Indicators (Corner radius 0, Active color BLACK #050505) */}
+          <div className="absolute bottom-[24px] left-1/2 -translate-x-1/2 z-20 flex gap-[6px] items-center">
             {colors.map((_, idx) => (
               <button
                 key={idx}
@@ -112,9 +115,9 @@ export default function ProductDetails() {
                   e.stopPropagation();
                   setSelectedColorIdx(idx);
                 }}
-                className={`h-[6px] rounded-full transition-all duration-300 cursor-pointer ${
+                className={`h-[6px] transition-all duration-300 cursor-pointer rounded-none ${
                   selectedColorIdx === idx
-                    ? "w-[24px] bg-[#ff0000]"
+                    ? "w-[24px] bg-[#050505]"
                     : "w-[16px] bg-[#d0d0d0] hover:bg-neutral-400"
                 }`}
                 aria-label={`Go to slide ${idx + 1}`}
@@ -123,8 +126,8 @@ export default function ProductDetails() {
           </div>
         </div>
 
-        {/* Right: Product Details Panel (Aligned Vertically Center) */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-[36px] shrink-0">
+        {/* Right: 1fr Product Details Panel (Aligned Vertically Center) */}
+        <div className="w-full flex items-center justify-center p-[36px] shrink-0">
           <div className="content-stretch flex flex-col gap-[28px] items-start relative shrink-0 w-full max-w-[460px]">
             
             {/* Header Title & Price */}
@@ -239,7 +242,7 @@ export default function ProductDetails() {
               </div>
             </div>
 
-            {/* Primary Add to Cart Button (Solid Black #050505 on hover) */}
+            {/* Primary Add to Cart Button */}
             <button
               type="button"
               onClick={handleAddToCart}

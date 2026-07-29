@@ -295,7 +295,13 @@ function Frame39() {
 }
 
 function Frame3() {
-  return null;
+  return (
+    <div className="w-full px-[36px] pt-[80px] pb-[32px] shrink-0">
+      <h2 className="font-serif text-[36px] font-semibold tracking-[-0.72px] text-[#1c1c1c] leading-[44px]">
+        You might also like
+      </h2>
+    </div>
+  );
 }
 
 function Frame189Status6() {
@@ -404,7 +410,7 @@ function Frame24() {
 
 function Frame8() {
   return (
-    <div className="relative shrink-0 w-full">
+    <div className="relative shrink-0 w-full pb-[100px]">
       <div className="gap-x-[8px] gap-y-[60px] grid grid-cols-[repeat(3,minmax(0,1fr))] grid-rows-[repeat(1,fit-content(100%))] px-[36px] relative size-full">
         <Frame21 />
         <Frame23 />

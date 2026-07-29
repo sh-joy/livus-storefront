@@ -47,11 +47,12 @@ export default function ProductDetails() {
   const [selectedColorIdx, setSelectedColorIdx] = useState(0);
   const [currentImageIdx, setCurrentImageIdx]   = useState(0);
   const [selectedSize, setSelectedSize]         = useState("XL");
-  const [quantity, setQuantity]                 = useState(3);
+  const [quantity, setQuantity]                 = useState(1);
   const [showGuide, setShowGuide]               = useState(false);
 
-  // Custom "DRAG ->" cursor state
+  // Custom cursor position & container dimensions
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
+  const [containerWidth, setContainerWidth] = useState(0);
   const [isHoveringImage, setIsHoveringImage] = useState(false);
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
@@ -65,22 +66,37 @@ export default function ProductDetails() {
   const activeGallery = activeColor.images;
   const currentImage = activeGallery[currentImageIdx] || activeColor.thumbnail;
 
+  const isRightSide = cursorPos.x > containerWidth / 2;
+  const canGoNext = currentImageIdx < activeGallery.length - 1;
+  const canGoPrev = currentImageIdx > 0;
+
+  const showCursor = isHoveringImage && ((isRightSide && canGoNext) || (!isRightSide && canGoPrev));
+  const cursorText = isRightSide ? "NEXT" : "PREVIOUS";
+
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!imageContainerRef.current) return;
     const rect = imageContainerRef.current.getBoundingClientRect();
+    setContainerWidth(rect.width);
     setCursorPos({
       x: e.clientX - rect.left,
       y: e.clientY - rect.top,
     });
   };
 
-  const handleNextImage = () => {
-    setCurrentImageIdx((prev) => (prev + 1) % activeGallery.length);
+  const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!imageContainerRef.current) return;
+    const rect = imageContainerRef.current.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    if (clickX > rect.width / 2) {
+      if (canGoNext) setCurrentImageIdx((prev) => prev + 1);
+    } else {
+      if (canGoPrev) setCurrentImageIdx((prev) => prev - 1);
+    }
   };
 
   const handleSelectColor = (idx: number) => {
     setSelectedColorIdx(idx);
-    setCurrentImageIdx(0); // Reset gallery pagination to 0 for selected color
+    setCurrentImageIdx(0);
   };
 
   const handleAddToCart = () => {
@@ -95,13 +111,13 @@ export default function ProductDetails() {
       {/* Main Product Hero Grid: 1.5fr on left, 1fr on right, items-start */}
       <div className="w-full grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] items-start relative shrink-0">
         
-        {/* Left: 1.5fr Image Container with unconstrained height & custom "DRAG ->" cursor */}
+        {/* Left: 1.5fr Image Container with unconstrained height & custom floating NEXT/PREVIOUS cursor */}
         <div
           ref={imageContainerRef}
           onMouseMove={handleMouseMove}
           onMouseEnter={() => setIsHoveringImage(true)}
           onMouseLeave={() => setIsHoveringImage(false)}
-          onClick={handleNextImage}
+          onClick={handleImageClick}
           className="w-full aspect-square bg-[#f0f0f0] relative overflow-hidden shrink-0 cursor-none group select-none"
         >
           {/* Main Display Image */}
@@ -115,11 +131,11 @@ export default function ProductDetails() {
             transition={{ duration: 0.3 }}
           />
 
-          {/* Web Custom Floating Larger "DRAG ->" Circle Cursor with Arrow */}
+          {/* Web Custom Floating Circle Cursor ("NEXT" or "PREVIOUS" - No Icon) */}
           <AnimatePresence>
-            {isHoveringImage && (
+            {showCursor && (
               <motion.div
-                className="pointer-events-none absolute z-30 flex items-center justify-center gap-[6px] rounded-full bg-[#050505] text-white size-[88px] shadow-xl -translate-x-1/2 -translate-y-1/2"
+                className="pointer-events-none absolute z-30 flex items-center justify-center rounded-full bg-[#050505] text-white size-[88px] shadow-xl -translate-x-1/2 -translate-y-1/2"
                 style={{
                   left: cursorPos.x,
                   top: cursorPos.y,
@@ -129,17 +145,14 @@ export default function ProductDetails() {
                 exit={{ scale: 0, opacity: 0 }}
                 transition={{ type: "spring", damping: 22, stiffness: 320 }}
               >
-                <span className="font-sans text-[14px] font-semibold uppercase tracking-[1px] text-white">
-                  DRAG
+                <span className="font-sans text-[13px] font-semibold uppercase tracking-[1px] text-white">
+                  {cursorText}
                 </span>
-                <svg fill="none" height="14" viewBox="0 0 14 14" width="14">
-                  <path d="M1 7H13M13 7L7 1M13 7L7 13" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* Bottom Center Pagination Indicators (Corner radius 0, Active color BLACK #050505, dynamic count per color gallery) */}
+          {/* Bottom Center Pagination Indicators (Active: 24px Rectangular, Inactive: 6px Square, Radius 0) */}
           <div className="absolute bottom-[24px] left-1/2 -translate-x-1/2 z-20 flex gap-[6px] items-center">
             {activeGallery.map((_, idx) => (
               <button
@@ -152,7 +165,7 @@ export default function ProductDetails() {
                 className={`h-[6px] transition-all duration-300 cursor-pointer rounded-none ${
                   currentImageIdx === idx
                     ? "w-[24px] bg-[#050505]"
-                    : "w-[16px] bg-[#d0d0d0] hover:bg-neutral-400"
+                    : "w-[6px] bg-[#d0d0d0] hover:bg-neutral-400"
                 }`}
                 aria-label={`Go to slide ${idx + 1}`}
               />
@@ -161,16 +174,16 @@ export default function ProductDetails() {
         </div>
 
         {/* Right: 1fr Product Details Panel */}
-        <div className="w-full flex items-start justify-center p-[36px] shrink-0">
+        <div className="w-full min-h-[calc(100vh-64px)] flex items-start justify-center p-[36px] shrink-0 self-stretch">
           <div className="content-stretch flex flex-col gap-[28px] items-start relative shrink-0 w-full max-w-[460px]">
             
-            {/* Header Title & Price (Exact 28px, 32px line-height, 600 weight, Barlow Semi Condensed) */}
+            {/* Header Title & Price (Big Shoulders Font, 28px, 32px line-height, 600 weight) */}
             <div className="content-stretch flex flex-col gap-[20px] items-start relative shrink-0 w-full">
               <div className="[word-break:break-word] content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full whitespace-nowrap">
                 <p
-                  className="font-sans font-semibold relative shrink-0 text-[#1c1c1c]"
+                  className="font-serif font-semibold relative shrink-0 text-[#1c1c1c]"
                   style={{
-                    fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                    fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
                     fontSize: "28px",
                     lineHeight: "32px",
                     fontWeight: 600,
@@ -196,7 +209,7 @@ export default function ProductDetails() {
               </div>
             </div>
 
-            {/* Color Swatch Selectors */}
+            {/* Color Swatch Selectors (1px border on active swatch) */}
             <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full">
               <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#1c1c1c] text-[17px] tracking-[-0.34px] whitespace-nowrap">
                 Color: <span className="font-medium">{activeColor.name}</span>
@@ -207,7 +220,7 @@ export default function ProductDetails() {
                     key={c.name}
                     onClick={() => handleSelectColor(idx)}
                     className={`bg-[#f0f0f0] content-stretch flex h-[90px] items-center justify-center relative shrink-0 w-[80px] cursor-pointer transition-all overflow-hidden ${
-                      selectedColorIdx === idx ? "border-2 border-black scale-105" : "opacity-75 hover:opacity-100"
+                      selectedColorIdx === idx ? "border border-black scale-105" : "opacity-75 hover:opacity-100"
                     }`}
                   >
                     <img alt={c.name} className="size-full object-cover" src={c.thumbnail} />
@@ -284,7 +297,7 @@ export default function ProductDetails() {
               </div>
             </div>
 
-            {/* Primary Add to Cart Button */}
+            {/* Primary Add to Cart Button (12px padding) */}
             <button
               type="button"
               onClick={handleAddToCart}

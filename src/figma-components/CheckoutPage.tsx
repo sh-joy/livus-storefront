@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type CSSProperties } from "react";
+import { useCartStore } from "@/lib/store/cart-store";
 import { useRouter } from "next/navigation";
 import { InputField } from "./InputField";
 import { SiteNav } from "./SiteNav";
@@ -66,10 +67,16 @@ export function CheckoutPage() {
 
   const [errors, setErrors]     = useState<Record<string, string>>({});
 
-  const cartItems = [
-    { name: "OWAYO - CROSS FADE", color: "Black & White", size: "XL", qty: 1, price: "৳899 BDT" },
-    { name: "NIXON - TIME TELLER",  color: "Rose Gold",    size: "M",  qty: 2, price: "৳790 BDT" },
-  ];
+  const cartItems = useCartStore((state) => state.items);
+
+  const subtotalVal = cartItems.reduce((acc, item) => {
+    const rawPrice = parseFloat(item.product.price.replace(/[^0-9.]/g, '')) || 0;
+    return acc + rawPrice * item.quantity;
+  }, 0);
+
+  const vatVal = cartItems.length > 0 ? 90 : 0;
+  const deliveryVal = cartItems.length > 0 ? 150 : 0;
+  const totalVal = subtotalVal + vatVal + deliveryVal;
 
   const handleProceedToPayment = () => {
     const newErrors: Record<string, string> = {};
@@ -305,20 +312,24 @@ export function CheckoutPage() {
 
               {/* Cart items */}
               <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                {cartItems.map((item, i) => (
-                  <div key={i} style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
-                    <div style={{ width: "90px", height: "110px", background: "#f0f0f0", overflow: "hidden", flexShrink: 0 }}>
-                      <img alt={item.name} src={typeof productImg === 'string' ? productImg : productImg?.src} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                {cartItems.length === 0 ? (
+                  <p style={{ ...base, color: "#808080" }}>Your cart is empty</p>
+                ) : (
+                  cartItems.map((item) => (
+                    <div key={`${item.product.id}-${item.product.color}-${item.product.size}`} style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
+                      <div style={{ width: "90px", height: "110px", background: "#f0f0f0", overflow: "hidden", flexShrink: 0 }}>
+                        <img alt={item.product.name} src={item.product.imageUrl || (typeof productImg === 'string' ? productImg : productImg?.src)} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      </div>
+                      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
+                        <p style={{ ...base, fontWeight: 500 }}>{item.product.name}</p>
+                        {item.product.color && <p style={{ ...base, color: "var(--ink-muted)" }}>Color: {item.product.color}</p>}
+                        {item.product.size && <p style={{ ...base, color: "var(--ink-muted)" }}>Size: {item.product.size}</p>}
+                        <p style={{ ...base, color: "var(--ink-muted)" }}>Qty: {item.quantity}</p>
+                      </div>
+                      <p style={{ ...base, fontWeight: 500, flexShrink: 0 }}>{item.product.price}</p>
                     </div>
-                    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
-                      <p style={{ ...base, fontWeight: 500 }}>{item.name}</p>
-                      <p style={{ ...base, color: "var(--ink-muted)" }}>Color: {item.color}</p>
-                      <p style={{ ...base, color: "var(--ink-muted)" }}>Size: {item.size}</p>
-                      <p style={{ ...base, color: "var(--ink-muted)" }}>Qty: {item.qty}</p>
-                    </div>
-                    <p style={{ ...base, fontWeight: 500, flexShrink: 0 }}>{item.price}</p>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
 
               {/* Thin separator */}
@@ -328,9 +339,9 @@ export function CheckoutPage() {
               <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                   {[
-                    { label: "Subtotal",       value: "৳ 1790.00" },
-                    { label: "VAT",            value: "৳ 90.00" },
-                    { label: "Delivery Charge", value: "৳ 150.00" },
+                    { label: "Subtotal",       value: `৳ ${subtotalVal.toFixed(0)} BDT` },
+                    { label: "VAT",            value: `৳ ${vatVal.toFixed(0)} BDT` },
+                    { label: "Delivery Charge", value: `৳ ${deliveryVal.toFixed(0)} BDT` },
                   ].map(({ label, value }) => (
                     <div key={label} style={{ display: "flex", justifyContent: "space-between" }}>
                       <p style={{ ...base, letterSpacing: "-0.34px" }}>{label}</p>
@@ -341,7 +352,7 @@ export function CheckoutPage() {
 
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <p style={{ ...base, fontWeight: 500, letterSpacing: "-0.34px" }}>Total</p>
-                  <p style={{ ...base, fontWeight: 500, letterSpacing: "-0.34px" }}>৳ 2130.00</p>
+                  <p style={{ ...base, fontWeight: 500, letterSpacing: "-0.34px" }}>৳ {totalVal.toFixed(0)} BDT</p>
                 </div>
 
                 <button

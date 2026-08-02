@@ -36,9 +36,8 @@ function Frame() {
 
 function Frame189Status() {
   return (
-    <div className="bg-[#050505] content-stretch flex gap-[6px] items-center justify-center pl-[16px] pr-[14px] py-[8px] relative shrink-0" data-name="Frame 189/Status3">
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[16px] text-white whitespace-nowrap">Explore Designs</p>
-      <Frame />
+    <div className="bg-[#050505] content-stretch flex items-center justify-center py-[12px] px-[20px] relative shrink-0 cursor-pointer hover:bg-neutral-800 transition-colors" data-name="Frame 189/Status3">
+      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[17px] text-white uppercase tracking-[0.5px] font-normal">EXPLORE DESIGNS</p>
     </div>
   );
 }
@@ -495,7 +494,7 @@ function Frame26() {
     <div className="aspect-[4/4] content-stretch flex flex-[1_0_0] items-center justify-center min-w-px relative">
       <div className="aspect-[748.66796875/869.708984375] h-full relative shrink-0" data-name="image 114">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <img alt="" className="absolute h-full left-[-8.01%] max-w-none top-0 w-[116.17%]" src={typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src} />
+          <img alt="" className="absolute inset-0 w-full h-full object-cover object-center" src={typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src} />
         </div>
       </div>
     </div>
@@ -540,7 +539,7 @@ function Frame40() {
     <div className="aspect-[4/4] content-stretch flex flex-[1_0_0] items-center justify-center min-w-px relative">
       <div className="aspect-[748.66796875/869.708984375] h-full relative shrink-0" data-name="image 114">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <img alt="" className="absolute h-full left-[-8.01%] max-w-none top-0 w-[116.17%]" src={typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src} />
+          <img alt="" className="absolute inset-0 w-full h-full object-cover object-center" src={typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src} />
         </div>
       </div>
     </div>
@@ -585,7 +584,7 @@ function Frame44() {
     <div className="aspect-[4/4] content-stretch flex flex-[1_0_0] items-center justify-center min-w-px relative">
       <div className="aspect-[748.66796875/869.708984375] h-full relative shrink-0" data-name="image 114">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <img alt="" className="absolute h-full left-[-8.01%] max-w-none top-0 w-[116.17%]" src={typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src} />
+          <img alt="" className="absolute inset-0 w-full h-full object-cover object-center" src={typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src} />
         </div>
       </div>
     </div>
@@ -746,7 +745,7 @@ function Frame50() {
     <div className="aspect-[698/698] bg-[#f0f0f0] content-stretch flex flex-[1_0_0] items-center justify-center min-w-px overflow-clip py-[60px] relative">
       <div className="h-[558px] relative shrink-0 w-[480.341px]" data-name="image 114">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <img alt="" className="absolute h-full left-[-8.01%] max-w-none top-0 w-[116.17%]" src={typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src} />
+          <img alt="" className="absolute inset-0 w-full h-full object-cover object-center" src={typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src} />
         </div>
       </div>
     </div>
@@ -952,7 +951,7 @@ function Frame67() {
     <div className="aspect-[4/4] content-stretch flex flex-[1_0_0] items-center justify-center min-w-px relative">
       <div className="aspect-[748.66796875/869.708984375] h-full relative shrink-0" data-name="image 114">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <img alt="" className="absolute h-full left-[-8.01%] max-w-none top-0 w-[116.17%]" src={typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src} />
+          <img alt="" className="absolute inset-0 w-full h-full object-cover object-center" src={typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src} />
         </div>
       </div>
     </div>
@@ -1059,7 +1058,7 @@ function Frame75() {
     <div className="aspect-[4/4] content-stretch flex flex-[1_0_0] items-center justify-center min-w-px relative">
       <div className="aspect-[748.66796875/869.708984375] h-full relative shrink-0" data-name="image 114">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <img alt="" className="absolute h-full left-[-8.01%] max-w-none top-0 w-[116.17%]" src={typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src} />
+          <img alt="" className="absolute inset-0 w-full h-full object-cover object-center" src={typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src} />
         </div>
       </div>
     </div>

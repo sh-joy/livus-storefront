@@ -1,35 +1,45 @@
+'use client';
+
+import { useState, useMemo, useEffect } from 'react';
 import Link from "next/link";
+import { motion, AnimatePresence } from 'framer-motion';
+import type { ProductItem } from '@/app/actions/products';
 import { SiteNav } from '@/figma-components/SiteNav';
 import { SiteFooter } from '@/figma-components/SiteFooter';
+import { CategoryFilterSubBar } from '@/figma-components/CategoryFilterSubBar';
 import svgPaths from "./svg-2yu0kgd7y8";
 import imgImage116 from "./5d3b85b2dc05c72aaa05d18fe3776f4f7f0d88ed.png";
 import imgFrame1597881192 from "./cd8123b8a9ab8a34443daf47f95966a2cb8719ce.png";
 import imgImage114 from "./71b3cd582dab7174e13346a8d88abe33548d2aa7.png";
 import { imgImage115 } from "./svg-mkkoy";
 
-function Frame7() {
+function Frame7({ subtitle }: { subtitle?: string }) {
   return (
     <div className="content-stretch flex flex-col items-end justify-center pb-[20px] relative shrink-0 w-[450px]">
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[20px] text-black text-right tracking-[-0.1px] w-full">{`Exclusive Men's Jersey Collection. Crafted with premium fabrics and unparalleled design for the true gentleman.`}</p>
+      <p className="category-hero-subtitle [word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[20px] text-black text-right tracking-[-0.1px] w-full font-normal" style={{ fontWeight: 400 }}>
+        {subtitle || `Exclusive Men's Jersey Collection. Crafted with premium fabrics and unparalleled design for the true gentleman.`}
+      </p>
     </div>
   );
 }
 
-function Frame5() {
+function Frame5({ title, subtitle }: { title?: string; subtitle?: string }) {
   return (
     <div className="content-stretch flex flex-[1_0_0] items-end justify-between min-w-px relative">
-      <p className="[word-break:break-word] font-serif font-bold leading-[110px] relative shrink-0 text-[110px] text-black tracking-[-3.3px] whitespace-nowrap">For Him.</p>
-      <Frame7 />
+      <p className="[word-break:break-word] font-serif font-semibold leading-[110px] relative shrink-0 text-[110px] text-black tracking-[-3.3px] whitespace-nowrap" style={{ fontWeight: 600 }}>
+        {title || "For Him."}
+      </p>
+      <Frame7 subtitle={subtitle} />
     </div>
   );
 }
 
-function Frame4() {
+function Frame4({ title, subtitle }: { title?: string; subtitle?: string }) {
   return (
     <div className="relative shrink-0 w-full">
       <div className="flex flex-row items-center justify-center size-full">
         <div className="content-stretch flex items-center justify-center pt-[100px] px-[36px] relative size-full">
-          <Frame5 />
+          <Frame5 title={title} subtitle={subtitle} />
         </div>
       </div>
     </div>
@@ -200,14 +210,31 @@ function Frame189Status4() {
   );
 }
 
-function Frame32() {
+function Frame32({ activeTag, onSelectTag }: { activeTag: string; onSelectTag: (tag: string) => void }) {
+  const tags = ["All Designs", "Minimal", "Gaming", "Floral", "Divine"];
+
   return (
     <div className="content-stretch flex gap-[20px] items-center relative shrink-0">
-      <Frame189Status />
-      <Frame189Status1 />
-      <Frame189Status2 />
-      <Frame189Status3 />
-      <Frame189Status4 />
+      {tags.map((t) => {
+        const isSelected = activeTag === t || (activeTag === "all" && t === "All Designs");
+        return (
+          <button
+            key={t}
+            type="button"
+            onClick={() => onSelectTag(t === "All Designs" ? "all" : t)}
+            className="content-stretch flex items-center justify-center px-[2px] py-[5px] relative shrink-0 cursor-pointer bg-transparent border-none"
+          >
+            {isSelected && (
+              <div aria-hidden className="absolute border-[#1a1a1a] border-b border-solid inset-0 pointer-events-none" />
+            )}
+            <p className={`[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[17px] tracking-[0.17px] whitespace-nowrap cursor-pointer ${
+              isSelected ? "text-[#1a1a1a] font-medium" : "text-[#606060] hover:text-[#1a1a1a]"
+            }`}>
+              {t}
+            </p>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -227,39 +254,85 @@ function Frame() {
   );
 }
 
-function Frame189Status5() {
+function Frame189Status5({ sortOrder, onToggleSort }: { sortOrder: "high-to-low" | "low-to-high"; onToggleSort: () => void }) {
   return (
-    <div className="content-stretch flex gap-[4px] items-center justify-center px-[2px] py-[5px] relative shrink-0" data-name="Frame 189/Status3">
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#404040] text-[17px] tracking-[0.17px] whitespace-nowrap">Price: High to Low</p>
-      <Frame />
-    </div>
+    <button
+      type="button"
+      onClick={onToggleSort}
+      className="content-stretch flex items-center justify-center px-[6px] py-[5px] relative shrink-0 cursor-pointer bg-transparent border-none opacity-60 hover:opacity-100 transition-opacity"
+      data-name="Frame 189/Status3"
+    >
+      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#404040] text-[17px] tracking-[0.17px] whitespace-nowrap font-medium cursor-pointer">
+        Price: {sortOrder === "high-to-low" ? "High to Low ↓" : "Low to High ↑"}
+      </p>
+    </button>
   );
 }
 
-function Frame11() {
+function Frame11({
+  activeTag,
+  onSelectTag,
+  sortOrder,
+  onToggleSort,
+}: {
+  activeTag: string;
+  onSelectTag: (tag: string) => void;
+  sortOrder: "high-to-low" | "low-to-high";
+  onToggleSort: () => void;
+}) {
   return (
     <div className="content-stretch flex items-start justify-between relative shrink-0 w-full">
-      <Frame32 />
-      <Frame189Status5 />
+      <Frame32 activeTag={activeTag} onSelectTag={onSelectTag} />
+      <Frame189Status5 sortOrder={sortOrder} onToggleSort={onToggleSort} />
     </div>
   );
 }
 
-function Frame16() {
+function Frame16({
+  activeTag,
+  onSelectTag,
+  sortOrder,
+  onToggleSort,
+}: {
+  activeTag: string;
+  onSelectTag: (tag: string) => void;
+  sortOrder: "high-to-low" | "low-to-high";
+  onToggleSort: () => void;
+}) {
   return (
     <div className="content-stretch flex flex-col gap-[50px] items-start relative shrink-0 w-full">
       <Frame15 />
-      <Frame11 />
+      <Frame11
+        activeTag={activeTag}
+        onSelectTag={onSelectTag}
+        sortOrder={sortOrder}
+        onToggleSort={onToggleSort}
+      />
     </div>
   );
 }
 
-function Frame6() {
+function Frame6({
+  activeTag,
+  onSelectTag,
+  sortOrder,
+  onToggleSort,
+}: {
+  activeTag: string;
+  onSelectTag: (tag: string) => void;
+  sortOrder: "high-to-low" | "low-to-high";
+  onToggleSort: () => void;
+}) {
   return (
     <div className="relative shrink-0 w-full">
       <div className="content-stretch flex flex-col gap-[4px] items-start pb-[25px] px-[36px] relative size-full">
         <p className="[word-break:break-word] font-serif font-semibold leading-[110px] relative shrink-0 text-[70px] text-black tracking-[-2.1px] whitespace-nowrap">Explore the collection</p>
-        <Frame16 />
+        <Frame16
+          activeTag={activeTag}
+          onSelectTag={onSelectTag}
+          sortOrder={sortOrder}
+          onToggleSort={onToggleSort}
+        />
       </div>
     </div>
   );
@@ -383,7 +456,7 @@ function Frame17() {
 
 function Frame12() {
   return (
-    <div className="aspect-[3.5/4] bg-[#f0f0f0] content-stretch flex items-center justify-center overflow-clip relative shrink-0 w-full">
+    <div className="aspect-[3/4] bg-[#f0f0f0] content-stretch flex items-center justify-center overflow-clip relative shrink-0 w-full">
       <Frame17 />
     </div>
   );
@@ -428,7 +501,7 @@ function Frame18() {
 
 function Frame13() {
   return (
-    <div className="aspect-[3.5/4] bg-[#f0f0f0] content-stretch flex items-center justify-center overflow-clip relative shrink-0 w-full">
+    <div className="aspect-[3/4] bg-[#f0f0f0] content-stretch flex items-center justify-center overflow-clip relative shrink-0 w-full">
       <Frame18 />
     </div>
   );
@@ -473,7 +546,7 @@ function Frame20() {
 
 function Frame19() {
   return (
-    <div className="aspect-[3.5/4] bg-[#f0f0f0] content-stretch flex items-center justify-center overflow-clip relative shrink-0 w-full">
+    <div className="aspect-[3/4] bg-[#f0f0f0] content-stretch flex items-center justify-center overflow-clip relative shrink-0 w-full">
       <Frame20 />
     </div>
   );
@@ -504,16 +577,47 @@ function Frame28() {
   );
 }
 
-function Frame14() {
+import { ProductCard } from '@/figma-components/ProductCard';
+
+function Frame14({ products, onResetFilter }: { products?: ProductItem[]; onResetFilter?: () => void }) {
+  if (!products || products.length === 0) {
+    return (
+      <div className="w-full px-[36px] pb-12">
+        <div className="flex flex-col items-center justify-center text-center gap-[6px] p-[48px_24px] border border-dashed border-[#d0d0d0] w-full bg-[#fafafa]">
+          <p
+            className="text-[#1c1c1c] uppercase"
+            style={{
+              fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
+              fontSize: "24px",
+              fontWeight: 500,
+              lineHeight: "32px",
+            }}
+          >
+            No products found
+          </p>
+          <p className="font-sans text-[14px] text-[#808080]">
+            No products match the selected collection filter.
+          </p>
+          {onResetFilter && (
+            <button
+              type="button"
+              onClick={onResetFilter}
+              className="inline-flex items-center justify-center bg-[#050505] text-white border-none cursor-pointer px-[18px] py-[8px] font-sans text-[14px] font-semibold tracking-[0.75px] uppercase transition-opacity hover:opacity-90 mt-[8px]"
+            >
+              Browse all designs
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative shrink-0 w-full">
-      <div className="gap-x-[8px] gap-y-[60px] grid grid-cols-[repeat(3,minmax(0,1fr))] grid-rows-[repeat(2,fit-content(100%))] px-[36px] relative size-full">
-        <Frame30 />
-        <Frame33 />
-        <Frame34 />
-        <Frame30 />
-        <Frame33 />
-        <Frame34 />
+      <div className="product-grid-4col px-[36px] relative w-full">
+        {products.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
       </div>
     </div>
   );
@@ -521,8 +625,8 @@ function Frame14() {
 
 function Frame189Status7() {
   return (
-    <div className="bg-white content-stretch flex items-center justify-center pb-[8px] pt-[9px] px-[20px] relative shrink-0" data-name="Frame 189/Status3">
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#0d0d0d] text-[16px] whitespace-nowrap">Let’s Talk</p>
+    <div className="bg-white content-stretch flex items-center justify-center py-[12px] px-[20px] relative shrink-0 cursor-pointer hover:opacity-85 transition-opacity" data-name="Frame 189/Status3">
+      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#0d0d0d] text-[17px] font-normal uppercase tracking-[0.5px] whitespace-nowrap m-0">LET'S TALK</p>
     </div>
   );
 }
@@ -804,16 +908,126 @@ function Frame40() {
   );
 }
 
-export default function ForHim() {
+export default function ForHim({ products, title, subtitle }: { products?: ProductItem[]; title?: string; subtitle?: string }) {
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedGender, setSelectedGender] = useState("all");
+  const [selectedSize, setSelectedSize] = useState("all");
+  const [sortOption, setSortOption] = useState("");
+  const [visibleCount, setVisibleCount] = useState<number>(12);
+
+  // Backend-connected in-place filtering & multi-metric sorting
+  const sortedProducts = useMemo(() => {
+    const now = Date.now();
+
+    const filtered = (products || []).filter((p) => {
+      if (selectedCategory !== "all") {
+        const tagMatch = p.collectionTag && p.collectionTag.toLowerCase() === selectedCategory.toLowerCase();
+        const catMatch = p.categoryName && p.categoryName.toLowerCase() === selectedCategory.toLowerCase();
+        const slugMatch = p.categorySlug && p.categorySlug.toLowerCase() === selectedCategory.toLowerCase();
+        if (!tagMatch && !catMatch && !slugMatch) return false;
+      }
+      if (selectedSize !== "all") {
+        if (p.sizes && p.sizes.length > 0) {
+          if (!p.sizes.map(s => s.toUpperCase()).includes(selectedSize.toUpperCase())) return false;
+        }
+      }
+      return true;
+    });
+
+    return [...filtered].sort((a, b) => {
+      if (sortOption === "relevance") {
+        const calcRelevance = (p: ProductItem) => {
+          let score = 10;
+          if (p.compareAtPriceBdt && p.compareAtPriceBdt > p.priceBdt) {
+            score += Math.round(((p.compareAtPriceBdt - p.priceBdt) / p.compareAtPriceBdt) * 50);
+          }
+          if (p.collectionTag === "Minimal" || p.collectionTag === "Divine") {
+            score += 15;
+          }
+          return score;
+        };
+        return calcRelevance(b) - calcRelevance(a);
+      }
+
+      if (sortOption === "newest") {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
+      }
+
+      if (sortOption === "best-selling") {
+        const discA = a.compareAtPriceBdt && a.compareAtPriceBdt > a.priceBdt ? (a.compareAtPriceBdt - a.priceBdt) / a.compareAtPriceBdt : 0;
+        const discB = b.compareAtPriceBdt && b.compareAtPriceBdt > b.priceBdt ? (b.compareAtPriceBdt - b.priceBdt) / b.compareAtPriceBdt : 0;
+        return discB - discA;
+      }
+
+      if (sortOption === "popular") {
+        const calcPopularity = (p: ProductItem) => {
+          let pts = 10;
+          if (p.compareAtPriceBdt && p.compareAtPriceBdt > p.priceBdt) {
+            pts += Math.round(((p.compareAtPriceBdt - p.priceBdt) / p.compareAtPriceBdt) * 30);
+          }
+          if (p.collectionTag === "Minimal" || p.collectionTag === "Divine") {
+            pts += 8;
+          }
+          const createdMs = p.createdAt ? new Date(p.createdAt).getTime() : now - 86400000 * 7;
+          const daysOld = Math.max(0, (now - createdMs) / (1000 * 60 * 60 * 24));
+          return pts / Math.pow(daysOld + 2, 1.5);
+        };
+        return calcPopularity(b) - calcPopularity(a);
+      }
+
+      if (sortOption === "low-to-high") {
+        return a.priceBdt - b.priceBdt;
+      }
+
+      if (sortOption === "high-to-low") {
+        return b.priceBdt - a.priceBdt;
+      }
+
+      return 0;
+    });
+  }, [products, selectedCategory, selectedSize, sortOption]);
+
+  const visibleProducts = sortedProducts.slice(0, visibleCount);
+  const hasMore = visibleCount < sortedProducts.length;
+
   return (
-    <div className="bg-white content-stretch flex flex-col items-start relative size-full" data-name="For Him">
+    <div className="bg-white content-stretch flex flex-col items-start relative size-full font-sans" data-name="For Him">
       <SiteNav />
       <div className="content-stretch flex flex-col gap-[3px] items-center pt-[0px] relative shrink-0 w-full">
-        <Frame4 />
+        <Frame4 title={title} subtitle={subtitle} />
         <Frame10 />
       </div>
-      <Frame6 />
-      <Frame14 />
+
+      {/* Category Filter Sub-Bar with Rectangular Dropdown Buttons & Product Count */}
+      <CategoryFilterSubBar
+        totalCount={sortedProducts.length}
+        sortOption={sortOption}
+        onSortChange={setSortOption}
+        selectedGender={selectedGender}
+        onGenderChange={setSelectedGender}
+        selectedCategory={selectedCategory}
+        onCategoryChange={(cat) => { setSelectedCategory(cat); setVisibleCount(12); }}
+        selectedSize={selectedSize}
+        onSizeChange={setSelectedSize}
+        hideGenderFilter={true}
+      />
+
+      <Frame14 products={visibleProducts} onResetFilter={() => setSelectedCategory("all")} />
+
+      {hasMore && (
+        <div className="w-full flex items-center justify-center pt-12 pb-16">
+          <button
+            type="button"
+            onClick={() => setVisibleCount((prev) => prev + 12)}
+            className="bg-[#050505] text-white hover:bg-neutral-800 px-10 py-4 text-xs font-medium uppercase tracking-[1px] transition-all cursor-pointer rounded-none border border-black shadow-sm"
+          >
+            Load More ({visibleProducts.length} of {sortedProducts.length})
+          </button>
+        </div>
+      )}
+
       <Frame31 />
       <SiteFooter />
     </div>

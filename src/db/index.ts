@@ -1,26 +1,13 @@
-import 'dotenv/config';
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';
+import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
 import * as schema from './schema';
 
-const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/my_store_db';
+const connectionString =
+  process.env.DATABASE_URL ||
+  "postgresql://neondb_owner:npg_1Z9OqrpsdtSW@ep-wild-paper-azd96lli-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require";
 
-const globalForDb = globalThis as unknown as {
-  conn: Pool | undefined;
-};
+// Export neon client and drizzle db instance
+export const sql = neon(connectionString);
+export const db = drizzle(sql, { schema });
 
-const pool = globalForDb.conn ?? new Pool({
-  connectionString,
-  ssl: connectionString.includes('sslmode=require') || connectionString.includes('neon.tech')
-    ? { rejectUnauthorized: false }
-    : undefined,
-  max: 10,
-  idleTimeoutMillis: 30000,
-});
-
-if (process.env.NODE_ENV !== 'production') {
-  globalForDb.conn = pool;
-}
-
-export const db = drizzle(pool, { schema });
-export { pool };
+export { schema };

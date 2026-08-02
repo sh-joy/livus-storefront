@@ -1,26 +1,35 @@
 'use client';
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
+import { ProductCard } from '@/figma-components/ProductCard';
 import { SiteNav } from '@/figma-components/SiteNav';
 import { SiteFooter } from '@/figma-components/SiteFooter';
 import { SizingGuideModal } from '@/figma-components/SizingGuideModal';
 import { useDrawer } from '@/figma-components/DrawerContext';
 import { useCartStore } from '@/lib/store/cart-store';
+import type { ProductItem } from '@/app/actions/products';
+import { generateCleanSku } from '@/lib/utils';
 import imgImage115 from "./147bb3d7a50a487cfcb2163c878fc1a5c25e19e6.png";
 import imgImage114 from "./71b3cd582dab7174e13346a8d88abe33548d2aa7.png";
 import imgFrame1597881192 from "./cd8123b8a9ab8a34443daf47f95966a2cb8719ce.png";
 
-// Color Variants with independent gallery image arrays & stock status
-const colorVariants = [
+const defaultColorVariants = [
   {
     name: "Yellow",
-    isLowStock: true, // Red (Low Stock) indicator as requested
+    isLowStock: true,
     thumbnail: typeof imgFrame1597881192 === 'string' ? imgFrame1597881192 : imgFrame1597881192?.src,
     images: [
       typeof imgFrame1597881192 === 'string' ? imgFrame1597881192 : imgFrame1597881192?.src,
       typeof imgImage115 === 'string' ? imgImage115 : imgImage115?.src,
       typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src,
+    ],
+    sizes: [
+      { size: "S", quantity: 10, isStockOut: false },
+      { size: "M", quantity: 10, isStockOut: false },
+      { size: "XL", quantity: 5, isStockOut: false },
+      { size: "XXL", quantity: 0, isStockOut: true },
     ],
   },
   {
@@ -31,85 +40,238 @@ const colorVariants = [
       typeof imgImage115 === 'string' ? imgImage115 : imgImage115?.src,
       typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src,
       typeof imgFrame1597881192 === 'string' ? imgFrame1597881192 : imgFrame1597881192?.src,
-      typeof imgImage115 === 'string' ? imgImage115 : imgImage115?.src,
-      typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src,
-      typeof imgFrame1597881192 === 'string' ? imgFrame1597881192 : imgFrame1597881192?.src,
     ],
-  },
-  {
-    name: "Grey",
-    isLowStock: false,
-    thumbnail: typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src,
-    images: [
-      typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src,
-      typeof imgImage115 === 'string' ? imgImage115 : imgImage115?.src,
+    sizes: [
+      { size: "S", quantity: 10, isStockOut: false },
+      { size: "M", quantity: 10, isStockOut: false },
+      { size: "XL", quantity: 5, isStockOut: false },
+      { size: "XXL", quantity: 0, isStockOut: true },
     ],
   },
 ];
 
-export default function ProductDetails() {
-  const [selectedColorIdx, setSelectedColorIdx] = useState(0);
-  const [currentImageIdx, setCurrentImageIdx]   = useState(0);
-  const [selectedSize, setSelectedSize]         = useState("XL");
-  const [quantity, setQuantity]                 = useState(1);
-  const [showGuide, setShowGuide]               = useState(false);
+export interface ProductDetailsProps {
+  product?: {
+    id: string;
+    name: string;
+    slug: string;
+    description: string;
+    specifications: string;
+    collectionTag: string;
+    categorySlug?: string;
+    priceBdt: number;
+    compareAtPriceBdt?: number;
+    colorVariants: {
+      id: string;
+      name: string;
+      hexColor: string;
+      thumbnailUrl: string;
+      isLowStock: boolean;
+      galleryImages: string[];
+      sizes: { size: string; sku: string | null; quantity: number; isStockOut: boolean }[];
+    }[];
+  };
+  allProducts?: ProductItem[];
+}
 
-  // Custom cursor position & container dimensions
-  const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
-  const [containerWidth, setContainerWidth] = useState(0);
-  const [isHoveringImage, setIsHoveringImage] = useState(false);
-  const imageContainerRef = useRef<HTMLDivElement>(null);
+function parseSpecificationsText(raw?: string, defaultDesc?: string): string {
+  if (!raw) return defaultDesc || "";
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed.specificationsText === "string") {
+      return parsed.specificationsText;
+    }
+  } catch (e) {}
+  return raw;
+}
+
+function renderFormattedMarkdown(text: string) {
+  if (!text) return null;
+  const paragraphs = text.split("\n");
+  return paragraphs.map((para, idx) => {
+    if (!para.trim()) return <div key={idx} className="h-1.5" />;
+    
+    const parts = para.split(/(\*\*.*?\*\*)/g);
+    return (
+      <p key={idx} className="mb-1.5 leading-[20px] text-[14px] text-[#1c1c1c]">
+        {parts.map((part, pIdx) => {
+          if (part.startsWith("**") && part.endsWith("**")) {
+            return (
+              <strong key={pIdx} className="font-medium text-black">
+                {part.slice(2, -2)}
+              </strong>
+            );
+          }
+          return part;
+        })}
+      </p>
+    );
+  });
+}
+
+export default function ProductDetails({ product, allProducts = [] }: ProductDetailsProps) {
+  const [selectedColorIdx, setSelectedColorIdx] = useState(0);
+  const [currentImageIdx, setCurrentImageIdx] = useState(0);
+  const [selectedSize, setSelectedSize] = useState("XL");
+  const [quantity, setQuantity] = useState(1);
+  const [showGuide, setShowGuide] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+
+  // User Telemetry Tracking in localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined" && product) {
+      try {
+        const historyRaw = localStorage.getItem("my_store_view_history");
+        let history: string[] = historyRaw ? JSON.parse(historyRaw) : [];
+        history = [product.slug, ...history.filter((s) => s !== product.slug)].slice(0, 10);
+        localStorage.setItem("my_store_view_history", JSON.stringify(history));
+
+        if (product.collectionTag) {
+          const affinityRaw = localStorage.getItem("my_store_category_affinity");
+          let affinity: Record<string, number> = affinityRaw ? JSON.parse(affinityRaw) : {};
+          affinity[product.collectionTag] = (affinity[product.collectionTag] || 0) + 1;
+          localStorage.setItem("my_store_category_affinity", JSON.stringify(affinity));
+        }
+      } catch (e) {}
+    }
+  }, [product?.slug]);
+
+  // Compute 3 Smart Recommended Products
+  const recommendedProducts = useMemo(() => {
+    const candidates = (allProducts || []).filter(
+      (p) => p.slug !== product?.slug && p.id !== product?.id
+    );
+
+    if (candidates.length === 0) return [];
+
+    let userViewHistory: string[] = [];
+    let userCategoryAffinity: Record<string, number> = {};
+
+    if (typeof window !== "undefined") {
+      try {
+        const historyRaw = localStorage.getItem("my_store_view_history");
+        if (historyRaw) userViewHistory = JSON.parse(historyRaw);
+        const affinityRaw = localStorage.getItem("my_store_category_affinity");
+        if (affinityRaw) userCategoryAffinity = JSON.parse(affinityRaw);
+      } catch (e) {}
+    }
+
+    const scored = candidates.map((p) => {
+      let score = 0;
+
+      // 1. Collection Tag Match (+40 pts)
+      if (product?.collectionTag && p.collectionTag && product.collectionTag === p.collectionTag) {
+        score += 40;
+      }
+
+      // 2. Gender Category Match (+30 pts)
+      if (product?.categorySlug && p.categorySlug && product.categorySlug === p.categorySlug) {
+        score += 30;
+      }
+
+      // 3. User History & Behavioral Affinity (+25 pts)
+      if (p.collectionTag && userCategoryAffinity[p.collectionTag]) {
+        score += Math.min(25, userCategoryAffinity[p.collectionTag] * 5);
+      }
+      if (userViewHistory.includes(p.slug)) {
+        score += 15;
+      }
+
+      // 4. Price Point Proximity (+15 pts)
+      if (product?.priceBdt && p.priceBdt) {
+        const ratio = p.priceBdt / product.priceBdt;
+        if (ratio >= 0.7 && ratio <= 1.3) {
+          score += 15;
+        }
+      }
+
+      return { product: p, score };
+    });
+
+    scored.sort((a, b) => b.score - a.score);
+    return scored.slice(0, 3).map((item) => item.product);
+  }, [product?.slug, product?.collectionTag, product?.categorySlug, product?.priceBdt, allProducts]);
 
   const { openCart: openCartDrawer } = useDrawer();
   const addItemToCart = useCartStore((state) => state.addItem);
 
-  // Stock-out sizes logic
-  const stockOutSizes = ["XXL"];
-  const sizes = ["S", "M", "XL", "XXL"];
+  // Determine active dynamic or default product data
+  const productName = product?.name || 'Oakwood Long sleeve';
+  const priceBdt = product ? `৳${product.priceBdt} BDT` : '৳899 BDT';
+  const compareAtPriceBdt = product?.compareAtPriceBdt ? `৳${product.compareAtPriceBdt}` : (product ? undefined : '৳1199');
 
-  const activeColor = colorVariants[selectedColorIdx];
-  const activeGallery = activeColor.images;
-  const currentImage = activeGallery[currentImageIdx] || activeColor.thumbnail;
+  // Format Color Variants
+  const activeColorVariants = (product?.colorVariants && product.colorVariants.length > 0)
+    ? product.colorVariants.map((v) => {
+        const thumb = v.thumbnailUrl || '/images/for_him.jpg';
+        const gallery = (v.galleryImages && v.galleryImages.filter(Boolean).length > 0)
+          ? v.galleryImages.filter(Boolean)
+          : [thumb];
 
-  const isRightSide = cursorPos.x > containerWidth / 2;
-  const canGoNext = currentImageIdx < activeGallery.length - 1;
-  const canGoPrev = currentImageIdx > 0;
+        return {
+          name: v.name,
+          isLowStock: v.isLowStock,
+          thumbnail: thumb,
+          images: gallery,
+          sizes: v.sizes,
+        };
+      })
+    : defaultColorVariants;
 
-  const showCursor = isHoveringImage && ((isRightSide && canGoNext) || (!isRightSide && canGoPrev));
-  const cursorText = isRightSide ? "NEXT" : "PREVIOUS";
+  const activeColor = activeColorVariants[selectedColorIdx] || activeColorVariants[0];
+  const activeSizeObj = (activeColor?.sizes || []).find((s: any) => s.size === selectedSize);
+  const activeSku = (activeSizeObj as any)?.sku || generateCleanSku(productName, selectedSize);
+  const activeGallery = (activeColor && activeColor.images && activeColor.images.length > 0)
+    ? activeColor.images
+    : [activeColor?.thumbnail || '/images/for_him.jpg'];
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!imageContainerRef.current) return;
-    const rect = imageContainerRef.current.getBoundingClientRect();
-    setContainerWidth(rect.width);
-    setCursorPos({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    });
-  };
+  const currentImage = activeGallery[currentImageIdx] || activeGallery[0] || activeColor?.thumbnail || '/images/for_him.jpg';
 
-  const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!imageContainerRef.current) return;
-    const rect = imageContainerRef.current.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    if (clickX > rect.width / 2) {
-      if (canGoNext) setCurrentImageIdx((prev) => prev + 1);
-    } else {
-      if (canGoPrev) setCurrentImageIdx((prev) => prev - 1);
+  const [prevImage, setPrevImage] = useState<string>(currentImage);
+  const [isFirstRender, setIsFirstRender] = useState<boolean>(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsFirstRender(false);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (currentImage !== prevImage) {
+      const timer = setTimeout(() => {
+        setPrevImage(currentImage);
+      }, 700);
+      return () => clearTimeout(timer);
     }
-  };
+  }, [currentImage]);
+
+  const [lastInteractionTime, setLastInteractionTime] = useState<number>(Date.now());
+
+  // Auto-slide image timer (8 seconds after user inactivity)
+  useEffect(() => {
+    if (activeGallery.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentImageIdx((prev) => (prev + 1) % activeGallery.length);
+    }, 8000);
+    return () => clearInterval(timer);
+  }, [activeGallery.length, selectedColorIdx, lastInteractionTime]);
+
+  // Active Size List
+  const availableSizes = ["XS", "S", "M", "L", "XL", "XXL"];
 
   const handleSelectColor = (idx: number) => {
     setSelectedColorIdx(idx);
     setCurrentImageIdx(0);
+    setLastInteractionTime(Date.now());
   };
 
   const handleAddToCart = () => {
     addItemToCart(
       {
-        id: `oakwood-long-sleeve-${activeColor.name.toLowerCase()}`,
-        name: 'Oakwood Long sleeve',
-        price: '৳899 BDT',
+        id: `${product?.slug || 'oakwood-long-sleeve'}-${activeColor.name.toLowerCase()}`,
+        name: productName,
+        price: priceBdt,
         color: activeColor.name,
         size: selectedSize,
         imageUrl: currentImage,
@@ -119,82 +281,55 @@ export default function ProductDetails() {
     openCartDrawer();
   };
 
+  const formattedDescriptionText = parseSpecificationsText(product?.specifications, product?.description);
+
   return (
-    <div className="bg-white content-stretch flex flex-col items-start relative size-full min-h-screen" data-name="Product Details">
+    <div className="bg-white content-stretch flex flex-col items-start relative size-full min-h-screen font-sans" data-name="Product Details">
       <SiteNav />
-      <SizingGuideModal isOpen={showGuide} onClose={() => setShowGuide(false)} />
+      <SizingGuideModal
+        isOpen={showGuide}
+        onClose={() => setShowGuide(false)}
+        sizeMatrix={(product as any)?.sizeMatrix}
+        productName={productName}
+      />
 
-      {/* Main Product Hero Grid: 1.5fr on left, 1fr on right, items-start */}
-      <div className="w-full grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] items-start relative shrink-0">
+      {/* Main Product Hero Grid (#product-single) */}
+      <div
+        id="product-single"
+        className="w-full grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] items-start relative shrink-0"
+      >
         
-        {/* Left: 1.5fr Image Container with unconstrained height & custom floating NEXT/PREVIOUS cursor */}
-        <div
-          ref={imageContainerRef}
-          onMouseMove={handleMouseMove}
-          onMouseEnter={() => setIsHoveringImage(true)}
-          onMouseLeave={() => setIsHoveringImage(false)}
-          onClick={handleImageClick}
-          className="w-full aspect-square bg-[#f0f0f0] relative overflow-hidden shrink-0 cursor-none group select-none"
-        >
-          {/* Main Display Image */}
-          <motion.img
-            key={currentImage}
-            alt="Oakwood Long sleeve"
-            className="absolute inset-0 size-full object-cover"
-            src={currentImage}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-          />
-
-          {/* Web Custom Floating Larger Circle Cursor ("NEXT" or "PREVIOUS" - Increased Size) */}
-          <AnimatePresence>
-            {showCursor && (
-              <motion.div
-                className="pointer-events-none absolute z-30 flex items-center justify-center rounded-full bg-[#050505] text-white size-[108px] shadow-2xl -translate-x-1/2 -translate-y-1/2"
-                style={{
-                  left: cursorPos.x,
-                  top: cursorPos.y,
+        {/* Left: 1.5fr Stacked Vertical Image Gallery (.product-single__medias) */}
+        <div className="product-single__medias w-full flex flex-col gap-4">
+          {activeGallery.map((imgUrl, idx) => (
+            <div
+              key={idx}
+              className="w-full aspect-[3/4] bg-[#f0f0f0] relative overflow-hidden shrink-0"
+            >
+              <img
+                alt={`${productName} - View ${idx + 1}`}
+                className="absolute inset-0 size-full object-cover z-10"
+                src={imgUrl}
+                onError={(e) => {
+                  e.currentTarget.src = "/images/for_him.jpg";
                 }}
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0, opacity: 0 }}
-                transition={{ type: "spring", damping: 22, stiffness: 320 }}
-              >
-                <span className="font-sans text-[15px] font-bold uppercase tracking-[1.5px] text-white">
-                  {cursorText}
-                </span>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Bottom Center Pagination Indicators (Active: 24px Rectangular, Inactive: 6px Square, Radius 0) */}
-          <div className="absolute bottom-[24px] left-1/2 -translate-x-1/2 z-20 flex gap-[6px] items-center">
-            {activeGallery.map((_, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setCurrentImageIdx(idx);
-                }}
-                className={`h-[6px] transition-all duration-300 cursor-pointer rounded-none ${
-                  currentImageIdx === idx
-                    ? "w-[24px] bg-[#050505]"
-                    : "w-[6px] bg-[#d0d0d0] hover:bg-neutral-400"
-                }`}
-                aria-label={`Go to slide ${idx + 1}`}
               />
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
 
-        {/* Right: 1fr Product Details Panel */}
-        <div className="w-full min-h-[calc(100vh-64px)] flex items-start justify-center p-[36px] shrink-0 self-stretch">
+        {/* Right: 1fr Sticky Product Details Panel (Stays sticky at top 98px, ghost-scrolls through tall content with vertical fade mask) */}
+        <div
+          className="w-full lg:sticky lg:top-[98px] flex items-start justify-center p-[36px] shrink-0 self-start pb-12 z-20 overflow-y-auto max-h-[calc(100vh-120px)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          style={{
+            maskImage: "linear-gradient(to bottom, transparent, black 40px, black calc(100% - 40px), transparent)",
+            WebkitMaskImage: "linear-gradient(to bottom, transparent, black 40px, black calc(100% - 40px), transparent)",
+          }}
+        >
           <div className="content-stretch flex flex-col gap-[28px] items-start relative shrink-0 w-full max-w-[460px]">
             
             {/* Header Title & Price */}
-            <div className="content-stretch flex flex-col gap-[20px] items-start relative shrink-0 w-full">
+            <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full">
               <div className="[word-break:break-word] content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full whitespace-nowrap">
                 <p
                   className="font-serif font-semibold relative shrink-0 text-[#1c1c1c]"
@@ -205,16 +340,21 @@ export default function ProductDetails() {
                     fontWeight: 600,
                   }}
                 >
-                  Oakwood Long sleeve
+                  {productName}
                 </p>
                 <div className="content-stretch flex font-sans gap-[8px] items-start leading-[24px] relative shrink-0">
                   <p className="relative shrink-0 text-[#1c1c1c] text-[24px] font-medium">
-                    ৳899 BDT
+                    {priceBdt}
                   </p>
-                  <p className="line-through relative shrink-0 text-[#666666] text-[18px] font-normal">
-                    ৳1199
-                  </p>
+                  {compareAtPriceBdt && (
+                    <p className="line-through relative shrink-0 text-[#666666] text-[18px] font-medium">
+                      {compareAtPriceBdt}
+                    </p>
+                  )}
                 </div>
+                <p className="text-[14px] text-[#666666] font-normal leading-[20px] font-sans">
+                  SKU: {activeSku}
+                </p>
               </div>
               <div className="h-0 relative shrink-0 w-full">
                 <div className="absolute inset-[-1px_0_0_0]">
@@ -225,28 +365,42 @@ export default function ProductDetails() {
               </div>
             </div>
 
-            {/* Color Swatch Selectors (Red Low Stock Warning when applicable) */}
-            <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full">
-              <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#1c1c1c] text-[17px] tracking-[-0.34px] whitespace-nowrap">
+            {/* Color Swatch Selectors (Right-aligned rectangular color blocks with underline) */}
+            <div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
+              <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#1c1c1c] text-[17px] tracking-[-0.34px] whitespace-nowrap font-medium">
                 Color: <span className="font-medium">{activeColor.name}</span>
                 {activeColor.isLowStock && (
-                  <span className="text-[#d4183d] font-normal text-[15px] ml-[6px] tracking-normal font-sans">
+                  <span className="text-[#d4183d] font-medium text-[15px] ml-[6px] tracking-normal font-sans">
                     (Low Stock)
                   </span>
                 )}
               </p>
               <div className="content-stretch flex gap-[12px] items-center relative shrink-0">
-                {colorVariants.map((c, idx) => (
-                  <div
-                    key={c.name}
-                    onClick={() => handleSelectColor(idx)}
-                    className={`bg-[#f0f0f0] content-stretch flex h-[90px] items-center justify-center relative shrink-0 w-[80px] cursor-pointer transition-all overflow-hidden ${
-                      selectedColorIdx === idx ? "border border-black scale-105" : "opacity-75 hover:opacity-100"
-                    }`}
-                  >
-                    <img alt={c.name} className="size-full object-cover" src={c.thumbnail} />
-                  </div>
-                ))}
+                {activeColorVariants.map((c: any, idx) => {
+                  const isSelected = selectedColorIdx === idx;
+                  const hex = c.hexCode || c.hexColor || (
+                    c.name.toLowerCase().includes("bronze") || c.name.toLowerCase().includes("brown") ? "#4a2e18" :
+                    c.name.toLowerCase().includes("slate") || c.name.toLowerCase().includes("gray") || c.name.toLowerCase().includes("grey") ? "#716e8d" :
+                    c.name.toLowerCase().includes("yellow") || c.name.toLowerCase().includes("mustard") ? "#eab308" :
+                    c.name.toLowerCase().includes("pink") || c.name.toLowerCase().includes("rose") ? "#f4d0d0" :
+                    c.name.toLowerCase().includes("blue") || c.name.toLowerCase().includes("navy") ? "#1e3a8a" :
+                    c.name.toLowerCase().includes("black") ? "#18181b" :
+                    c.name.toLowerCase().includes("white") || c.name.toLowerCase().includes("cream") ? "#ffffff" : "#64748b"
+                  );
+
+                  return (
+                    <div key={c.name || idx} className="flex flex-col items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleSelectColor(idx)}
+                        title={c.name}
+                        className="w-10 h-4 relative transition-all cursor-pointer border border-neutral-300/60 shadow-2xs"
+                        style={{ backgroundColor: hex }}
+                      />
+                      <div className={`h-[2px] w-6 transition-all ${isSelected ? "bg-black" : "bg-transparent"}`} />
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -256,14 +410,15 @@ export default function ProductDetails() {
                 <p className="relative shrink-0 text-[#1c1c1c] text-[17px] tracking-[-0.34px] font-medium">Size</p>
                 <p
                   onClick={() => setShowGuide(true)}
-                  className="[text-underline-position:from-font] decoration-from-font decoration-solid relative shrink-0 text-[#676767] text-[15px] tracking-[-0.3px] underline cursor-pointer hover:text-black transition-colors"
+                  className="[text-underline-position:from-font] decoration-from-font decoration-solid relative shrink-0 text-[#676767] text-[15px] tracking-[-0.3px] underline cursor-pointer hover:text-black transition-colors font-medium"
                 >
                   View Guide
                 </p>
               </div>
               <div className="content-stretch flex gap-[20px] items-center relative shrink-0">
-                {sizes.map((sz) => {
-                  const isStockOut = stockOutSizes.includes(sz);
+                {availableSizes.map((sz) => {
+                  const sizeObj = activeColor.sizes?.find((s: any) => s.size === sz);
+                  const isStockOut = sizeObj ? sizeObj.isStockOut || sizeObj.quantity === 0 : sz === "XXL";
                   const isSelected = selectedSize === sz;
                   return (
                     <button
@@ -276,10 +431,10 @@ export default function ProductDetails() {
                           ? "line-through opacity-40 cursor-not-allowed text-[#a0a0a0]"
                           : isSelected
                           ? "border-b border-black text-[#1a1a1a] font-medium cursor-pointer"
-                          : "text-[#606060] hover:text-black cursor-pointer"
+                          : "text-[#606060] hover:text-black cursor-pointer font-medium"
                       }`}
                     >
-                      <p className="font-sans leading-[24px] text-[17px] tracking-[0.17px]">{sz}</p>
+                      <p className="font-sans leading-[24px] not-italic relative shrink-0 text-[17px] tracking-[0.17px] whitespace-nowrap font-medium">{sz}</p>
                     </button>
                   );
                 })}
@@ -325,80 +480,63 @@ export default function ProductDetails() {
               className="group relative shrink-0 w-full border border-black bg-transparent py-[12px] px-[20px] cursor-pointer transition-all duration-200 hover:bg-[#050505]"
             >
               <p className="font-sans leading-[24px] text-[17px] text-black group-hover:text-white uppercase tracking-[0.85px] font-medium transition-colors">
-                Add to cart
+                ADD TO CART
               </p>
             </button>
 
-            {/* Description */}
-            <div className="[word-break:break-word] font-sans leading-[0] not-italic relative shrink-0 text-[17px] text-black w-full whitespace-pre-wrap">
-              <p className="leading-[24px] mb-0">Ultralight recycled mesh long sleeve in race fit with bonded seams and a silicone logo. For a more relaxed fit, we recommend taking one size up in this style.</p>
-              <p className="leading-[24px] mb-0">​</p>
-              <p className="leading-[24px]">
-                - Silicone heat press labels<br aria-hidden />- 95 GSM<br aria-hidden />- 92% recycled Polyester + 15% Elastane<br aria-hidden />- Made in Bangladesh
-              </p>
+            {/* Collapsible Product Description Accordion */}
+            <div className="w-full border-t border-b border-neutral-200 py-2 mt-2">
+              <button
+                type="button"
+                onClick={() => setIsDescriptionExpanded((prev) => !prev)}
+                className="w-full flex items-center justify-between py-2 text-left cursor-pointer group"
+              >
+                <span className="font-sans text-[15px] font-medium uppercase tracking-[0.5px] text-[#1c1c1c]">
+                  Product Description &amp; Specifications
+                </span>
+                <span className="font-sans text-[20px] font-normal text-neutral-600 group-hover:text-black transition-colors">
+                  {isDescriptionExpanded ? "−" : "+"}
+                </span>
+              </button>
+
+              <AnimatePresence>
+                {isDescriptionExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                  >
+                    <div className="font-sans text-xs text-neutral-800 leading-relaxed space-y-2 pt-3 pb-2 border-t border-neutral-100 mt-1">
+                      {renderFormattedMarkdown(formattedDescriptionText)}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>
       </div>
 
-      {/* "You might also like" Section Heading (120px padding-top) */}
-      <div className="w-full px-[36px] pt-[120px] pb-[32px] shrink-0">
-        <h2 className="font-serif text-[36px] font-semibold tracking-[-0.72px] text-[#1c1c1c] leading-[44px]">
-          You might also like
-        </h2>
-      </div>
-
-      {/* Product Recommendation Grid */}
-      <div className="relative shrink-0 w-full pb-[100px]">
-        <div className="gap-x-[8px] gap-y-[60px] grid grid-cols-[repeat(3,minmax(0,1fr))] grid-rows-[repeat(1,fit-content(100%))] px-[36px] relative size-full">
-          {/* Card 1 */}
-          <div data-product-card="true" className="group content-stretch flex flex-col gap-[16px] items-start justify-self-stretch relative self-start shrink-0 cursor-pointer hover:opacity-95 transition-all">
-            <div className="aspect-[3/4] relative shrink-0 w-full overflow-hidden">
-              <img alt="OWAYO - CROSS FADE" className="absolute inset-0 max-w-none object-cover size-full group-hover:scale-105 transition-transform duration-300" src={typeof imgFrame1597881192 === 'string' ? imgFrame1597881192 : imgFrame1597881192?.src} />
-              <div className="content-stretch flex items-start p-[16px] relative size-full">
-                <div className="bg-[#050505] content-stretch flex items-center justify-center pb-[4px] pt-[3px] px-[10px] relative shrink-0">
-                  <p className="font-sans leading-[24px] text-[16px] text-white whitespace-nowrap">10% OFF</p>
-                </div>
-              </div>
-            </div>
-            <div className="content-stretch flex flex-col gap-[8px] h-[56px] items-start leading-[24px] px-[8px] relative shrink-0 w-[436px] whitespace-nowrap">
-              <p className="font-sans relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-[-0.4px]">OWAYO - CROSS FADE</p>
-              <div className="content-stretch flex gap-[8px] items-start relative shrink-0">
-                <p className="font-sans font-medium relative shrink-0 text-[#1c1c1c] text-[20px]">৳899 BDT</p>
-                <p className="line-through relative shrink-0 text-[#666666] text-[18px] font-normal">৳1199 BDT</p>
-              </div>
-            </div>
+      {/* "You might also like" Section Heading & Smart Recommendation Grid */}
+      {recommendedProducts.length > 0 && (
+        <>
+          <div className="w-full px-[36px] pt-[100px] pb-[32px] shrink-0">
+            <h2 className="font-serif text-[36px] font-semibold tracking-[-0.72px] text-[#1c1c1c] leading-[44px]">
+              You might also like
+            </h2>
           </div>
 
-          {/* Card 2 */}
-          <div data-product-card="true" className="group content-stretch flex flex-col gap-[16px] items-start justify-self-stretch relative self-start shrink-0 cursor-pointer hover:opacity-95 transition-all">
-            <div className="aspect-[3/4] relative shrink-0 w-full overflow-hidden">
-              <img alt="OWAYO - CROSS FADE" className="absolute inset-0 max-w-none object-cover size-full group-hover:scale-105 transition-transform duration-300" src={typeof imgFrame1597881192 === 'string' ? imgFrame1597881192 : imgFrame1597881192?.src} />
-            </div>
-            <div className="content-stretch flex flex-col gap-[8px] h-[56px] items-start leading-[24px] px-[8px] relative shrink-0 w-[436px] whitespace-nowrap">
-              <p className="font-sans relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-[-0.4px]">OWAYO - CROSS FADE</p>
-              <div className="content-stretch flex gap-[8px] items-start relative shrink-0">
-                <p className="font-sans font-medium relative shrink-0 text-[#1c1c1c] text-[20px]">৳899 BDT</p>
-                <p className="line-through relative shrink-0 text-[#666666] text-[18px] font-normal">৳1199 BDT</p>
-              </div>
+          <div className="relative shrink-0 w-full pb-[100px]">
+            <div className="gap-x-[24px] gap-y-[60px] grid grid-cols-1 md:grid-cols-3 px-[36px] relative size-full">
+              {recommendedProducts.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
             </div>
           </div>
-
-          {/* Card 3 */}
-          <div data-product-card="true" className="group content-stretch flex flex-col gap-[16px] items-start justify-self-stretch relative self-start shrink-0 cursor-pointer hover:opacity-95 transition-all">
-            <div className="aspect-[3/4] relative shrink-0 w-full overflow-hidden">
-              <img alt="OWAYO - CROSS FADE" className="absolute inset-0 max-w-none object-cover size-full group-hover:scale-105 transition-transform duration-300" src={typeof imgFrame1597881192 === 'string' ? imgFrame1597881192 : imgFrame1597881192?.src} />
-            </div>
-            <div className="content-stretch flex flex-col gap-[8px] h-[56px] items-start leading-[24px] px-[8px] relative shrink-0 w-[436px] whitespace-nowrap">
-              <p className="font-sans relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-[-0.4px]">OWAYO - CROSS FADE</p>
-              <div className="content-stretch flex gap-[8px] items-start relative shrink-0">
-                <p className="font-sans font-medium relative shrink-0 text-[#1c1c1c] text-[20px]">৳899 BDT</p>
-                <p className="line-through relative shrink-0 text-[#666666] text-[18px] font-normal">৳1199 BDT</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+        </>
+      )}
 
       <SiteFooter />
     </div>

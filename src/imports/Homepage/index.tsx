@@ -1,5 +1,10 @@
+'use client';
+
+import { useState, useMemo } from 'react';
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
+import type { ProductItem } from '@/app/actions/products';
+import { ProductCard } from '@/figma-components/ProductCard';
 import { SiteNav } from '@/figma-components/SiteNav';
 import { SiteFooter } from '@/figma-components/SiteFooter';
 import svgPaths from "./svg-8f9q8i8m4a";
@@ -40,9 +45,8 @@ function Frame() {
 
 function Frame189Status() {
   return (
-    <div className="bg-[#050505] content-stretch flex gap-[6px] items-center justify-center pb-[8px] pt-[7px] pl-[16px] pr-[14px] relative shrink-0" data-name="Frame 189/Status3">
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[17px] text-white whitespace-nowrap">Explore Designs</p>
-      <Frame />
+    <div className="bg-[#050505] content-stretch flex items-center justify-center py-[12px] px-[20px] relative shrink-0 cursor-pointer hover:bg-neutral-800 transition-colors" data-name="Frame 189/Status3">
+      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[17px] text-white uppercase tracking-[0.5px] font-normal">EXPLORE DESIGNS</p>
     </div>
   );
 }
@@ -208,10 +212,10 @@ function Frame189Status1() {
     <button
       type="button"
       onClick={() => router.push("/for-him")}
-      className="bg-white content-stretch flex items-center justify-center px-[20px] py-[8px] relative shrink-0 cursor-pointer hover:opacity-85 transition-opacity border-none shop-cta-btn"
+      className="bg-white content-stretch flex items-center justify-center px-[20px] py-[12px] relative shrink-0 cursor-pointer hover:opacity-85 transition-opacity border-none shop-cta-btn"
       data-name="Frame 189/Status3"
     >
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#0d0d0d] text-[16px] whitespace-nowrap m-0 cursor-pointer">Shop For Him</p>
+      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#0d0d0d] text-[17px] uppercase font-normal tracking-[0.5px] whitespace-nowrap m-0 cursor-pointer">SHOP FOR HIM</p>
     </button>
   );
 }
@@ -263,10 +267,10 @@ function Frame189Status2() {
     <button
       type="button"
       onClick={() => router.push("/for-her")}
-      className="bg-white content-stretch flex items-center justify-center px-[20px] py-[8px] relative shrink-0 cursor-pointer hover:opacity-85 transition-opacity border-none shop-cta-btn"
+      className="bg-white content-stretch flex items-center justify-center px-[20px] py-[12px] relative shrink-0 cursor-pointer hover:opacity-85 transition-opacity border-none shop-cta-btn"
       data-name="Frame 189/Status3"
     >
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#0d0d0d] text-[16px] whitespace-nowrap m-0 cursor-pointer">Shop For Her</p>
+      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#0d0d0d] text-[17px] uppercase font-normal tracking-[0.5px] whitespace-nowrap m-0 cursor-pointer">SHOP FOR HER</p>
     </button>
   );
 }
@@ -319,55 +323,31 @@ function Frame16() {
   );
 }
 
-function Frame189Status3() {
-  return (
-    <div className="content-stretch flex items-center justify-center px-[2px] py-[5px] relative shrink-0" data-name="Frame 189/Status3">
-      <div aria-hidden className="absolute border-[#1a1a1a] border-b border-solid inset-0 pointer-events-none" />
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#1a1a1a] text-[17px] tracking-[0.17px] whitespace-nowrap">All Designs</p>
-    </div>
-  );
-}
+function Frame33({ activeTag, onSelectTag }: { activeTag: string; onSelectTag: (tag: string) => void }) {
+  const tags = ["All Designs", "Minimal", "Gaming", "Floral", "Divine"];
 
-function Frame189Status4() {
-  return (
-    <div className="content-stretch flex items-center justify-center px-[2px] py-[5px] relative shrink-0" data-name="Frame 189/Status3">
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#606060] text-[17px] tracking-[0.17px] whitespace-nowrap">Minimal</p>
-    </div>
-  );
-}
-
-function Frame189Status5() {
-  return (
-    <div className="content-stretch flex items-center justify-center px-[2px] py-[5px] relative shrink-0" data-name="Frame 189/Status3">
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#606060] text-[17px] tracking-[0.17px] whitespace-nowrap">Gaming</p>
-    </div>
-  );
-}
-
-function Frame189Status6() {
-  return (
-    <div className="content-stretch flex items-center justify-center px-[2px] py-[5px] relative shrink-0" data-name="Frame 189/Status3">
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#606060] text-[17px] tracking-[0.17px] whitespace-nowrap">Floral</p>
-    </div>
-  );
-}
-
-function Frame189Status7() {
-  return (
-    <div className="content-stretch flex items-center justify-center px-[2px] py-[5px] relative shrink-0" data-name="Frame 189/Status3">
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#606060] text-[17px] tracking-[0.17px] whitespace-nowrap">Divine</p>
-    </div>
-  );
-}
-
-function Frame33() {
   return (
     <div className="content-stretch flex gap-[20px] items-center relative shrink-0">
-      <Frame189Status3 />
-      <Frame189Status4 />
-      <Frame189Status5 />
-      <Frame189Status6 />
-      <Frame189Status7 />
+      {tags.map((t) => {
+        const isSelected = activeTag === t || (activeTag === "all" && t === "All Designs");
+        return (
+          <button
+            key={t}
+            type="button"
+            onClick={() => onSelectTag(t === "All Designs" ? "all" : t)}
+            className="content-stretch flex items-center justify-center px-[2px] py-[5px] relative shrink-0 cursor-pointer bg-transparent border-none"
+          >
+            {isSelected && (
+              <div aria-hidden className="absolute border-[#1a1a1a] border-b border-solid inset-0 pointer-events-none" />
+            )}
+            <p className={`[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[17px] tracking-[0.17px] whitespace-nowrap cursor-pointer ${
+              isSelected ? "text-[#1a1a1a] font-medium" : "text-[#606060] hover:text-[#1a1a1a]"
+            }`}>
+              {t}
+            </p>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -387,29 +367,60 @@ function Frame1() {
   );
 }
 
-function Frame189Status8() {
+function Frame189Status8({ sortOrder, onToggleSort }: { sortOrder: "high-to-low" | "low-to-high"; onToggleSort: () => void }) {
   return (
-    <div className="content-stretch flex gap-[4px] items-center justify-center px-[2px] py-[5px] relative shrink-0" data-name="Frame 189/Status3">
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#404040] text-[17px] tracking-[0.17px] whitespace-nowrap">Price: High to Low</p>
-      <Frame1 />
-    </div>
+    <button
+      type="button"
+      onClick={onToggleSort}
+      className="content-stretch flex items-center justify-center px-[6px] py-[5px] relative shrink-0 cursor-pointer bg-transparent border-none opacity-60 hover:opacity-100 transition-opacity"
+      data-name="Frame 189/Status3"
+    >
+      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#404040] text-[17px] tracking-[0.17px] whitespace-nowrap font-medium cursor-pointer">
+        Price: {sortOrder === "high-to-low" ? "High to Low ↓" : "Low to High ↑"}
+      </p>
+    </button>
   );
 }
 
-function Frame12() {
+function Frame12({
+  activeTag,
+  onSelectTag,
+  sortOrder,
+  onToggleSort,
+}: {
+  activeTag: string;
+  onSelectTag: (tag: string) => void;
+  sortOrder: "high-to-low" | "low-to-high";
+  onToggleSort: () => void;
+}) {
   return (
     <div className="content-stretch flex items-start justify-between relative shrink-0 w-full">
-      <Frame33 />
-      <Frame189Status8 />
+      <Frame33 activeTag={activeTag} onSelectTag={onSelectTag} />
+      <Frame189Status8 sortOrder={sortOrder} onToggleSort={onToggleSort} />
     </div>
   );
 }
 
-function Frame20() {
+function Frame20({
+  activeTag,
+  onSelectTag,
+  sortOrder,
+  onToggleSort,
+}: {
+  activeTag: string;
+  onSelectTag: (tag: string) => void;
+  sortOrder: "high-to-low" | "low-to-high";
+  onToggleSort: () => void;
+}) {
   return (
     <div className="content-stretch flex flex-col gap-[50px] items-start relative shrink-0 w-full">
       <Frame16 />
-      <Frame12 />
+      <Frame12
+        activeTag={activeTag}
+        onSelectTag={onSelectTag}
+        sortOrder={sortOrder}
+        onToggleSort={onToggleSort}
+      />
     </div>
   );
 }
@@ -417,9 +428,11 @@ function Frame20() {
 function Frame7() {
   return (
     <div className="relative shrink-0 w-full">
-      <div className="content-stretch flex flex-col gap-[4px] items-start pb-[25px] px-[36px] relative size-full">
-        <p className="[word-break:break-word] font-serif font-semibold leading-[110px] relative shrink-0 text-[70px] text-black tracking-[-2.1px] whitespace-nowrap">Explore the collection</p>
-        <Frame20 />
+      <div className="content-stretch flex flex-col gap-[12px] items-start pb-[25px] px-[36px] relative size-full">
+        <p className="[word-break:break-word] font-serif font-semibold leading-[90px] relative shrink-0 text-[70px] text-black tracking-[-2.1px] whitespace-nowrap">Explore the collection</p>
+        <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[18px] text-[#505050] tracking-[-0.1px] max-w-[650px]">
+          Browse fully customizable templates or draw inspiration from real designs created by our community. Filter by sport to find your team’s next look.
+        </p>
       </div>
     </div>
   );
@@ -569,7 +582,7 @@ function Frame21() {
 
 function Frame13() {
   return (
-    <div className="aspect-[3.5/4] bg-[#f0f0f0] content-stretch flex items-center justify-center overflow-clip relative shrink-0 w-full">
+    <div className="aspect-[3/4] bg-[#f0f0f0] content-stretch flex items-center justify-center overflow-clip relative shrink-0 w-full">
       <Frame21 />
     </div>
   );
@@ -614,7 +627,7 @@ function Frame30() {
 
 function Frame14() {
   return (
-    <div className="aspect-[3.5/4] bg-[#f0f0f0] content-stretch flex items-center justify-center overflow-clip relative shrink-0 w-full">
+    <div className="aspect-[3/4] bg-[#f0f0f0] content-stretch flex items-center justify-center overflow-clip relative shrink-0 w-full">
       <Frame30 />
     </div>
   );
@@ -659,7 +672,7 @@ function Frame39() {
 
 function Frame38() {
   return (
-    <div className="aspect-[3.5/4] bg-[#f0f0f0] content-stretch flex items-center justify-center overflow-clip relative shrink-0 w-full">
+    <div className="aspect-[3/4] bg-[#f0f0f0] content-stretch flex items-center justify-center overflow-clip relative shrink-0 w-full">
       <Frame39 />
     </div>
   );
@@ -690,16 +703,51 @@ function Frame37() {
   );
 }
 
-function Frame15() {
+interface HomepageProductItem {
+  id: string;
+  name: string;
+  slug: string;
+  priceBdt: number;
+  price: string;
+  imageUrl?: string;
+  compareAtPriceBdt?: number;
+  collectionTag?: string;
+}
+
+function Frame15({ products, onResetFilter }: { products?: HomepageProductItem[]; onResetFilter?: () => void }) {
+  if (!products || products.length === 0) {
+    return (
+      <div className="w-full px-[36px] pb-12">
+        <div className="flex flex-col items-center justify-center text-center gap-[6px] p-[48px_24px] border border-dashed border-[#d0d0d0] w-full bg-[#fafafa]">
+          <p
+            className="text-[#808080] text-[22px] font-medium tracking-[-0.4px]"
+            style={{ fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)" }}
+          >
+            No products found
+          </p>
+          <p className="font-sans text-[14px] text-[#808080]">
+            No products match the selected collection filter.
+          </p>
+          {onResetFilter && (
+            <button
+              type="button"
+              onClick={onResetFilter}
+              className="inline-flex items-center justify-center bg-[#050505] text-white border-none cursor-pointer px-[18px] py-[8px] font-sans text-[14px] font-semibold tracking-[0.75px] uppercase transition-opacity hover:opacity-90 mt-[8px]"
+            >
+              Browse all designs
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative shrink-0 w-full">
-      <div className="gap-x-[8px] gap-y-[60px] grid grid-cols-[repeat(3,minmax(0,1fr))] grid-rows-[repeat(2,fit-content(100%))] px-[36px] relative size-full">
-        <Frame34 />
-        <Frame35 />
-        <Frame36 />
-        <Frame34 />
-        <Frame35 />
-        <Frame36 />
+      <div className="product-grid-4col px-[36px] relative w-full">
+        {products.map((p, idx) => (
+          <ProductCard key={p.id ? `${p.id}-${idx}` : `prod-${idx}`} product={p} />
+        ))}
       </div>
     </div>
   );
@@ -707,8 +755,8 @@ function Frame15() {
 
 function Frame189Status11() {
   return (
-    <div className="bg-white content-stretch flex items-center justify-center pb-[8px] pt-[9px] px-[20px] relative shrink-0" data-name="Frame 189/Status3">
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#0d0d0d] text-[16px] whitespace-nowrap">Let’s Talk</p>
+    <div className="bg-white content-stretch flex items-center justify-center py-[12px] px-[20px] relative shrink-0 cursor-pointer hover:opacity-85 transition-opacity" data-name="Frame 189/Status3">
+      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#0d0d0d] text-[17px] font-normal uppercase tracking-[0.5px] whitespace-nowrap m-0">LET'S TALK</p>
     </div>
   );
 }
@@ -980,14 +1028,42 @@ function Frame47() {
   );
 }
 
-export default function Homepage() {
+export default function Homepage({ products }: { products?: HomepageProductItem[] }) {
+  // Popularity Scoring & New Drops Logic
+  const popularProducts = useMemo(() => {
+    if (!products || products.length === 0) return [];
+    
+    const scored = products.map((p, idx) => {
+      let score = 100 - idx;
+      if (p.compareAtPriceBdt && p.compareAtPriceBdt > p.priceBdt) score += 30;
+      if (p.collectionTag === "Minimal" || p.collectionTag === "Divine") score += 20;
+      return { product: p, score };
+    });
+
+    // 4 rows = 12 items on 3 cols, 16 items on 4 cols (>1440px)
+    return scored.slice(0, 16).map((item) => item.product);
+  }, [products]);
+
   return (
     <div className="bg-white content-stretch flex flex-col items-start relative size-full" data-name="Homepage">
       <SiteNav />
       <Frame4 />
       <Frame18 />
       <Frame7 />
-      <Frame15 />
+      <Frame15 products={popularProducts} />
+      
+      {/* "Explore All" Button */}
+      <div className="w-full flex items-center justify-center pt-8 pb-16">
+        <Link href="/all-products">
+          <button
+            type="button"
+            className="bg-[#050505] text-white hover:bg-neutral-800 px-[20px] py-[12px] text-[17px] font-normal uppercase tracking-[0.5px] transition-all cursor-pointer rounded-none border border-black shadow-sm"
+          >
+            EXPLORE ALL
+          </button>
+        </Link>
+      </div>
+
       <Frame41 />
       <SiteFooter />
     </div>

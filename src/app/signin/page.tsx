@@ -1,11 +1,14 @@
 'use client';
 
+import { Suspense } from 'react';
 import { SignInPage } from '@/figma-components/SignInPage';
 
 export default function Page() {
   return (
     <main className="w-full min-h-screen bg-white">
-      <SignInPage />
+      <Suspense fallback={<div className="min-h-screen bg-[#0d0d0d] text-white p-12">Loading...</div>}>
+        <SignInPage />
+      </Suspense>
     </main>
   );
 }

@@ -1,361 +1,317 @@
-import Link from "next/link";
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+'use client';
+
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect, useTransition, useMemo } from 'react';
 import { SiteFooter } from '@/figma-components/SiteFooter';
 import { SiteNav } from '@/figma-components/SiteNav';
-import svgPaths from "./svg-u92o8n7fq5";
-import imgFrame1597881192 from "./cd8123b8a9ab8a34443daf47f95966a2cb8719ce.png";
+import { ProductCard } from '@/figma-components/ProductCard';
+import { CategoryFilterSubBar } from '@/figma-components/CategoryFilterSubBar';
+import { getAdminProducts } from '@/app/actions/products';
 
-function Frame189Status() {
-  return (
-    <div className="bg-[#050505] content-stretch flex items-center justify-center pb-[4px] pt-[3px] px-[10px] relative shrink-0" data-name="Frame 189/Status3">
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[16px] text-white whitespace-nowrap">10% OFF</p>
-    </div>
-  );
+const CATEGORY_FILTERS = [
+  { label: "ALL", value: "ALL" },
+  { label: "MINIMAL", value: "minimal" },
+  { label: "DIVINE", value: "divine" },
+  { label: "FOR HIM", value: "him" },
+  { label: "FOR HER", value: "her" },
+  { label: "CASUAL", value: "casual" },
+  { label: "GAMING", value: "gaming" },
+];
+
+/**
+ * Smart Recommendation Algorithm (Default State)
+ * Ranks products by customer interest, stock availability, discount savings, and tag priority
+ */
+function calculateRecommendationScore(p: any): number {
+  let score = 50;
+
+  const tag = (p.collectionTag || '').toLowerCase();
+  if (tag.includes('minimal')) score += 30;
+  else if (tag.includes('divine')) score += 25;
+  else if (tag.includes('gaming')) score += 20;
+
+  const cat = (p.categoryName || p.categorySlug || '').toLowerCase();
+  if (cat.includes('him') || cat.includes('her')) score += 15;
+
+  if (p.compareAtPriceBdt && p.compareAtPriceBdt > p.priceBdt) {
+    const savings = p.compareAtPriceBdt - p.priceBdt;
+    score += Math.min(30, Math.floor(savings / 50));
+  }
+
+  if (!p.isLowStock) score += 10;
+  if (p.colors && p.colors.length > 1) score += 10;
+
+  return score;
 }
 
-function Frame23() {
-  return (
-    <div className="aspect-[3/4] relative shrink-0 w-full">
-      <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={typeof imgFrame1597881192 === 'string' ? imgFrame1597881192 : imgFrame1597881192?.src} />
-      <div className="content-stretch flex items-start p-[16px] relative size-full">
-        <Frame189Status />
-      </div>
-    </div>
-  );
-}
+/**
+ * Search Query Relevance Match Scoring Algorithm
+ * Ranks exact title matches highest, followed by category, tags, and color variants
+ */
+function calculateQueryMatchScore(p: any, q: string): number {
+  let score = 0;
+  const name = (p.name || '').toLowerCase();
+  const slug = (p.slug || '').toLowerCase();
+  const tag = (p.collectionTag || '').toLowerCase();
+  const cat = (p.categoryName || p.categorySlug || '').toLowerCase();
+  const colors = (p.colors || []).map((c: string) => c.toLowerCase());
 
-function Frame24() {
-  return (
-    <div className="content-stretch flex gap-[8px] items-start relative shrink-0">
-      <p className="font-sans font-medium relative shrink-0 text-[#1c1c1c] text-[20px]" style={{ fontVariationSettings: '"wdth" 100, "wght" 500' }}>
-        ৳899 BDT
-      </p>
-      <p className="[text-decoration-skip-ink:none] [text-underline-position:from-font] decoration-from-font decoration-solid font-['Barlow Semi Condensed:Regular','Noto_Sans_Bengali:Regular',sans-serif] line-through relative shrink-0 text-[#666666] text-[18px] font-normal font-medium" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
-        ৳1199 BDT
-      </p>
-    </div>
-  );
-}
+  if (name === q) score += 100;
+  else if (name.startsWith(q)) score += 60;
+  else if (name.includes(q)) score += 40;
 
-function Frame7() {
-  return (
-    <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] h-[56px] items-start leading-[24px] px-[8px] relative shrink-0 w-[436px] whitespace-nowrap">
-      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-[-0.4px]">OWAYO - CROSS FADE</p>
-      <Frame24 />
-    </div>
-  );
-}
+  if (slug.includes(q)) score += 30;
+  if (cat.includes(q)) score += 25;
+  if (tag.includes(q)) score += 20;
+  if (colors.some((c: string) => c.includes(q))) score += 15;
 
-function Frame13() {
-  return (
-    <div data-product-card="true" className="content-stretch flex flex-col gap-[16px] items-start justify-self-stretch relative self-start shrink-0 cursor-pointer hover:opacity-95 transition-all">
-      <Frame23 />
-      <Frame7 />
-    </div>
-  );
-}
-
-function Frame8() {
-  return (
-    <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] h-[56px] items-start leading-[24px] px-[8px] relative shrink-0 text-[#1c1c1c] w-[436px] whitespace-nowrap">
-      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-[-0.4px]">OWAYO - CROSS FADE</p>
-      <div className="content-stretch flex gap-[8px] items-start relative shrink-0">
-        <p className="font-sans font-medium relative shrink-0 text-[#1c1c1c] text-[20px]">
-          ৳899 BDT
-        </p>
-        <p className="line-through relative shrink-0 text-[#666666] text-[18px] font-normal">
-          ৳1199 BDT
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function Frame14() {
-  return (
-    <div data-product-card="true" className="content-stretch flex flex-col gap-[16px] items-start justify-self-stretch relative self-start shrink-0 cursor-pointer hover:opacity-95 transition-all">
-      <div className="aspect-[1000/1334] relative shrink-0 w-full" data-name="image 120">
-        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={typeof imgFrame1597881192 === 'string' ? imgFrame1597881192 : imgFrame1597881192?.src} />
-      </div>
-      <Frame8 />
-    </div>
-  );
-}
-
-function Frame9() {
-  return (
-    <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] h-[56px] items-start leading-[24px] px-[8px] relative shrink-0 text-[#1c1c1c] w-[436px] whitespace-nowrap">
-      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-[-0.4px]">OWAYO - CROSS FADE</p>
-      <div className="content-stretch flex gap-[8px] items-start relative shrink-0">
-        <p className="font-sans font-medium relative shrink-0 text-[#1c1c1c] text-[20px]">
-          ৳899 BDT
-        </p>
-        <p className="line-through relative shrink-0 text-[#666666] text-[18px] font-normal">
-          ৳1199 BDT
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function Frame15() {
-  return (
-    <div data-product-card="true" className="content-stretch flex flex-col gap-[16px] items-start justify-self-stretch relative self-start shrink-0 cursor-pointer hover:opacity-95 transition-all">
-      <div className="aspect-[1000/1334] relative shrink-0 w-full" data-name="image 120">
-        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={typeof imgFrame1597881192 === 'string' ? imgFrame1597881192 : imgFrame1597881192?.src} />
-      </div>
-      <Frame9 />
-    </div>
-  );
-}
-
-function Frame6() {
-  return (
-    <div className="relative shrink-0 w-full">
-      <div className="gap-x-[8px] gap-y-[60px] grid grid-cols-[repeat(3,minmax(0,1fr))] grid-rows-[repeat(1,fit-content(100%))] px-[36px] relative size-full">
-        <Frame13 />
-        <Frame14 />
-        <Frame15 />
-      </div>
-    </div>
-  );
-}
-
-function Frame21() {
-  return (
-    <div className="content-stretch flex flex-col font-sans items-start not-italic relative shrink-0 text-[#1c1c1c] text-[14px] tracking-[0.7px] uppercase">
-      <p className="leading-[24px] relative shrink-0">Copyright © 2026 LIVUS</p>
-      <p className="leading-[0] relative shrink-0">
-        <span className="leading-[24px] tracking-[0.8px]">{`Made with ❤️ by `}</span>
-        <span className="[text-underline-position:from-font] decoration-from-font decoration-solid font-sans leading-[24px] tracking-[0.8px] underline">joy</span>
-      </p>
-    </div>
-  );
-}
-
-function Frame16() {
-  return (
-    <div className="[word-break:break-word] content-stretch flex flex-col h-full items-start justify-between relative shrink-0 w-[572px] whitespace-nowrap">
-      <p className="font-serif font-semibold leading-[26px] relative shrink-0 text-[30px] text-black tracking-[9px]">LIVUS</p>
-      <Frame21 />
-    </div>
-  );
-}
-
-function Frame10() {
-  return (
-    <div className="flex-[1_0_0] min-w-px relative">
-      <div className="[word-break:break-word] content-stretch flex flex-col font-sans gap-[16px] items-start leading-[24px] not-italic px-[8px] relative size-full text-[#333] text-[17px] tracking-[0.17px] whitespace-nowrap">
-        <p className="relative shrink-0">Home</p>
-        <p className="relative shrink-0">Collections</p>
-        <p className="relative shrink-0">Profile</p>
-      </div>
-    </div>
-  );
-}
-
-function Frame11() {
-  return (
-    <div className="flex-[1_0_0] min-w-px relative">
-      <div className="[word-break:break-word] content-stretch flex flex-col font-sans gap-[16px] items-start leading-[24px] not-italic px-[8px] relative size-full text-[#333] text-[17px] tracking-[0.17px] whitespace-nowrap">
-        <p className="relative shrink-0">Facebook</p>
-        <p className="relative shrink-0">Instagram</p>
-        <p className="relative shrink-0">Contact Us</p>
-      </div>
-    </div>
-  );
-}
-
-function Frame19() {
-  return (
-    <div className="content-stretch flex items-center py-[9px] relative shrink-0 w-full">
-      <div aria-hidden className="absolute border-[rgba(0,0,0,0.25)] border-b border-solid inset-0 pointer-events-none" />
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#333] text-[17px] tracking-[0.17px] whitespace-nowrap">Enter your email address</p>
-    </div>
-  );
-}
-
-function Frame20() {
-  return (
-    <div className="content-stretch flex flex-col gap-[4px] items-start relative shrink-0 w-full">
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#1c1c1c] text-[14px] tracking-[0.7px] whitespace-nowrap">SUBSCRIBE TO OUR NEWSLETTER</p>
-      <Frame19 />
-    </div>
-  );
-}
-
-function Group() {
-  return (
-    <div className="absolute flex inset-[4.29%_4.28%_4.3%_4.3%] items-center justify-center" style={{ containerType: "size" }}>
-      <div className="-rotate-135 -scale-x-100 flex-none h-[hypot(64.4613cqw,-64.4613cqh)] w-[hypot(35.5387cqw,35.5387cqh)]">
-        <div className="relative size-full">
-          <div className="absolute inset-[0_-5.76%_-6.36%_-5.78%]">
-            <svg className="block size-full" fill="none" height="14.1821" preserveAspectRatio="none" viewBox="0 0 8.19944 14.1821" width="8.19944">
-              <g id="Group 1000004211">
-                <path d={svgPaths.p12405ac0} id="Vector" stroke="var(--stroke-0, white)" strokeWidth="1.2" />
-                <path d="M4.10121 0V13.3333" id="Vector_2" stroke="var(--stroke-0, white)" strokeLinejoin="round" strokeWidth="1.2" />
-              </g>
-            </svg>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Frame() {
-  return (
-    <div className="overflow-clip relative shrink-0 size-[16px]" data-name="Frame">
-      <Group />
-    </div>
-  );
-}
-
-function Frame189Status1() {
-  return (
-    <div className="bg-[#050505] content-stretch flex gap-[8px] items-center justify-center pb-[8px] pl-[14px] pr-[12px] pt-[7px] relative shrink-0" data-name="Frame 189/Status3">
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[16px] text-white whitespace-nowrap">Subscribe</p>
-      <Frame />
-    </div>
-  );
-}
-
-function Frame12() {
-  return (
-    <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-[320px]">
-      <Frame20 />
-      <Frame189Status1 />
-    </div>
-  );
-}
-
-function Frame18() {
-  return (
-    <div className="content-stretch flex flex-[1_0_0] gap-[4px] items-start min-w-px relative">
-      <Frame10 />
-      <Frame11 />
-      <Frame12 />
-    </div>
-  );
-}
-
-function Frame17() {
-  return (
-    <div className="content-stretch flex flex-[1_0_0] items-start justify-between min-w-px relative self-stretch">
-      <Frame16 />
-      <Frame18 />
-    </div>
-  );
-}
-
-function Frame2() {
-  return null;
-}
-
-function Frame3() {
-  return null;
-}
-
-function Frame4() {
-  return (
-    <div className="[word-break:break-word] content-stretch flex font-sans gap-[36px] items-center justify-end leading-[normal] not-italic relative shrink-0 text-[17px] text-black tracking-[0.85px] uppercase w-[500px] whitespace-nowrap">
-      <p className="relative shrink-0">Search</p>
-      <p className="relative shrink-0">Cart</p>
-      <p className="relative shrink-0">Sign in</p>
-    </div>
-  );
-}
-
-function Frame5() {
-  return <SiteNav />;
-}
-
-function Frame189Status3() {
-  return (
-    <div className="bg-[#050505] content-stretch flex items-center justify-center pb-[8px] pt-[7px] px-[20px] relative shrink-0" data-name="Frame 189/Status3">
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[16px] text-white whitespace-nowrap">Search</p>
-    </div>
-  );
-}
-
-function Frame1() {
-  return (
-    <div className="relative shrink-0 size-[20px]" data-name="Frame">
-      <svg className="absolute block inset-0 size-full" fill="none" height="20" preserveAspectRatio="none" viewBox="0 0 20 20" width="20">
-        <g id="Frame">
-          <path d="M15 5L5 15" id="Vector" stroke="var(--stroke-0, black)" strokeLinejoin="round" strokeWidth="1.2" />
-          <path d="M5 5L15 15" id="Vector_2" stroke="var(--stroke-0, black)" strokeLinejoin="round" strokeWidth="1.2" />
-        </g>
-      </svg>
-    </div>
-  );
-}
-
-function Frame22() {
-  return (
-    <div className="content-stretch flex gap-[20px] items-center relative shrink-0">
-      <Frame189Status3 />
-      <Frame1 />
-    </div>
-  );
-}
-
-
-
-
-function Frame189Status2() {
-  const router = useRouter();
-  const [query, setQuery] = useState("");
-
-  return (
-    <div className="content-stretch flex items-center justify-center py-[30px] relative shrink-0 w-[600px]">
-      <div className="content-stretch flex items-center justify-between pb-[12px] relative shrink-0 w-[600px] border-b border-[#e2e2e2]">
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search by keyword"
-          className="font-sans leading-[28px] text-[#1c1c1c] text-[17px] outline-none border-none bg-transparent flex-1 placeholder:text-[#404040] pr-[16px]"
-          style={{
-            fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
-            fontSize: "17px",
-            color: "#1c1c1c",
-          }}
-        />
-        <div className="flex gap-[20px] items-center shrink-0">
-          <button
-            type="button"
-            onClick={() => {}}
-            className="bg-[#050505] flex items-center justify-center pb-[8px] pt-[7px] px-[20px] cursor-pointer hover:opacity-90 transition-opacity border-none"
-          >
-            <p className="font-sans leading-[24px] text-[16px] text-white whitespace-nowrap m-0 cursor-pointer">Search</p>
-          </button>
-          <button
-            type="button"
-            onClick={() => { if (typeof window !== "undefined" && window.history.length > 1) { router.back(); } else { router.push("/"); } }}
-            className="size-[20px] flex items-center justify-center cursor-pointer hover:opacity-70 transition-opacity background-none border-none p-0"
-            aria-label="Clear search"
-          >
-            <svg fill="none" height="20" viewBox="0 0 20 20" width="20" className="block size-full">
-              <path d="M15 5L5 15" stroke="black" strokeLinejoin="round" strokeWidth="1.2" />
-              <path d="M5 5L15 15" stroke="black" strokeLinejoin="round" strokeWidth="1.2" />
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  return score;
 }
 
 export default function Search() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams ? searchParams.get('q') || '' : '';
+
+  const [query, setQuery] = useState(initialQuery);
+  const [activeQuery, setActiveQuery] = useState(initialQuery);
+  const [selectedCategory, setSelectedCategory] = useState("ALL");
+  const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(12);
+  const [, startTransition] = useTransition();
+
+  useEffect(() => {
+    const qFromUrl = searchParams ? searchParams.get('q') || '' : '';
+    setQuery(qFromUrl);
+    setActiveQuery(qFromUrl);
+    setVisibleCount(12);
+  }, [searchParams]);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const prods = await getAdminProducts();
+        setAllProducts(prods || []);
+      } catch (err) {
+        console.error("Failed to load search products:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  const handleSearchSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setActiveQuery(query);
+    setVisibleCount(12);
+    startTransition(() => {
+      if (query.trim()) {
+        router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+      } else {
+        router.push('/search');
+      }
+    });
+  };
+
+  const handleClearInput = () => {
+    setQuery('');
+    setActiveQuery('');
+    setVisibleCount(12);
+    router.push('/search');
+  };
+
+  const handleQuitSearch = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/");
+    }
+  };
+
+  // Algorithmic filtering & recommendation sorting
+  const processedProducts = useMemo(() => {
+    const q = activeQuery.toLowerCase().trim();
+    const cat = selectedCategory.toLowerCase().trim();
+
+    let result = allProducts.filter((p) => {
+      if (cat !== 'all') {
+        const pCat = (p.categoryName || p.categorySlug || '').toLowerCase();
+        const pTag = (p.collectionTag || '').toLowerCase();
+        const pType = (p.productType || '').toLowerCase();
+        if (!pCat.includes(cat) && !pTag.includes(cat) && !pType.includes(cat)) {
+          return false;
+        }
+      }
+
+      if (!q) return true;
+      const matchScore = calculateQueryMatchScore(p, q);
+      return matchScore > 0;
+    });
+
+    result.sort((a, b) => {
+      if (q) {
+        return calculateQueryMatchScore(b, q) - calculateQueryMatchScore(a, q);
+      } else {
+        return calculateRecommendationScore(b) - calculateRecommendationScore(a);
+      }
+    });
+
+    return result;
+  }, [allProducts, activeQuery, selectedCategory]);
+
+  const visibleProducts = processedProducts.slice(0, visibleCount);
+
   return (
-    <div className="bg-white content-stretch flex flex-col items-center pt-[0px] relative size-full min-h-screen" data-name="Search">
+    <div className="bg-white content-stretch flex flex-col items-center pt-0 relative size-full min-h-screen" data-name="Search">
       <SiteNav />
-      <div className="w-full flex justify-center py-[24px]">
-        <Frame189Status2 />
+
+      {/* Search Input Bar */}
+      <div className="w-full flex justify-center pt-[40px] pb-[20px] px-[24px]">
+        <form
+          onSubmit={handleSearchSubmit}
+          className="content-stretch flex items-center justify-between pb-[6px] relative w-full max-w-[660px] border-b border-[#e2e2e2]"
+        >
+          <div className="flex items-center flex-1 gap-[10px] pr-[16px]">
+            {query ? (
+              <button
+                type="button"
+                onClick={handleClearInput}
+                className="size-[18px] flex items-center justify-center cursor-pointer hover:opacity-70 transition-opacity bg-transparent border-none p-0 shrink-0"
+                aria-label="Clear input text"
+                title="Clear text"
+              >
+                <svg fill="none" height="18" viewBox="0 0 20 20" width="18" className="block size-full">
+                  <path d="M15 5L5 15" stroke="black" strokeLinejoin="round" strokeWidth="1.4" />
+                  <path d="M5 5L15 15" stroke="black" strokeLinejoin="round" strokeWidth="1.4" />
+                </svg>
+              </button>
+            ) : (
+              <div className="size-[18px] flex items-center justify-center shrink-0 opacity-40">
+                <svg fill="none" height="18" viewBox="0 0 24 24" width="18" className="block size-full">
+                  <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="black" strokeLinejoin="round" strokeWidth="1.5" />
+                </svg>
+              </div>
+            )}
+
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setActiveQuery(e.target.value);
+                setVisibleCount(12);
+              }}
+              placeholder="Search by keyword, style, or collection..."
+              className="font-sans leading-[28px] text-[#1c1c1c] text-[17px] outline-none border-none bg-transparent flex-1 placeholder:text-[#888888]"
+              style={{
+                fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                fontSize: "17px",
+                color: "#1c1c1c",
+              }}
+            />
+          </div>
+
+          <div className="flex gap-[12px] items-center shrink-0">
+            <button
+              type="submit"
+              className="bg-[#050505] flex items-center justify-center py-[8px] px-[20px] cursor-pointer hover:bg-neutral-800 transition-colors border-none"
+            >
+              <p className="font-sans leading-[24px] text-[17px] text-white uppercase font-normal tracking-[0.5px] whitespace-nowrap m-0 cursor-pointer">
+                SEARCH
+              </p>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleQuitSearch}
+              className="size-[40px] flex items-center justify-center cursor-pointer hover:bg-neutral-100 transition-colors rounded-none border border-[#e2e2e2] bg-white p-0 shrink-0"
+              aria-label="Close search view"
+              title="Close Search"
+            >
+              <svg fill="none" height="18" viewBox="0 0 20 20" width="18" className="block">
+                <path d="M15 5L5 15" stroke="#050505" strokeLinejoin="round" strokeWidth="1.5" />
+                <path d="M5 5L15 15" stroke="#050505" strokeLinejoin="round" strokeWidth="1.5" />
+              </svg>
+            </button>
+          </div>
+        </form>
       </div>
-      <Frame6 />
+
+
+
+      {/* Category Filter Sub-Bar */}
+      <CategoryFilterSubBar
+        totalCount={processedProducts.length}
+        sortOption="relevance"
+        onSortChange={() => {}}
+        selectedGender="all"
+        onGenderChange={() => {}}
+        selectedCategory={selectedCategory}
+        onCategoryChange={(cat) => { setSelectedCategory(cat); setVisibleCount(12); }}
+        selectedSize="all"
+        onSizeChange={() => {}}
+        hideGenderFilter={true}
+      />
+
+      {/* Product Results Grid */}
+      <div className="relative shrink-0 w-full pb-[100px] flex-1">
+        {loading ? (
+          <div className="w-full py-[80px] flex justify-center items-center">
+            <p className="font-sans text-[17px] text-neutral-400 uppercase tracking-[1px]">Loading recommended products...</p>
+          </div>
+        ) : processedProducts.length > 0 ? (
+          <div className="w-full flex flex-col items-center">
+            <div className="product-grid-4col px-[36px] relative w-full">
+              {visibleProducts.map((p, idx) => (
+                <ProductCard key={p.id ? `${p.id}-${idx}` : `search-prod-${idx}`} product={p} />
+              ))}
+            </div>
+
+            {/* Load More Button in LOAD MORE (12 OF 14) format */}
+            {visibleCount < processedProducts.length && (
+              <div className="w-full flex justify-center pt-[48px]">
+                <button
+                  type="button"
+                  onClick={() => setVisibleCount((prev) => prev + 12)}
+                  className="bg-[#050505] text-white py-[12px] px-[20px] text-[17px] font-normal uppercase cursor-pointer hover:bg-neutral-800 transition-colors border-none"
+                >
+                  LOAD MORE ({visibleProducts.length} OF {processedProducts.length})
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="w-full py-[100px] flex flex-col items-center justify-center gap-4 text-center px-[24px]">
+            <p
+              className="text-[#1c1c1c] uppercase"
+              style={{
+                fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
+                fontSize: "24px",
+                fontWeight: 500,
+                lineHeight: "32px",
+              }}
+            >
+              No products found
+            </p>
+            <p className="font-sans text-[16px] text-neutral-500 max-w-[400px]">
+              We couldn't find any products matching "{activeQuery || selectedCategory}". Try checking for spelling errors or choosing another category filter.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                handleClearInput();
+                setSelectedCategory("ALL");
+              }}
+              className="mt-4 bg-[#050505] text-white py-[12px] px-[20px] text-[17px] font-normal uppercase cursor-pointer hover:bg-neutral-800 transition-colors border-none"
+            >
+              CLEAR SEARCH & FILTERS
+            </button>
+          </div>
+        )}
+      </div>
+
       <SiteFooter />
     </div>
   );

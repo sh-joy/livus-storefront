@@ -85,7 +85,6 @@ textarea {
   outline: none;
   -webkit-appearance: none;
   appearance: none;
-  border: none;
 }
 
 input::placeholder {
@@ -94,6 +93,6 @@ input::placeholder {
 }
 
 /* InputField placeholder variants */
-.livus-input { background: transparent; outline: none; border: none; }
+.livus-input { background: transparent; outline: none; }
 .livus-input.placeholder-gray::placeholder  { color: #999999; }
 .livus-input.placeholder-muted::placeholder { color: #565454; }

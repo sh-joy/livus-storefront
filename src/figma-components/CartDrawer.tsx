@@ -1,5 +1,6 @@
 'use client';
 
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useDrawer } from "./DrawerContext";
@@ -9,10 +10,8 @@ import imgImage114 from "@/imports/Cart/71b3cd582dab7174e13346a8d88abe33548d2aa7
 function ProductImage({ src }: { src?: string | null }) {
   const imgSrc = src || (typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src);
   return (
-    <div className="bg-[#f0f0f0] flex h-[137px] items-center justify-center overflow-hidden shrink-0 w-[120px]">
-      <div className="relative" style={{ width: "116.17%", height: "100%" }}>
-        <img alt="product" className="absolute h-full object-cover top-0" style={{ left: "-8.01%", width: "116.17%" }} src={imgSrc} />
-      </div>
+    <div className="bg-[#f0f0f0] relative w-[120px] aspect-[3/4] overflow-hidden shrink-0">
+      <img alt="product" className="w-full h-full object-cover object-center" src={imgSrc} />
     </div>
   );
 }
@@ -92,10 +91,27 @@ export function CartDrawer() {
                   </div>
                 </div>
 
-                {/* Items List */}
+                {/* Items List / Empty State */}
                 {items.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center w-full py-[80px] text-[#808080]">
-                    <p className="font-sans text-[18px]">Your cart is empty</p>
+                  <div className="flex flex-col items-center justify-center text-center gap-[4px] p-[48px_24px] border border-dashed border-[#d0d0d0] w-full bg-[#fafafa] my-[20px]">
+                    <p
+                      className="text-[#1c1c1c]"
+                      style={{
+                        fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
+                        fontSize: "24px",
+                        fontWeight: 500,
+                        lineHeight: "32px",
+                      }}
+                    >
+                      Your cart is empty
+                    </p>
+                    <Link
+                      href="/"
+                      onClick={handleClose}
+                      className="inline-flex items-center justify-center gap-[8px] bg-[#050505] text-white border-none cursor-pointer px-[16px] py-[7px] font-sans text-[15px] font-medium tracking-[0.75px] uppercase transition-opacity hover:opacity-90 mt-[4px]"
+                    >
+                      CONTINUE SHOPPING
+                    </Link>
                   </div>
                 ) : (
                   items.map((item, index) => {
@@ -138,8 +154,8 @@ export function CartDrawer() {
                                   className="size-[20px] flex items-center justify-center cursor-pointer"
                                 >
                                   <svg fill="none" height="20" viewBox="0 0 20 20" width="20" className="block size-full">
-                                    <path d="M10 2.92893V17.0711" stroke="black" strokeLinejoin="round" strokeWidth="1.2" />
-                                    <path d="M2.92893 10H17.0711" stroke="black" strokeLinejoin="round" strokeWidth="1.2" />
+                                    <path d="M10 2.92893V17.0711" stroke="black" strokeWidth="1.2" strokeLinejoin="round" />
+                                    <path d="M2.92893 10H17.0711" stroke="black" strokeWidth="1.2" strokeLinejoin="round" />
                                   </svg>
                                 </button>
                               </div>
@@ -158,25 +174,24 @@ export function CartDrawer() {
                 )}
               </div>
 
-              {/* Bottom: subtotal + checkout */}
-              <div className="flex flex-col gap-[20px] items-start w-full shrink-0 pt-[20px] border-t border-[#e2e2e2]">
-                <div className="flex items-center justify-between w-full text-[#1c1c1c] text-[20px] font-medium tracking-[-0.4px] leading-[24px] whitespace-nowrap">
-                  <p className="font-sans font-medium text-[20px]">Subtotal</p>
-                  <p className="font-sans font-medium text-[20px]">৳{subtotal.toFixed(0)} BDT</p>
+              {/* Bottom: subtotal + checkout (Only rendered when items exist) */}
+              {items.length > 0 && (
+                <div className="flex flex-col gap-[20px] items-start w-full shrink-0 pt-[20px] border-t border-[#e2e2e2]">
+                  <div className="flex items-center justify-between w-full text-[#1c1c1c] text-[20px] font-medium tracking-[-0.4px] leading-[24px] whitespace-nowrap">
+                    <p className="font-sans font-medium text-[20px]">Subtotal</p>
+                    <p className="font-sans font-medium text-[20px]">৳{subtotal.toFixed(0)} BDT</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCheckout}
+                    className="bg-[#050505] w-full flex items-center justify-center px-[20px] py-[12px] transition-opacity cursor-pointer hover:opacity-90"
+                  >
+                    <p className="font-sans leading-[24px] text-[17px] text-white whitespace-nowrap uppercase font-normal">
+                      PROCEED TO PAYMENT
+                    </p>
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  disabled={items.length === 0}
-                  onClick={handleCheckout}
-                  className={`bg-[#050505] w-full flex items-center justify-center px-[20px] py-[12px] transition-opacity ${
-                    items.length === 0 ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:opacity-90"
-                  }`}
-                >
-                  <p className="font-sans leading-[24px] text-[17px] text-white whitespace-nowrap">
-                    Checkout
-                  </p>
-                </button>
-              </div>
+              )}
             </div>
           </motion.div>
         </motion.div>

@@ -36,9 +36,8 @@ function Frame() {
 
 function Frame189Status() {
   return (
-    <div className="bg-[#050505] content-stretch flex gap-[6px] items-center justify-center pl-[16px] pr-[14px] py-[8px] relative shrink-0" data-name="Frame 189/Status3">
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[16px] text-white whitespace-nowrap">Explore Designs</p>
-      <Frame />
+    <div className="bg-[#050505] content-stretch flex items-center justify-center py-[12px] px-[20px] relative shrink-0 cursor-pointer hover:bg-neutral-800 transition-colors" data-name="Frame 189/Status3">
+      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[17px] text-white uppercase tracking-[0.5px] font-normal">EXPLORE DESIGNS</p>
     </div>
   );
 }

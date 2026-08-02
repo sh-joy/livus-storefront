@@ -7,6 +7,8 @@ import type { CSSProperties } from "react";
 import { useDrawer } from "./DrawerContext";
 import { AnnouncementMarquee } from "./AnnouncementMarquee";
 
+import { useSession } from '@/lib/auth-client';
+
 interface SiteNavProps {
   /** "standard" shows Menu + Search/Cart/Sign in. "auth" shows just Visit Shop. */
   variant?: "standard" | "auth";
@@ -30,6 +32,11 @@ export function SiteNav({
   const cartItems = useCartStore((state) => state.items);
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const storeOpenCart = useCartStore((state) => state.openCart);
+
+  const { data: sessionData } = useSession();
+  const user = sessionData?.user;
+  const isUserLoggedIn = !!user;
+  const userRole = (user as any)?.role || "user";
 
   const handleCartClick = () => {
     openCart();
@@ -117,28 +124,29 @@ export function SiteNav({
           backgroundColor: bgStyle,
         }}
       >
-        {/* Left: Menu */}
-        <div style={{ width: "500px", display: "flex", alignItems: "center" }}>
+        {/* Left: Menu with btn-group focus fade */}
+        <div className="btn-group" style={{ width: "500px", display: "flex", alignItems: "center" }}>
           <button
             type="button"
             onClick={openMenu}
-            className="nav-link hover:opacity-75"
+            className="nav-link font-normal"
             style={{
               ...navLinkStyle,
               background: "none",
               border: "none",
               padding: 0,
               margin: 0,
+              fontWeight: 400,
             }}
           >
-            <p className="relative shrink-0" style={{ margin: 0, cursor: "pointer", fontSize: "17px" }}>menu</p>
+            <p className="relative shrink-0" style={{ margin: 0, cursor: "pointer", fontSize: "17px" }}>Menu</p>
           </button>
         </div>
 
         {/* Center: Logo */}
         <Link
           href="/"
-          className="livus-logo !tracking-[9px]"
+          className="livus-logo !tracking-[9px] hover:opacity-85 transition-opacity"
           style={{
             fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
             fontSize: "30px",
@@ -155,7 +163,7 @@ export function SiteNav({
           LIVUS
         </Link>
 
-        {/* Right: Search / Cart / Sign in */}
+        {/* Right: Search / Cart / Sign in with btn-group focus fade */}
         <div
           className="btn-group"
           style={{
@@ -168,8 +176,8 @@ export function SiteNav({
         >
           <Link
             href="/search"
-            className="nav-link"
-            style={navLinkStyle}
+            className="nav-link font-normal"
+            style={{ ...navLinkStyle, fontWeight: 400 }}
           >
             <p className="relative shrink-0" style={{ margin: 0, cursor: "pointer", fontSize: "17px" }}>SEARCH</p>
           </Link>
@@ -177,25 +185,40 @@ export function SiteNav({
           <button
             type="button"
             onClick={handleCartClick}
-            className="nav-link"
+            className="nav-link font-normal"
             style={{
               ...navLinkStyle,
               background: "none",
               border: "none",
               padding: 0,
               margin: 0,
+              fontWeight: 400,
             }}
           >
             <p className="relative shrink-0" style={{ margin: 0, cursor: "pointer", fontSize: "17px" }}>CART {cartCount > 0 ? `(${cartCount})` : ""}</p>
           </button>
 
-          <Link
-            href="/signin"
-            className="nav-link"
-            style={navLinkStyle}
-          >
-            <p className="relative shrink-0" style={{ margin: 0, cursor: "pointer", fontSize: "17px" }}>SIGN IN</p>
-          </Link>
+
+
+          {isUserLoggedIn ? (
+            <Link
+              href="/profile"
+              className="nav-link font-normal"
+              style={{ ...navLinkStyle, fontWeight: 400 }}
+            >
+              <p className="relative shrink-0" style={{ margin: 0, cursor: "pointer", fontSize: "17px" }}>
+                PROFILE
+              </p>
+            </Link>
+          ) : (
+            <Link
+              href="/signin"
+              className="nav-link font-normal"
+              style={{ ...navLinkStyle, fontWeight: 400 }}
+            >
+              <p className="relative shrink-0" style={{ margin: 0, cursor: "pointer", fontSize: "17px" }}>SIGN IN</p>
+            </Link>
+          )}
         </div>
       </nav>
     </>

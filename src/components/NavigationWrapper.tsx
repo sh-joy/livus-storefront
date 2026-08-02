@@ -32,32 +32,14 @@ export function NavigationWrapper({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Product Card Click detection
-      if (
-        el.getAttribute?.("data-product-card") === "true" ||
-        (el.getAttribute?.("class") || "").includes("justify-self-stretch") ||
-        (text && (
-          text.includes("OWAYO") ||
-          text.includes("NIXON") ||
-          text.includes("CROSS FADE") ||
-          text.includes("TIME TELLER") ||
-          text.includes("Custom Athletic") ||
-          text.includes("Varsity Tee") ||
-          text.includes("Match Kit") ||
-          text.includes("Geometric")
-        ))
-      ) {
-        if (!text?.includes("Copyright") && !text?.includes("Subscribe")) {
-          router.push("/product");
-          return;
-        }
-      }
 
       // Search
       if (text === "Search" || text?.toLowerCase() === "search") {
-        if (el.tagName === "BUTTON" || el.tagName === "A" || el.tagName === "P" || el.tagName === "DIV") {
-          router.push("/search");
-          return;
+        if (!el.closest('form')) {
+          if (el.tagName === "BUTTON" || el.tagName === "A" || el.tagName === "P" || el.tagName === "DIV") {
+            router.push("/search");
+            return;
+          }
         }
       }
 

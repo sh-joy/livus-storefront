@@ -24,10 +24,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       }
       if (text === "Shop For Him" || text === "For Him" || text === "SHOP FOR HIM") { router.push("/for-him"); return; }
       if (text === "Shop For Her" || text === "For Her" || text === "SHOP FOR HER") { router.push("/for-her"); return; }
-      if (text === "Search" || text?.toLowerCase() === "search") { router.push("/search"); return; }
+      if (text === "Search" || text?.toLowerCase() === "search") {
+        if (!el.closest('form')) {
+          router.push("/search");
+          return;
+        }
+      }
       if (text === "Sign in" || text === "Sign In") { router.push("/signin"); return; }
       if (text === "Sign up" || text === "Create account" || text === "Sign Up") { router.push("/signup"); return; }
-      if (text === "Size Guide" || text === "View Guide") { openSizingGuide(); return; }
       if (text === "Profile" || text === "My Profile") { router.push("/profile"); return; }
       if (text === "Checkout" || text === "Place order") { router.push("/checkout"); return; }
 
@@ -40,7 +44,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {children}
       <MenuDrawer />
       <CartDrawer />
-      <SizingGuideModal />
     </div>
   );
 }

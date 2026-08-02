@@ -1,0 +1,20 @@
+# Font Usage & Isolation Rules
+
+This project contains two isolated sections: **Storefront** and **Admin Panel**. They use strictly different font families.
+
+## Storefront Rules
+- Target Scope: `app/(storefront)` and all customer-facing routes (`/`, `/all-products`, `/for-him`, `/for-her`, `/unisex`, `/latest`, `/popular`, `/accessories`, `/product/[slug]`).
+- Primary Body Font: `'Barlow Semi Condensed', sans-serif`.
+- Display / Logo Font: `'Big Shoulders', 'Big Shoulders Display', sans-serif`.
+- NEVER use Admin fonts (`Geist`) in the Storefront.
+
+## Admin Panel Rules
+- Target Scope: `app/admin` and all admin portal routes (`/admin/*`).
+- Scope Wrapper: Must be contained inside `.admin-portal`.
+- Primary Font: Strictly uses `'Geist', sans-serif`.
+- Code / Monospace: Monospace.
+- NEVER use Storefront fonts (`Barlow Semi Condensed`, `Big Shoulders`) in the Admin Panel.
+
+## General Guidelines
+- All font configurations are referenced via `lib/fonts.ts` and enforced via `app/globals.css`.
+- Preserve `.admin-portal` class wrapper in `app/admin/layout.tsx` for complete CSS font isolation.

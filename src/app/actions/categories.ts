@@ -4,7 +4,6 @@ import { db } from '@/db';
 import { categories } from '@/db/schema';
 import { CategorySchema } from '@/lib/validations/schema';
 import { revalidatePath } from 'next/cache';
-import { eq } from 'drizzle-orm';
 
 export interface CategoryItem {
   id: string;
@@ -23,11 +22,13 @@ const DEFAULT_CATEGORIES: CategoryItem[] = [
 
 export async function getCategories() {
   try {
-    const result = await db.select().from(categories);
-    if (result.length === 0) {
-      return DEFAULT_CATEGORIES;
+    if (db) {
+      const result = await db.select().from(categories);
+      if (result.length > 0) {
+        return result;
+      }
     }
-    return result;
+    return DEFAULT_CATEGORIES;
   } catch (error) {
     console.warn('Database connection warning (using default categories fallback):', error);
     return DEFAULT_CATEGORIES;
@@ -47,6 +48,9 @@ export async function createCategoryAction(formData: FormData) {
   }
 
   try {
+    if (!db) {
+      return { success: false, message: 'Database connection not configured in .env.local' };
+    }
     const [newCategory] = await db.insert(categories).values(validation.data).returning();
     revalidatePath('/');
     return { success: true, category: newCategory };

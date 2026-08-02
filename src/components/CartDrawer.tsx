@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ProductItem } from '@/app/actions/products';
-import { createOrderAction } from '@/app/actions/orders';
 import { X, Trash2, ShoppingCart, ArrowRight, CheckCircle2, Truck, AlertCircle } from 'lucide-react';
 
 export interface CartItem {
@@ -27,6 +27,7 @@ export function CartDrawer({
   onRemoveItem,
   onClearCart,
 }: CartDrawerProps) {
+  const router = useRouter();
   const [shippingAddress, setShippingAddress] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState<{ orderId: string; totalAmount: string } | null>(null);
@@ -39,35 +40,11 @@ export function CartDrawer({
     0
   );
 
-  const handleCheckout = async (e: React.FormEvent) => {
+  const handleCheckout = (e: React.FormEvent) => {
     e.preventDefault();
     if (items.length === 0) return;
-    if (!shippingAddress.trim()) {
-      setErrorMessage('Please provide a valid shipping address.');
-      return;
-    }
-
-    setIsSubmitting(true);
-    setErrorMessage(null);
-
-    const orderPayload = {
-      shippingAddress,
-      items: items.map((i) => ({
-        productId: i.product.id,
-        quantity: i.quantity,
-        price: i.product.price,
-      })),
-    };
-
-    const res = await createOrderAction(orderPayload);
-    setIsSubmitting(false);
-
-    if (res.success && res.orderId) {
-      setOrderSuccess({ orderId: res.orderId, totalAmount: res.totalAmount || total.toFixed(2) });
-      onClearCart();
-    } else {
-      setErrorMessage(res.message || 'Failed to process order. Check inputs.');
-    }
+    onClose();
+    router.push('/checkout');
   };
 
   return (

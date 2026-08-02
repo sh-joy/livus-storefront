@@ -5,13 +5,15 @@ import { useRouter } from "next/navigation";
 import { useDrawer } from "./DrawerContext";
 
 const NAV_LINKS = [
-  { label: "All", path: "/" },
+  { label: "All Products", path: "/all-products" },
   { label: "For Him", path: "/for-him" },
   { label: "For Her", path: "/for-her" },
-  { label: "Latest", path: "/" },
-  { label: "Popular", path: "/" },
-  { label: "Accessories", path: "/" },
-  { label: "Gift Card", path: "/" },
+  { label: "Unisex", path: "/unisex" },
+  { label: "Latest", path: "/latest" },
+  { label: "Popular", path: "/popular" },
+  { label: "Accessories", path: "/accessories" },
+  { label: "Gift Card", path: "/all-products" },
+  { label: "My Orders", path: "/profile" },
   { label: "About", path: "/" },
   { label: "Contact", path: "/" },
 ];
@@ -63,14 +65,14 @@ export function MenuDrawer() {
                 </button>
               </div>
 
-              {/* Nav links — 500 weight, btn-group for group fade on hover */}
-              <div className="btn-group flex flex-col gap-[20px] items-start w-full">
+              {/* Nav links — btn-group for focus fade on hover */}
+              <div className="btn-group menu-drawer-links flex flex-col gap-[20px] items-start w-full mt-4">
                 {NAV_LINKS.map((item) => (
                   <p
                     key={item.label}
                     onClick={() => handleNav(item.path)}
-                    className="font-serif font-medium leading-[32px] text-[28px] text-white whitespace-nowrap cursor-pointer"
-                    style={{ fontWeight: 500, transition: "opacity 0.2s ease" }}
+                    className="font-serif font-medium leading-[34px] text-[30px] text-white whitespace-nowrap cursor-pointer select-none"
+                    style={{ fontWeight: 500, transition: "opacity 0.25s ease" }}
                   >
                     {item.label}
                   </p>

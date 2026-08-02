@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { SiteNav } from '@/figma-components/SiteNav';
 import { SiteFooter } from '@/figma-components/SiteFooter';
 import ProductDetails from '@/imports/ProductDetails';
@@ -17,7 +17,7 @@ import SizingGuide1 from '@/imports/SizingGuide-1';
 import DesignWithBigShoulders from '@/imports/DesignWithBigShoulders';
 import DesignWithBigShoulders1 from '@/imports/DesignWithBigShoulders-1';
 
-export default function DesignVariantsPage() {
+function DesignVariantsContent() {
   return (
     <div className="w-full min-h-screen bg-neutral-900 text-white font-sans pb-20">
       {/* Sticky Table of Contents Header */}
@@ -197,5 +197,13 @@ export default function DesignVariantsPage() {
 
       </div>
     </div>
+  );
+}
+
+export default function DesignVariantsPage() {
+  return (
+    <Suspense fallback={<div className="w-full min-h-screen bg-neutral-900" />}>
+      <DesignVariantsContent />
+    </Suspense>
   );
 }

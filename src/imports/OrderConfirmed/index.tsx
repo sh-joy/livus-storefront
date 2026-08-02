@@ -1,228 +1,76 @@
+'use client';
+
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { SiteFooter } from '@/figma-components/SiteFooter';
-import svgPaths from "./svg-k8lvuzhoo2";
-
-function Frame() {
-  return (
-    <div className="relative shrink-0 size-[56px]" data-name="Frame">
-      <svg className="absolute block inset-0 size-full" fill="none" height="56" preserveAspectRatio="none" viewBox="0 0 56 56" width="56">
-        <g id="Frame">
-          <path d={svgPaths.p243372c0} id="Vector" stroke="var(--stroke-0, black)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.33333" />
-          <path d={svgPaths.p2dafab00} id="Vector_2" stroke="var(--stroke-0, black)" strokeLinecap="square" strokeWidth="2.33333" />
-        </g>
-      </svg>
-    </div>
-  );
-}
-
-function Frame15() {
-  return (
-    <div className="[word-break:break-word] content-stretch flex flex-col gap-[12px] items-center relative shrink-0 text-[#1c1c1c] w-full">
-      <p className="font-serif font-semibold leading-[36px] relative shrink-0 text-[32px] whitespace-nowrap">Order Confirmed</p>
-      <p className="font-sans leading-[24px] min-w-full not-italic relative shrink-0 text-[18px] text-center w-[min-content]">Thank you for choosing LIVUS. Your products will arrive within 2-3 working days.</p>
-    </div>
-  );
-}
-
-function Frame17() {
-  return (
-    <div className="content-stretch flex flex-col gap-[24px] items-center relative shrink-0 w-full">
-      <Frame />
-      <Frame15 />
-    </div>
-  );
-}
-
-function Frame189Status() {
-  return (
-    <div className="bg-[#050505] content-stretch flex items-center justify-center px-[20px] py-[12px] relative shrink-0" data-name="Frame 189/Status3">
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[17px] text-white whitespace-nowrap">View my orders</p>
-    </div>
-  );
-}
-
-function Frame16() {
-  return (
-    <div className="content-stretch flex flex-col gap-[36px] items-center relative shrink-0 w-[600px]">
-      <Frame17 />
-      <Frame189Status />
-    </div>
-  );
-}
-
-function Frame2() {
-  return (
-    <div className="relative shrink-0 w-full">
-      <div className="flex flex-col items-center justify-center size-full">
-        <div className="content-stretch flex flex-col items-center justify-center px-[36px] py-[200px] relative size-full">
-          <Frame16 />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Frame3() {
-  return null;
-}
-
-function Frame4() {
-  return (
-    <div className="[word-break:break-word] content-stretch flex font-sans gap-[36px] items-center justify-end leading-[normal] not-italic relative shrink-0 text-[17px] text-black tracking-[0.85px] uppercase w-[500px] whitespace-nowrap">
-      <p className="relative shrink-0">Search</p>
-      <p className="relative shrink-0">Cart</p>
-      <p className="relative shrink-0">Sign in</p>
-    </div>
-  );
-}
-
-function Frame5() {
-  return (
-    <div className="relative shrink-0 w-full">
-      <div className="flex flex-row items-center justify-center size-full">
-        <div className="content-stretch flex items-center justify-between px-[36px] py-[16px] relative size-full">
-          <Frame3 />
-          <p className="[word-break:break-word] font-serif font-semibold leading-[26px] relative shrink-0 text-[30px] text-black tracking-[9px] whitespace-nowrap">LIVUS</p>
-          <Frame4 />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Frame14() {
-  return (
-    <div className="content-stretch flex flex-col font-sans items-start not-italic relative shrink-0 text-[#1c1c1c] text-[14px] tracking-[0.7px] uppercase">
-      <p className="leading-[24px] relative shrink-0">Copyright © 2026 LIVUS</p>
-      <p className="leading-[0] relative shrink-0">
-        <span className="leading-[24px] tracking-[0.8px]">{`Made with ❤️ by `}</span>
-        <span className="[text-underline-position:from-font] decoration-from-font decoration-solid font-sans leading-[24px] tracking-[0.8px] underline">joy</span>
-      </p>
-    </div>
-  );
-}
-
-function Frame10() {
-  return (
-    <div className="[word-break:break-word] content-stretch flex flex-col h-full items-start justify-between relative shrink-0 w-[572px] whitespace-nowrap">
-      <p className="font-serif font-semibold leading-[26px] relative shrink-0 text-[30px] text-black tracking-[9px]">LIVUS</p>
-      <Frame14 />
-    </div>
-  );
-}
-
-function Frame6() {
-  return (
-    <div className="flex-[1_0_0] min-w-px relative">
-      <div className="[word-break:break-word] content-stretch flex flex-col font-sans gap-[16px] items-start leading-[24px] not-italic px-[8px] relative size-full text-[#333] text-[17px] tracking-[0.17px] whitespace-nowrap">
-        <p className="relative shrink-0">Home</p>
-        <p className="relative shrink-0">Collections</p>
-        <p className="relative shrink-0">Profile</p>
-      </div>
-    </div>
-  );
-}
-
-function Frame7() {
-  return (
-    <div className="flex-[1_0_0] min-w-px relative">
-      <div className="[word-break:break-word] content-stretch flex flex-col font-sans gap-[16px] items-start leading-[24px] not-italic px-[8px] relative size-full text-[#333] text-[17px] tracking-[0.17px] whitespace-nowrap">
-        <p className="relative shrink-0">Facebook</p>
-        <p className="relative shrink-0">Instagram</p>
-        <p className="relative shrink-0">Contact Us</p>
-      </div>
-    </div>
-  );
-}
-
-function Frame12() {
-  return (
-    <div className="content-stretch flex items-center py-[9px] relative shrink-0 w-full">
-      <div aria-hidden className="absolute border-[rgba(0,0,0,0.25)] border-b border-solid inset-0 pointer-events-none" />
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#333] text-[17px] tracking-[0.17px] whitespace-nowrap">Enter your email address</p>
-    </div>
-  );
-}
-
-function Frame13() {
-  return (
-    <div className="content-stretch flex flex-col gap-[4px] items-start relative shrink-0 w-full">
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#1c1c1c] text-[14px] tracking-[0.7px] whitespace-nowrap">SUBSCRIBE TO OUR NEWSLETTER</p>
-      <Frame12 />
-    </div>
-  );
-}
-
-function Group() {
-  return (
-    <div className="absolute flex inset-[4.29%_4.28%_4.3%_4.3%] items-center justify-center" style={{ containerType: "size" }}>
-      <div className="-rotate-135 -scale-x-100 flex-none h-[hypot(64.4613cqw,-64.4613cqh)] w-[hypot(35.5387cqw,35.5387cqh)]">
-        <div className="relative size-full">
-          <div className="absolute inset-[0_-5.76%_-6.36%_-5.78%]">
-            <svg className="block size-full" fill="none" height="14.1821" preserveAspectRatio="none" viewBox="0 0 8.19944 14.1821" width="8.19944">
-              <g id="Group 1000004211">
-                <path d={svgPaths.p12405ac0} id="Vector" stroke="var(--stroke-0, white)" strokeWidth="1.2" />
-                <path d="M4.10121 0V13.3333" id="Vector_2" stroke="var(--stroke-0, white)" strokeLinejoin="round" strokeWidth="1.2" />
-              </g>
-            </svg>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Frame1() {
-  return (
-    <div className="overflow-clip relative shrink-0 size-[16px]" data-name="Frame">
-      <Group />
-    </div>
-  );
-}
-
-function Frame189Status1() {
-  return (
-    <div className="bg-[#050505] content-stretch flex gap-[8px] items-center justify-center pb-[8px] pl-[14px] pr-[12px] pt-[7px] relative shrink-0" data-name="Frame 189/Status3">
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[16px] text-white whitespace-nowrap">Subscribe</p>
-      <Frame1 />
-    </div>
-  );
-}
-
-function Frame8() {
-  return (
-    <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-[320px]">
-      <Frame13 />
-      <Frame189Status1 />
-    </div>
-  );
-}
-
-function Frame9() {
-  return (
-    <div className="content-stretch flex flex-[1_0_0] gap-[4px] items-start min-w-px relative">
-      <Frame6 />
-      <Frame7 />
-      <Frame8 />
-    </div>
-  );
-}
-
-function Frame11() {
-  return (
-    <div className="content-stretch flex flex-[1_0_0] items-start justify-between min-w-px relative self-stretch">
-      <Frame10 />
-      <Frame9 />
-    </div>
-  );
-}
+import { SiteNav } from '@/figma-components/SiteNav';
 
 export default function OrderConfirmed() {
+  const searchParams = useSearchParams();
+  const orderNumber = searchParams ? searchParams.get("orderNumber") || "LIV-8726" : "LIV-8726";
+  const total = searchParams ? searchParams.get("total") || "1423" : "1423";
+  const location = searchParams ? searchParams.get("location") || "Dhaka, Bangladesh" : "Dhaka, Bangladesh";
+
   return (
-    <div className="bg-white content-stretch flex flex-col items-start relative size-full" data-name="Order Confirmed">
-      <Frame2 />
-      <div className="absolute backdrop-blur-[100px] bg-[rgba(255,255,255,0.5)] content-stretch flex flex-col items-start left-0 right-0 top-0">
-        <Frame5 />
+    <div className="bg-white content-stretch flex flex-col items-center relative size-full min-h-screen" data-name="Order Confirmed">
+      <SiteNav />
+
+      <div className="w-full flex-1 flex flex-col items-center justify-center py-[100px] px-[24px] text-center max-w-[650px] mx-auto">
+        {/* Heading */}
+        <h1 className="font-serif font-semibold text-[36px] leading-[44px] text-[#1c1c1c] mb-3">
+          Order Placed Successfully!
+        </h1>
+
+        <p className="font-sans text-[17px] leading-[26px] text-neutral-600 mb-8 max-w-[560px]">
+          Thank you for choosing <span className="font-semibold text-neutral-900">LIVUS</span>. Your Cash on Delivery order has been submitted. Our employee will call you to confirm the order before delivery within 2–3 working days.
+        </p>
+
+        {/* Order Details Card with 0 Border Radius */}
+        <div className="w-full bg-neutral-50/60 border border-neutral-200 rounded-none p-6 mb-8 text-left flex flex-col gap-3 font-sans">
+          {/* Order ID */}
+          <div className="flex justify-between items-center pb-3 border-b border-neutral-200">
+            <span className="text-[#666666] font-normal text-[16px]">Order ID:</span>
+            <span className="font-medium text-[16px] text-neutral-900">{orderNumber}</span>
+          </div>
+
+          {/* Location */}
+          <div className="flex justify-between items-center pb-3 border-b border-neutral-200">
+            <span className="text-[#666666] font-normal text-[16px]">Location:</span>
+            <span className="font-medium text-[16px] text-neutral-900 truncate max-w-[280px] text-right">{location}</span>
+          </div>
+
+          {/* Payment Method */}
+          <div className="flex justify-between items-center pb-3 border-b border-neutral-200">
+            <span className="text-[#666666] font-normal text-[16px]">Payment Method:</span>
+            <span className="font-medium text-[16px] text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-none border border-emerald-200">
+              Cash on Delivery (COD)
+            </span>
+          </div>
+
+          {/* Total Amount */}
+          <div className="flex justify-between items-center pt-1">
+            <span className="text-[#666666] font-normal text-[16px]">Total Amount:</span>
+            <span className="font-medium text-[16px] text-neutral-900">৳{Number(total).toLocaleString()} BDT</span>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+          <Link
+            href="/profile"
+            className="bg-[#050505] text-white py-[12px] px-[20px] text-[17px] font-normal uppercase tracking-[0.5px] cursor-pointer hover:bg-neutral-800 transition-colors text-center text-decoration-none"
+          >
+            VIEW MY ORDERS
+          </Link>
+          <Link
+            href="/all-products"
+            className="border border-[#050505] text-[#050505] py-[12px] px-[20px] text-[17px] font-normal uppercase tracking-[0.5px] cursor-pointer hover:bg-neutral-100 transition-colors text-center text-decoration-none"
+          >
+            CONTINUE SHOPPING
+          </Link>
+        </div>
       </div>
+
       <SiteFooter />
     </div>
   );

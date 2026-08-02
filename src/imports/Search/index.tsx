@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import type { ProductItem } from '@/app/actions/products';
+import { ProductCard } from '@/figma-components/ProductCard';
 import { SiteFooter } from '@/figma-components/SiteFooter';
 import { SiteNav } from '@/figma-components/SiteNav';
 import svgPaths from "./svg-vcqbscxjpp";
@@ -110,13 +112,21 @@ function Frame15() {
   );
 }
 
-function Frame6() {
+function Frame6({ products }: { products?: ProductItem[] }) {
+  if (!products || products.length === 0) {
+    return (
+      <div className="w-full px-[36px] py-12 text-center">
+        <p className="font-sans text-[18px] text-neutral-500">No products found matching your search.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="relative shrink-0 w-full">
-      <div className="gap-x-[8px] gap-y-[60px] grid grid-cols-[repeat(3,minmax(0,1fr))] grid-rows-[repeat(1,fit-content(100%))] px-[36px] relative size-full">
-        <Frame13 />
-        <Frame14 />
-        <Frame15 />
+      <div className="product-grid-4col px-[36px] relative w-full">
+        {products.map((p) => (
+          <ProductCard key={p.id} product={p} />
+        ))}
       </div>
     </div>
   );
@@ -348,14 +358,14 @@ function Frame189Status2() {
   );
 }
 
-export default function Search() {
+export default function Search({ products }: { products?: ProductItem[] }) {
   return (
     <div className="bg-white content-stretch flex flex-col items-center pt-[0px] relative size-full min-h-screen" data-name="Search">
       <SiteNav />
       <div className="w-full flex justify-center py-[24px]">
         <Frame189Status2 />
       </div>
-      <Frame6 />
+      <Frame6 products={products} />
       <SiteFooter />
     </div>
   );

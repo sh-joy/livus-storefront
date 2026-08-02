@@ -35,7 +35,11 @@ export function StorefrontClient({ initialProducts, initialCategories }: Storefr
     } catch (err) {
       console.warn('Failed to filter products from server action:', err);
       if (catId) {
-        setProducts(initialProducts.filter((p) => p.categoryId === catId));
+        setProducts(
+          initialProducts.filter((p) => {
+            return p.categoryId === catId || p.categorySlug === catId || p.categoryName?.toLowerCase() === categories.find((cat) => cat.id === catId)?.name?.toLowerCase();
+          })
+        );
       } else {
         setProducts(initialProducts);
       }

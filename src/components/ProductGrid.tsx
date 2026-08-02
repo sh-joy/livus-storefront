@@ -24,7 +24,13 @@ export function ProductGrid({
   const [sortOption, setSortOption] = useState<'newest' | 'price-low' | 'price-high'>('newest');
 
   const filteredProducts = products.filter((product) => {
-    return !activeCategory || product.categoryId === activeCategory;
+    if (!activeCategory) return true;
+
+    const categoryMatches = product.categoryId === activeCategory;
+    const slugMatches = product.categorySlug === activeCategory;
+    const nameMatches = product.categoryName?.toLowerCase() === categories.find((cat) => cat.id === activeCategory)?.name?.toLowerCase();
+
+    return categoryMatches || slugMatches || nameMatches;
   });
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {

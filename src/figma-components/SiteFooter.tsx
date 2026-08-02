@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
@@ -89,7 +91,7 @@ export function SiteFooter({ variant = "light" }: SiteFooterProps) {
 
           {/* Unified btn-group across both Nav & Social link columns */}
           <div
-            className="btn-group"
+            className="footer-btn-group"
             style={{ flex: "2 0 0", display: "flex", gap: "16px", alignItems: "flex-start" }}
           >
             {/* Nav links column */}
@@ -127,17 +129,15 @@ export function SiteFooter({ variant = "light" }: SiteFooterProps) {
             <button
               onClick={() => { if (email) setEmail(""); }}
               style={{
-                display: "inline-flex", alignItems: "center", gap: "8px",
+                display: "inline-flex", alignItems: "center", justifyContent: "center",
                 background: "#050505", color: "#ffffff", border: "none", cursor: "pointer",
-                padding: "7px 14px 8px 16px", alignSelf: "flex-start",
+                padding: "12px 20px", alignSelf: "flex-start",
                 fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
-                fontSize: "16px", lineHeight: "24px",
+                fontSize: "17px", lineHeight: "24px", fontWeight: 400,
+                textTransform: "uppercase",
               }}
             >
-              Subscribe
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M2 8H14M14 8L9 3M14 8L9 13" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              SUBSCRIBE
             </button>
           </div>
 

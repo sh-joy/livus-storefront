@@ -8,6 +8,13 @@ export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET || "livus-super-secret-auth-key-2026-production",
   baseURL: process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   errorURL: "/signin",
+  trustedOrigins: [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://my-store-flax.vercel.app",
+    "https://my-store-nfejqgo12-shamimhossein70-3034s-projects.vercel.app",
+    "https://*.vercel.app",
+  ],
   emailVerification: {
     sendOnSignUp: false,
     autoSignInAfterVerification: true,

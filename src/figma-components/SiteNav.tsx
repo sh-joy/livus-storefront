@@ -201,15 +201,28 @@ export function SiteNav({
 
 
           {isUserLoggedIn ? (
-            <Link
-              href="/profile"
-              className="nav-link font-normal"
-              style={{ ...navLinkStyle, fontWeight: 400 }}
-            >
-              <p className="relative shrink-0" style={{ margin: 0, cursor: "pointer", fontSize: "17px" }}>
-                PROFILE
-              </p>
-            </Link>
+            <div className="flex items-center gap-6">
+              {(userRole === 'admin' || userRole === 'superadmin') && (
+                <Link
+                  href="/admin"
+                  className="nav-link font-normal text-amber-500 hover:text-amber-400"
+                  style={{ ...navLinkStyle, fontWeight: 500, color: "#f59e0b" }}
+                >
+                  <p className="relative shrink-0" style={{ margin: 0, cursor: "pointer", fontSize: "17px" }}>
+                    ADMIN
+                  </p>
+                </Link>
+              )}
+              <Link
+                href="/profile"
+                className="nav-link font-normal"
+                style={{ ...navLinkStyle, fontWeight: 400 }}
+              >
+                <p className="relative shrink-0" style={{ margin: 0, cursor: "pointer", fontSize: "17px" }}>
+                  PROFILE
+                </p>
+              </Link>
+            </div>
           ) : (
             <Link
               href="/signin"

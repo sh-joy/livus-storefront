@@ -13,7 +13,8 @@ const NAV_LINKS = [
   { label: "Popular", path: "/popular" },
   { label: "Accessories", path: "/accessories" },
   { label: "Gift Card", path: "/all-products" },
-  { label: "My Orders", path: "/profile" },
+  { label: "Search", path: "/search" },
+  { label: "My Account", path: "/profile" },
   { label: "About", path: "/" },
   { label: "Contact", path: "/" },
 ];
@@ -40,7 +41,7 @@ export function MenuDrawer() {
           onClick={closeMenu}
         >
           <motion.div
-            className="bg-black h-full shrink-0 w-[300px] overflow-hidden"
+            className="bg-black h-full shrink-0 w-[300px] max-w-[85vw] overflow-y-auto"
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}

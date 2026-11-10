@@ -19,7 +19,7 @@ export default function ForgotPasswordPage() {
   const handleResetRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!emailOrPhone) {
-      setErrorMessage('Please enter your registered phone number or email address.');
+      setErrorMessage('Please enter the email address on your account.');
       return;
     }
 
@@ -33,7 +33,7 @@ export default function ForgotPasswordPage() {
         setSentSuccess(true);
         setMessage('A 6-digit password reset code has been sent to your email.');
         setTimeout(() => {
-          router.push(`/verify-email?email=${encodeURIComponent(emailOrPhone)}`);
+          router.push(`/signin?mode=reset-code&email=${encodeURIComponent(emailOrPhone.trim().toLowerCase())}`);
         }, 2500);
       } else {
         setErrorMessage(res.error || 'Failed to send password reset code.');
@@ -71,7 +71,7 @@ export default function ForgotPasswordPage() {
                   Reset Password
                 </h1>
                 <p className="text-sm font-sans text-neutral-400">
-                  Enter your phone number or email address below and we will send you a verification code to reset your password.
+                  Enter the email address on your account and we will send you a verification code to reset your password.
                 </p>
               </div>
 
@@ -84,7 +84,7 @@ export default function ForgotPasswordPage() {
               <form onSubmit={handleResetRequest} className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1.5 text-left">
                   <label className="text-xs uppercase font-sans tracking-wider text-neutral-400">
-                    Phone Number or Email
+                    Email Address
                   </label>
                   <input
                     type="text"
@@ -109,10 +109,10 @@ export default function ForgotPasswordPage() {
               <div className="border-t border-neutral-800 pt-4 text-center">
                 <Link
                   href="/signin"
-                  className="inline-flex items-center gap-2 text-xs text-neutral-400 hover:text-white transition-colors"
+                  className="inline-flex items-center gap-2 text-xs text-neutral-400 hover:text-white transition-colors uppercase tracking-wider font-medium"
                 >
                   <ArrowLeft className="size-3.5" />
-                  <span>Return to Sign In</span>
+                  <span>RETURN TO SIGN IN</span>
                 </Link>
               </div>
             </>

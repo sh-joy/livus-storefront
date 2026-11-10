@@ -413,6 +413,7 @@ export default function AdminOrdersPage() {
   const processingCount = ordersList.filter((o) => o.status === "Processing").length;
   const shippedCount = ordersList.filter((o) => o.status === "Shipped").length;
   const deliveredCount = ordersList.filter((o) => o.status === "Delivered").length;
+  const cancelledCount = ordersList.filter((o) => o.status === "Cancelled").length;
 
   const activeFilterCount = statusFilter !== "all" ? 1 : 0;
 
@@ -493,42 +494,8 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
-      {/* Subpage Navigation Tabs */}
-      <div className="flex items-center gap-6 border-b border-neutral-200">
-        <button
-          onClick={() => setStatusFilter("all")}
-          className={`pb-3 text-xs font-semibold tracking-tight transition-colors border-b-2 ${
-            statusFilter === "all"
-              ? "border-black text-black"
-              : "border-transparent text-neutral-500 hover:text-black"
-          }`}
-        >
-          All Orders ({ordersList.length})
-        </button>
-        <button
-          onClick={() => setStatusFilter("pending")}
-          className={`pb-3 text-xs font-semibold tracking-tight transition-colors border-b-2 ${
-            statusFilter === "pending"
-              ? "border-black text-black"
-              : "border-transparent text-neutral-500 hover:text-black"
-          }`}
-        >
-          Pending ({pendingCount})
-        </button>
-        <button
-          onClick={() => setStatusFilter("processing")}
-          className={`pb-3 text-xs font-semibold tracking-tight transition-colors border-b-2 ${
-            statusFilter === "processing"
-              ? "border-black text-black"
-              : "border-transparent text-neutral-500 hover:text-black"
-          }`}
-        >
-          Processing ({processingCount})
-        </button>
-      </div>
-
-      {/* 4 Metric Cards (Matching /admin/products layout) */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* 5 Metric Cards Grid (Including Cancelled Orders Card) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="border border-neutral-200 bg-white p-4 font-sans rounded-none shadow-none">
           <p className="text-xs uppercase font-medium text-neutral-500">Pending Orders</p>
           <p className="text-2xl font-bold mt-1 text-neutral-900">{pendingCount}</p>
@@ -547,6 +514,11 @@ export default function AdminOrdersPage() {
         <div className="border border-neutral-200 bg-white p-4 font-sans rounded-none shadow-none">
           <p className="text-xs uppercase font-medium text-emerald-700">Delivered Orders</p>
           <p className="text-2xl font-bold mt-1 text-emerald-600">{deliveredCount}</p>
+        </div>
+
+        <div className="border border-neutral-200 bg-white p-4 font-sans rounded-none shadow-none">
+          <p className="text-xs uppercase font-medium text-rose-700">Cancelled Orders</p>
+          <p className="text-2xl font-bold mt-1 text-rose-600">{cancelledCount}</p>
         </div>
       </div>
 

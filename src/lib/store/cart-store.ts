@@ -2,7 +2,11 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export interface CartProduct {
+  /** Cart line identity (product + colour). Kept for backwards compatibility with saved carts. */
   id: string;
+  /** Real product UUID from the database; the server re-prices orders from this. */
+  productId?: string;
+  slug?: string;
   name: string;
   price: string;
   imageUrl?: string | null;
@@ -49,7 +53,7 @@ export const useCartStore = create<CartState>()(
           set({
             items: currentItems.map((i) =>
               getCartItemKey(i.product) === targetKey
-                ? { ...i, quantity: i.quantity + quantity }
+                ? { ...i, product: { ...i.product, ...product }, quantity: Math.min(99, i.quantity + quantity) }
                 : i
             ),
             isOpen: true,
@@ -73,7 +77,7 @@ export const useCartStore = create<CartState>()(
         }
         set({
           items: get().items.map((i) =>
-            getCartItemKey(i.product) === itemKey ? { ...i, quantity } : i
+            getCartItemKey(i.product) === itemKey ? { ...i, quantity: Math.min(99, quantity) } : i
           ),
         });
       },
@@ -86,6 +90,8 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: 'livus-store-cart-v3',
+      // Only the cart contents are saved; the drawer should never re-open by itself on page load.
+      partialize: (state) => ({ items: state.items }),
     }
   )
 );

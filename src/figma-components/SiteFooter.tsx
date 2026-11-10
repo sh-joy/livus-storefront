@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
 import { InputField } from "./InputField";
+import { addNewsletterSubscriberAction } from "@/app/actions/subscribers";
 
 interface SiteFooterProps {
   variant?: "light" | "dark";
@@ -12,6 +13,27 @@ interface SiteFooterProps {
 export function SiteFooter({ variant = "light" }: SiteFooterProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
+  const [subscribeState, setSubscribeState] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [subscribeMsg, setSubscribeMsg] = useState("");
+
+  const handleSubscribe = async () => {
+    const clean = email.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)) {
+      setSubscribeState("error");
+      setSubscribeMsg("Please enter a valid email address.");
+      return;
+    }
+    setSubscribeState("loading");
+    const res = await addNewsletterSubscriberAction(clean);
+    if (res.success) {
+      setSubscribeState("done");
+      setSubscribeMsg("Thanks for subscribing!");
+      setEmail("");
+    } else {
+      setSubscribeState("error");
+      setSubscribeMsg(res.message || "Could not subscribe. Please try again.");
+    }
+  };
 
   const isDark = variant === "dark";
   const bg = isDark ? "var(--surface-dark)" : "#ffffff";
@@ -32,21 +54,20 @@ export function SiteFooter({ variant = "light" }: SiteFooterProps) {
   ];
 
   const socialLinks = [
-    { label: "Facebook" },
-    { label: "Instagram" },
-    { label: "Contact Us" },
+    { label: "Facebook", href: "https://www.facebook.com/" },
+    { label: "Instagram", href: "https://www.instagram.com/" },
+    { label: "Contact Us", href: "mailto:hello@livus.com" },
   ];
 
   return (
-    <footer style={{
+    <footer className="!px-[36px] !pt-[140px] !pb-[36px] max-md:!px-[16px] max-md:!pt-[72px] max-md:!pb-[24px]" style={{
       background: bg,
       borderTop: "none",
-      padding: "140px 36px 36px",
       flexShrink: 0,
       width: "100%",
       boxSizing: "border-box",
     }}>
-      <div style={{
+      <div className="max-md:!flex-col-reverse max-md:!gap-[48px]" style={{
         display: "flex",
         alignItems: "stretch",
         justifyContent: "space-between",
@@ -54,7 +75,7 @@ export function SiteFooter({ variant = "light" }: SiteFooterProps) {
       }}>
 
         {/* Left: LIVUS logo + copyright space-between vertically */}
-        <div style={{
+        <div className="max-md:!gap-[24px]" style={{
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
@@ -87,11 +108,11 @@ export function SiteFooter({ variant = "light" }: SiteFooterProps) {
         </div>
 
         {/* Right: nav + social + subscribe */}
-        <div style={{ display: "flex", flex: "1 0 0", minWidth: 0, gap: "4px", alignItems: "flex-start" }}>
+        <div className="max-md:!flex-col max-md:!gap-[40px]" style={{ display: "flex", flex: "1 0 0", minWidth: 0, gap: "4px", alignItems: "flex-start" }}>
 
           {/* Unified btn-group across both Nav & Social link columns */}
           <div
-            className="footer-btn-group"
+            className="footer-btn-group max-md:!w-full"
             style={{ flex: "2 0 0", display: "flex", gap: "16px", alignItems: "flex-start" }}
           >
             {/* Nav links column */}
@@ -103,14 +124,22 @@ export function SiteFooter({ variant = "light" }: SiteFooterProps) {
 
             {/* Social links column */}
             <div style={{ flex: "1 0 0", display: "flex", flexDirection: "column", gap: "16px", padding: "0 8px" }}>
-              {socialLinks.map(({ label }) => (
-                <p key={label} style={linkStyle}>{label}</p>
+              {socialLinks.map(({ label, href }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target={href.startsWith("http") ? "_blank" : undefined}
+                  rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
+                  style={{ ...linkStyle, textDecoration: "none", display: "block" }}
+                >
+                  {label}
+                </a>
               ))}
             </div>
           </div>
 
           {/* Subscribe */}
-          <div style={{ flex: "320 0 0", maxWidth: "320px", minWidth: "200px", display: "flex", flexDirection: "column", gap: "30px" }}>
+          <div className="max-md:!w-full max-md:!max-w-none max-md:!flex-none" style={{ flex: "320 0 0", maxWidth: "320px", minWidth: "200px", display: "flex", flexDirection: "column", gap: "30px" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
               <p style={{
                 fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
@@ -122,12 +151,19 @@ export function SiteFooter({ variant = "light" }: SiteFooterProps) {
                 label="Enter your email address"
                 type="email"
                 value={email}
-                onChange={setEmail}
+                onChange={(v: string) => { setEmail(v); if (subscribeState !== "loading") setSubscribeState("idle"); }}
                 variant={isDark ? "dark" : "light"}
               />
             </div>
+            {subscribeState === "done" || subscribeState === "error" ? (
+              <p style={{ fontSize: "14px", marginTop: "-18px", color: subscribeState === "error" ? "#c0392b" : (isDark ? "#9fe0a8" : "#1e7a34") }}>
+                {subscribeMsg}
+              </p>
+            ) : null}
             <button
-              onClick={() => { if (email) setEmail(""); }}
+              type="button"
+              disabled={subscribeState === "loading"}
+              onClick={handleSubscribe}
               style={{
                 display: "inline-flex", alignItems: "center", justifyContent: "center",
                 background: "#050505", color: "#ffffff", border: "none", cursor: "pointer",
@@ -137,7 +173,7 @@ export function SiteFooter({ variant = "light" }: SiteFooterProps) {
                 textTransform: "uppercase",
               }}
             >
-              SUBSCRIBE
+              {subscribeState === "loading" ? "SUBSCRIBING…" : "SUBSCRIBE"}
             </button>
           </div>
 

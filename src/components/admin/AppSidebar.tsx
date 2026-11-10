@@ -1,8 +1,10 @@
 'use client';
 
+import { adminSignOutAction } from '@/app/actions/admin-actions';
 import {
   LayoutDashboard,
   ShoppingBag,
+  Package,
   Boxes,
   Tag,
   ClipboardList,
@@ -27,10 +29,9 @@ import { usePathname } from "next/navigation";
 
 const allNavItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
-  { title: "Products", url: "/admin/products", icon: ShoppingBag },
-  { title: "Rapid Inventory", url: "/admin/inventory", icon: Boxes },
+  { title: "Products", url: "/admin/products", icon: Package },
   { title: "Categories", url: "/admin/categories", icon: Tag },
-  { title: "All Orders", url: "/admin/orders", icon: ClipboardList },
+  { title: "All Orders", url: "/admin/orders", icon: ShoppingBag },
   { title: "Abandoned Carts", url: "/admin/abandoned-carts", icon: ShoppingCart },
   { title: "Customers Directory", url: "/admin/customers", icon: Users },
   { title: "Newsletter CRM", url: "/admin/subscribers", icon: Mail },
@@ -41,20 +42,48 @@ const allNavItems = [
 
 import { useSession, signOut } from "@/lib/auth-client";
 import { LogOut } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export function AppSidebar() {
   const pathname = usePathname();
   const { data: sessionData } = useSession();
 
-  const user = sessionData?.user;
-  const userRole = (user as any)?.role || "admin";
-  const userEmail = user?.email || "admin@livus.com";
-  const userName = user?.name || "Admin User";
-  const userInitials = userName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) || "AD";
+  const [adminName, setAdminName] = useState("Super Admin");
+  const [adminEmail, setAdminEmail] = useState("superadmin@livus.com");
+  const [adminRole, setAdminRole] = useState("superadmin");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const getCookie = (name: string) => {
+        const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+        return match ? decodeURIComponent(match[2]) : null;
+      };
+
+      const cName = getCookie('livus_admin_name');
+      const cEmail = getCookie('livus_admin_email');
+      const cRole = getCookie('livus_admin_role');
+
+      if (cName) setAdminName(cName);
+      else if (sessionData?.user?.name) setAdminName(sessionData.user.name);
+
+      if (cEmail) setAdminEmail(cEmail);
+      else if (sessionData?.user?.email) setAdminEmail(sessionData.user.email);
+
+      if (cRole) setAdminRole(cRole);
+      else if ((sessionData?.user as any)?.role) setAdminRole((sessionData?.user as any).role);
+    }
+  }, [sessionData]);
+
+  const userInitials = adminName
+    ? adminName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+    : "AD";
 
   const handleLogout = async () => {
+    await adminSignOutAction();
     document.cookie = 'livus_admin_session=; path=/; max-age=0';
     document.cookie = 'livus_admin_role=; path=/; max-age=0';
+    document.cookie = 'livus_admin_name=; path=/; max-age=0';
+    document.cookie = 'livus_admin_email=; path=/; max-age=0';
     await signOut();
     window.location.href = "/admin/sign-in";
   };
@@ -76,9 +105,9 @@ export function AppSidebar() {
             </Link>
           </div>
           <span className={`text-[10px] font-mono uppercase px-2 py-0.5 font-bold tracking-wider rounded-none ${
-            userRole === 'superadmin' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-neutral-800 text-neutral-300 border border-neutral-700'
+            adminRole === 'superadmin' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-neutral-800 text-neutral-300 border border-neutral-700'
           }`}>
-            {userRole}
+            {adminRole}
           </span>
         </div>
 
@@ -113,8 +142,8 @@ export function AppSidebar() {
               {userInitials}
             </div>
             <div className="flex flex-col min-w-0 flex-1">
-              <span className="text-xs font-semibold text-white truncate leading-tight">{userName}</span>
-              <span className="text-[11px] text-neutral-400 truncate leading-tight">{userEmail}</span>
+              <span className="text-xs font-semibold text-white truncate leading-tight">{adminName}</span>
+              <span className="text-[11px] text-neutral-400 truncate leading-tight">{adminEmail}</span>
             </div>
             <button
               onClick={handleLogout}

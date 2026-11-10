@@ -52,8 +52,7 @@ const sectionLabel: CSSProperties = {
   textTransform: "uppercase",
 };
 
-import { createOrderAction } from "@/app/actions/orders";
-import { placeOrderAction } from "@/app/actions/checkout";
+import { placeOrderAction, getCheckoutQuoteAction } from "@/app/actions/checkout";
 
 const REGION_CITIES_MAP: Record<string, string[]> = {
   "Dhaka Division": [
@@ -113,35 +112,58 @@ export function CheckoutPage() {
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
 
-  const subtotalVal = cartItems.reduce((acc, item) => {
+  // Items in the shape the server expects. productId falls back to the legacy cart id for old saved carts.
+  const quoteItems = cartItems.map((item) => ({
+    productId: item.product.productId || item.product.slug || item.product.id,
+    variantName: item.product.color || undefined,
+    size: item.product.size || undefined,
+    quantity: item.quantity,
+  }));
+  const quoteKey = JSON.stringify(quoteItems) + "|" + (appliedDiscount?.code || "");
+
+  // Server-calculated summary: identical math to what gets saved with the order.
+  const [quote, setQuote] = useState<{
+    subtotalBdt: number; discountBdt: number; vatBdt: number; vatPercent: number;
+    deliveryChargeBdt: number; totalBdt: number;
+  } | null>(null);
+  const [quoteError, setQuoteError] = useState("");
+
+  useEffect(() => {
+    if (cartItems.length === 0) {
+      setQuote(null);
+      setQuoteError("");
+      return;
+    }
+    let cancelled = false;
+    getCheckoutQuoteAction(quoteItems, appliedDiscount?.code).then((res) => {
+      if (cancelled) return;
+      if (res.success) {
+        setQuote(res);
+        setQuoteError("");
+        if (appliedDiscount && res.promoError) {
+          setAppliedDiscount(null);
+          setPromoError(res.promoError);
+        }
+      } else {
+        setQuote(null);
+        setQuoteError(res.message);
+      }
+    });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quoteKey]);
+
+  // Shown instantly from the cart while the server quote loads
+  const localSubtotal = cartItems.reduce((acc, item) => {
     const rawPrice = parseFloat(item.product.price.replace(/[^0-9.]/g, '')) || 0;
     return acc + rawPrice * item.quantity;
   }, 0);
-
-  const [vatRatePct, setVatRatePct] = useState(10);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("my_store_vat_percent");
-      if (stored && !isNaN(parseFloat(stored))) {
-        setVatRatePct(parseFloat(stored));
-      }
-    }
-  }, []);
-
-  const vatVal = cartItems.length > 0 ? Math.round((subtotalVal * vatRatePct) / 100) : 0;
-  const deliveryVal = cartItems.length > 0 ? 150 : 0;
-
-  let discountVal = 0;
-  if (appliedDiscount) {
-    if (appliedDiscount.isPercentage) {
-      discountVal = (subtotalVal * appliedDiscount.amount) / 100;
-    } else {
-      discountVal = appliedDiscount.amount;
-    }
-  }
-
-  const totalVal = Math.max(0, subtotalVal - discountVal + vatVal + deliveryVal);
+  const subtotalVal = quote?.subtotalBdt ?? localSubtotal;
+  const vatRatePct = quote?.vatPercent ?? 10;
+  const vatVal = quote?.vatBdt ?? (cartItems.length > 0 ? Math.round((localSubtotal * vatRatePct) / 100) : 0);
+  const deliveryVal = quote?.deliveryChargeBdt ?? (cartItems.length > 0 ? 150 : 0);
+  const discountVal = quote?.discountBdt ?? 0;
+  const totalVal = quote?.totalBdt ?? Math.max(0, subtotalVal - discountVal + vatVal + deliveryVal);
 
   const handleApplyPromo = async () => {
     const code = promoCode.trim().toUpperCase();
@@ -154,7 +176,7 @@ export function CheckoutPage() {
       const res = await fetch("/api/promo/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code }),
+        body: JSON.stringify({ code, subtotal: subtotalVal }),
       });
       const data = await res.json();
 
@@ -204,6 +226,10 @@ export function CheckoutPage() {
       newErrors.email = "Please enter a valid email address (e.g. name@example.com)";
     }
 
+    if (!address.trim()) {
+      newErrors.address = "Street address is required";
+    }
+
     if (!region) {
       newErrors.region = "State / Region (District) is required";
     }
@@ -218,22 +244,24 @@ export function CheckoutPage() {
       return;
     }
 
+    if (quoteError) {
+      setErrors({ form: quoteError });
+      return;
+    }
+
     setErrors({});
     setIsSubmitting(true);
 
     try {
-      const orderItemsInput = cartItems.map((item) => {
-        const rawPrice = parseFloat(item.product.price.replace(/[^0-9.]/g, '')) || 899;
-        return {
-          productId: item.product.id || 'prod-1',
-          productName: item.product.name || 'Apparel Item',
-          variantName: item.product.color || 'Primary',
-          size: item.product.size || 'M',
-          thumbnailUrl: item.product.imageUrl || '/images/products/oakwood-yellow-thumb.png',
-          quantity: item.quantity,
-          priceBdt: rawPrice,
-        };
-      });
+      // Prices are NOT sent: the server looks them up from the database.
+      const orderItemsInput = cartItems.map((item) => ({
+        productId: item.product.productId || item.product.slug || item.product.id,
+        productName: item.product.name || 'Apparel Item',
+        variantName: item.product.color || undefined,
+        size: item.product.size || undefined,
+        thumbnailUrl: item.product.imageUrl || undefined,
+        quantity: item.quantity,
+      }));
 
       const orderPayload = {
         fullName: fullName.trim(),
@@ -247,6 +275,7 @@ export function CheckoutPage() {
         deliveryInstructions: delivery.trim() || undefined,
         paymentMethod: payment,
         cartItems: orderItemsInput,
+        promoCode: appliedDiscount?.code,
       };
 
       const res = await placeOrderAction(orderPayload);
@@ -272,7 +301,7 @@ export function CheckoutPage() {
       <SiteNav />
 
       <div style={{ flex: 1 }}>
-        <div style={{
+        <div className="max-[1112px]:!px-[16px] max-md:!pt-[32px] max-md:!pb-[48px]" style={{
           maxWidth: "1080px",
           margin: "0px auto",
           padding: "80px 0px",
@@ -280,13 +309,13 @@ export function CheckoutPage() {
 
           {/* Top Row: Checkout Heading & Subtitle */}
           <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "40px" }}>
-            <p style={{
+            <p className="max-md:!text-[40px] max-md:!leading-[44px]" style={{
               fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
               fontSize: "48px", fontWeight: 600,
               color: "var(--ink)", letterSpacing: "-1.44px", lineHeight: "56px",
             }}>Checkout</p>
-            <p style={{ ...base, color: "var(--ink-muted)" }}>
-              Already have an account?{" "}
+            <p style={{ ...base, color: "var(--ink-muted)", textTransform: "uppercase" }}>
+              ALREADY HAVE AN ACCOUNT?{" "}
               <span
                 style={{ color: "var(--ink)", textDecoration: "underline", cursor: "pointer", fontSize: "15px" }}
                 onClick={() => router.push("/signin")}
@@ -297,7 +326,7 @@ export function CheckoutPage() {
           </div>
 
           {/* Main 2-Column Grid (Personal Information & Order Summary on exact same horizontal level) */}
-          <div style={{
+          <div className="max-md:!grid-cols-1 max-md:!gap-[40px]" style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
             gap: "60px",
@@ -353,7 +382,7 @@ export function CheckoutPage() {
                     value={apt}
                     onChange={setApt}
                   />
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+                  <div className="max-[420px]:!grid-cols-1 max-[420px]:!gap-[16px]" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
                     {/* State / Region (District) dropdown */}
                     <div style={{ display: "flex", flexDirection: "column", gap: "4px", position: "relative", paddingTop: "16px" }}>
                       {region && (
@@ -604,7 +633,7 @@ export function CheckoutPage() {
                       <div key={itemKey} className="w-full flex flex-col gap-[20px]">
                         {index > 0 && <div className="w-full h-px bg-[#E2E2E2] shrink-0" />}
                         <div className="flex gap-[16px] items-start w-full shrink-0">
-                          <div className="bg-[#f0f0f0] flex h-[140px] w-[105px] aspect-[3/4] items-center justify-center overflow-hidden shrink-0">
+                          <div className="bg-[#f0f0f0] flex h-[140px] w-[105px] max-md:h-[117px] max-md:w-[88px] aspect-[3/4] items-center justify-center overflow-hidden shrink-0">
                             <img
                               alt={item.product.name}
                               className="w-full h-full object-cover aspect-[3/4]"
@@ -612,13 +641,13 @@ export function CheckoutPage() {
                             />
                           </div>
                           <div className="flex-1 flex flex-col justify-between py-[3px] self-stretch min-w-0">
-                            <div className="flex items-start justify-between w-full leading-[24px] text-[#1c1c1c]">
-                              <div className="font-sans flex flex-col items-start shrink-0">
+                            <div className="flex items-start justify-between gap-[8px] w-full leading-[24px] text-[#1c1c1c]">
+                              <div className="font-sans flex flex-col items-start min-w-0">
                                 <p className="text-[17px] font-medium tracking-[-0.34px]">{item.product.name}</p>
                                 {item.product.color && <p className="text-[17px] tracking-[-0.085px]">Color: {item.product.color}</p>}
                                 {item.product.size && <p className="text-[17px] tracking-[-0.085px]">Size: {item.product.size}</p>}
                               </div>
-                              <p className="font-sans text-[17px] font-medium shrink-0">{item.product.price}</p>
+                              <p className="font-sans text-[17px] font-medium shrink-0 whitespace-nowrap">{item.product.price}</p>
                             </div>
                             <div className="flex items-center justify-between w-full shrink-0 pt-[8px]">
                               <div className="flex gap-[16px] items-center">
@@ -756,6 +785,12 @@ export function CheckoutPage() {
                   <p style={{ ...base, fontWeight: 500, letterSpacing: "-0.34px", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>Total</p>
                   <p style={{ ...base, fontWeight: 500, letterSpacing: "-0.34px", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>৳ {totalVal.toFixed(0)} BDT</p>
                 </div>
+
+                {quoteError && !errors.form && (
+                  <p style={{ fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)", fontSize: "14px", color: "#d4183d", fontWeight: 500, textAlign: "center" }}>
+                    {quoteError}
+                  </p>
+                )}
 
                 {errors.form && (
                   <p style={{ fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)", fontSize: "14px", color: "#d4183d", fontWeight: 500, textAlign: "center" }}>

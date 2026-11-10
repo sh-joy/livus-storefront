@@ -91,7 +91,7 @@ export default function Search() {
   useEffect(() => {
     async function loadData() {
       try {
-        const prods = await getAdminProducts();
+        const prods = await getAdminProducts({ status: 'active' });
         setAllProducts(prods || []);
       } catch (err) {
         console.error("Failed to load search products:", err);

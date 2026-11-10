@@ -286,15 +286,15 @@ export default function AdminCategoriesPage() {
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger render={
             <Button
-              variant="default"
+              size="sm"
               onClick={() => {
                 setName("");
                 setSlug("");
                 setDescription("");
               }}
-              className="flex items-center gap-2 rounded-none bg-black text-white hover:bg-neutral-800 text-xs font-semibold h-9 px-4 shadow-none"
+              className="flex items-center gap-1.5 text-xs bg-[#050505] text-white hover:bg-neutral-800 rounded-none shadow-none font-medium"
             >
-              <Plus className="size-4" />
+              <Plus className="size-3.5" />
               <span>{activeTab === "categories" ? "Add Category" : "Add Product Type"}</span>
             </Button>
           } />

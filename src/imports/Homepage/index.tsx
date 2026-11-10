@@ -53,8 +53,8 @@ function Frame189Status() {
 
 function Frame8() {
   return (
-    <div className="content-stretch flex flex-col gap-[20px] items-end justify-center pb-[10px] relative shrink-0 w-[450px]">
-      <p className="[word-break:break-word] font-sans leading-[24px] min-w-full not-italic relative shrink-0 text-[20px] text-black text-right tracking-[-0.1px] w-[min-content]">We’re Bangladesh’s very first brand to let you design and print your own jersey. Stand out like never before!</p>
+    <div className="content-stretch flex flex-col gap-[20px] items-end justify-center pb-[10px] relative shrink-0 w-[450px] max-md:w-full max-md:items-start">
+      <p className="[word-break:break-word] font-sans leading-[24px] min-w-full not-italic relative shrink-0 text-[20px] max-md:text-[16px] text-black text-right max-md:text-left tracking-[-0.1px] w-[min-content] max-md:w-full">We’re Bangladesh’s very first brand to let you design and print your own jersey. Stand out like never before!</p>
       <Frame189Status />
     </div>
   );
@@ -62,10 +62,10 @@ function Frame8() {
 
 function Frame6() {
   return (
-    <div className="content-stretch flex flex-[1_0_0] items-end justify-between min-w-px relative">
-      <div className="[word-break:break-word] font-serif font-bold leading-[0] relative shrink-0 text-[110px] text-black tracking-[-3.3px] whitespace-nowrap">
-        <p className="leading-[110px] mb-0">Your game.</p>
-        <p className="leading-[110px]">Your Design.</p>
+    <div className="content-stretch flex flex-[1_0_0] items-end justify-between min-w-px relative max-md:flex-col max-md:items-start max-md:gap-[20px]">
+      <div className="[word-break:break-word] font-serif font-bold leading-[0] relative shrink-0 text-[110px] max-md:text-[56px] text-black tracking-[-3.3px] max-md:tracking-[-1.5px] whitespace-nowrap">
+        <p className="leading-[110px] max-md:leading-[56px] mb-0">Your game.</p>
+        <p className="leading-[110px] max-md:leading-[56px]">Your Design.</p>
       </div>
       <Frame8 />
     </div>
@@ -76,7 +76,7 @@ function Frame5() {
   return (
     <div className="relative shrink-0 w-full">
       <div className="flex flex-row items-center justify-center size-full">
-        <div className="content-stretch flex items-center justify-center px-[36px] relative size-full">
+        <div className="content-stretch flex items-center justify-center px-[36px] max-md:px-[16px] relative size-full">
           <Frame6 />
         </div>
       </div>
@@ -179,7 +179,7 @@ function Livus() {
 function MaskGroup() {
   return (
     <div className="-translate-x-1/2 absolute aspect-[949.88671875/1161.09765625] bottom-[-10.9%] contents left-[calc(50%-16.93px)] top-[-32.05%]" data-name="Mask group">
-      <div className="-translate-x-1/2 absolute aspect-[949.88671875/1161.09765625] bottom-[-10.9%] left-[calc(50%-16.93px)] mask-alpha mask-intersect mask-no-clip mask-no-repeat mask-position-[0.001px_0px] mask-size-[1050.216px_1283.735px] top-[-32.05%]" style={{ maskImage: `url("${imgImage115}")` }} data-name="image 115">
+      <div className="-translate-x-1/2 absolute aspect-[949.88671875/1161.09765625] bottom-[-10.9%] max-md:bottom-0 max-md:top-0 left-[calc(50%-16.93px)] max-md:left-1/2 mask-alpha mask-intersect mask-no-clip mask-no-repeat mask-position-[0.001px_0px] mask-size-[1050.216px_1283.735px] top-[-32.05%]" style={{ maskImage: `url("${imgImage115}")` }} data-name="image 115">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <img alt="" className="absolute h-[102.31%] left-0 max-w-none top-[-2.29%] w-full" src={typeof imgImage116 === 'string' ? imgImage116 : imgImage116?.src} />
         </div>
@@ -190,7 +190,7 @@ function MaskGroup() {
 
 function Frame11() {
   return (
-    <div className="h-[898px] relative shrink-0 w-full">
+    <div className="h-[898px] max-md:h-[480px] relative shrink-0 w-full overflow-hidden">
       <Livus />
       <MaskGroup />
     </div>
@@ -199,7 +199,7 @@ function Frame11() {
 
 function Frame4() {
   return (
-    <div className="content-stretch flex flex-col gap-[3px] items-center pt-[60px] relative shrink-0 w-full">
+    <div className="content-stretch flex flex-col gap-[3px] items-center pt-[60px] max-md:pt-[32px] relative shrink-0 w-full">
       <Frame5 />
       <Frame11 />
     </div>
@@ -223,9 +223,9 @@ function Frame189Status1() {
 function Frame19() {
   return (
     <div className="content-stretch flex items-end justify-between relative shrink-0 w-full">
-      <div className="flex h-[256px] items-center justify-center relative shrink-0 w-[24px]">
+      <div className="flex h-[256px] max-md:h-[200px] items-center justify-center relative shrink-0 w-[24px]">
         <div className="-rotate-90 flex-none">
-          <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative text-[#1a1a1a] text-[20px] whitespace-nowrap">{`Exclusive Men's Jersey Collection`}</p>
+          <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative text-[#1a1a1a] text-[20px] max-md:!text-[15px] whitespace-nowrap">{`Exclusive Men's Jersey Collection`}</p>
         </div>
       </div>
       <Frame189Status1 />
@@ -235,13 +235,13 @@ function Frame19() {
 
 function Frame23() {
   return (
-    <div className="aspect-[660/660] flex-[1_0_0] min-w-px relative">
+    <div className="aspect-[660/660] flex-[1_0_0] min-w-px relative max-md:w-full max-md:flex-none">
       <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={typeof imgFrame1597881163 === 'string' ? imgFrame1597881163 : imgFrame1597881163?.src} />
       <div className="flex flex-col items-center justify-center size-full">
         <div className="content-stretch flex flex-col items-center justify-between p-[24px] relative size-full">
-          <div className="[word-break:break-word] font-serif font-semibold leading-[0] relative shrink-0 text-[#323232] text-[110px] tracking-[-3.3px] w-full whitespace-pre-wrap">
-            <p className="leading-[110px] mb-0">{`For `}</p>
-            <p className="leading-[110px]">Him</p>
+          <div className="[word-break:break-word] font-serif font-semibold leading-[0] relative shrink-0 text-[#323232] text-[110px] max-md:text-[64px] tracking-[-3.3px] w-full whitespace-pre-wrap">
+            <p className="leading-[110px] max-md:leading-[64px] mb-0">{`For `}</p>
+            <p className="leading-[110px] max-md:leading-[64px]">Him</p>
           </div>
           <Frame19 />
         </div>
@@ -253,9 +253,9 @@ function Frame23() {
 function Frame32() {
   return (
     <div className="content-stretch flex items-start relative shrink-0 w-full">
-      <div className="[word-break:break-word] font-serif font-semibold leading-[0] relative shrink-0 text-[#323232] text-[110px] tracking-[-3.3px] whitespace-nowrap">
-        <p className="leading-[110px] mb-0 whitespace-pre">{`For `}</p>
-        <p className="leading-[110px] whitespace-pre">Her</p>
+      <div className="[word-break:break-word] font-serif font-semibold leading-[0] relative shrink-0 text-[#323232] text-[110px] max-md:text-[64px] tracking-[-3.3px] whitespace-nowrap">
+        <p className="leading-[110px] max-md:leading-[64px] mb-0 whitespace-pre">{`For `}</p>
+        <p className="leading-[110px] max-md:leading-[64px] whitespace-pre">Her</p>
       </div>
     </div>
   );
@@ -278,9 +278,9 @@ function Frame189Status2() {
 function Frame17() {
   return (
     <div className="content-stretch flex items-end justify-between relative shrink-0 w-full">
-      <div className="flex h-[282px] items-center justify-center relative shrink-0 w-[24px]">
+      <div className="flex h-[282px] max-md:h-[220px] items-center justify-center relative shrink-0 w-[24px]">
         <div className="-rotate-90 flex-none">
-          <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative text-[#1a1a1a] text-[20px] whitespace-nowrap">{`Exclusive Women's Jersey Collection`}</p>
+          <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative text-[#1a1a1a] text-[20px] max-md:!text-[15px] whitespace-nowrap">{`Exclusive Women's Jersey Collection`}</p>
         </div>
       </div>
       <Frame189Status2 />
@@ -290,7 +290,7 @@ function Frame17() {
 
 function Frame24() {
   return (
-    <div className="aspect-[660/660] flex-[1_0_0] min-w-px relative">
+    <div className="aspect-[660/660] flex-[1_0_0] min-w-px relative max-md:w-full max-md:flex-none">
       <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={typeof imgFrame1597881164 === 'string' ? imgFrame1597881164 : imgFrame1597881164?.src} />
       <div className="flex flex-col items-center justify-center size-full">
         <div className="content-stretch flex flex-col items-center justify-between p-[24px] relative size-full">
@@ -306,7 +306,7 @@ function Frame18() {
   return (
     <div className="relative shrink-0 w-full">
       <div className="flex flex-row items-center size-full">
-        <div className="content-stretch flex gap-[8px] items-center pb-[120px] px-[36px] relative size-full">
+        <div className="content-stretch flex gap-[8px] items-center pb-[120px] px-[36px] max-md:flex-col max-md:px-[16px] max-md:pb-[64px] relative size-full">
           <Frame23 />
           <Frame24 />
         </div>
@@ -428,9 +428,9 @@ function Frame20({
 function Frame7() {
   return (
     <div className="relative shrink-0 w-full">
-      <div className="content-stretch flex flex-col gap-[12px] items-start pb-[25px] px-[36px] relative size-full">
-        <p className="[word-break:break-word] font-serif font-semibold leading-[90px] relative shrink-0 text-[70px] text-black tracking-[-2.1px] whitespace-nowrap">Explore the collection</p>
-        <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[18px] text-[#505050] tracking-[-0.1px] max-w-[650px]">
+      <div className="content-stretch flex flex-col gap-[12px] items-start pb-[25px] px-[36px] max-md:px-[16px] relative size-full">
+        <p className="[word-break:break-word] font-serif font-semibold leading-[90px] max-md:leading-[44px] relative shrink-0 text-[70px] max-md:text-[40px] text-black tracking-[-2.1px] max-md:tracking-[-1px] md:whitespace-nowrap">Explore the collection</p>
+        <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[18px] max-md:!text-[16px] text-[#505050] tracking-[-0.1px] max-w-[650px]">
           Browse fully customizable templates or draw inspiration from real designs created by our community. Filter by sport to find your team’s next look.
         </p>
       </div>
@@ -763,8 +763,8 @@ function Frame189Status11() {
 
 function Frame44() {
   return (
-    <div className="content-stretch flex flex-col gap-[20px] items-center relative shrink-0">
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#ccc] text-[18px] text-center w-[623.465px]">Share it with us and watch how we transform it into a unique masterpiece with careful attention to every detail. Let’s create amazing works of art that inspire people.</p>
+    <div className="content-stretch flex flex-col gap-[20px] items-center relative shrink-0 max-w-full">
+      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#ccc] text-[18px] max-md:!text-[16px] text-center w-[623.465px] max-w-full">Share it with us and watch how we transform it into a unique masterpiece with careful attention to every detail. Let’s create amazing works of art that inspire people.</p>
       <Frame189Status11 />
     </div>
   );
@@ -772,8 +772,8 @@ function Frame44() {
 
 function Frame43() {
   return (
-    <div className="content-stretch flex flex-col items-center relative shrink-0">
-      <p className="[word-break:break-word] font-serif font-semibold leading-[110px] relative shrink-0 text-[70px] text-white tracking-[-2.1px] whitespace-nowrap">Have your own design?</p>
+    <div className="content-stretch flex flex-col items-center relative shrink-0 max-w-full">
+      <p className="[word-break:break-word] font-serif font-semibold leading-[110px] max-md:leading-[44px] relative shrink-0 text-[70px] max-md:text-[40px] text-white tracking-[-2.1px] max-md:tracking-[-1px] md:whitespace-nowrap text-center max-md:mb-[16px]">Have your own design?</p>
       <Frame44 />
     </div>
   );
@@ -841,10 +841,10 @@ function Livus1() {
 
 function Frame42() {
   return (
-    <div className="flex flex-[1_0_0] flex-row items-center self-stretch">
+    <div className="flex flex-[1_0_0] flex-row items-center self-stretch max-md:w-full max-md:flex-none">
       <div className="bg-[#0d0d0d] flex-[1_0_0] h-full min-w-px relative">
         <div className="flex flex-col items-center justify-center size-full">
-          <div className="content-stretch flex flex-col gap-[48px] items-center justify-center p-[36px] relative size-full">
+          <div className="content-stretch flex flex-col gap-[48px] max-md:gap-[32px] items-center justify-center p-[36px] max-md:px-[16px] max-md:py-[48px] relative size-full">
             <Frame43 />
             <Livus1 />
           </div>
@@ -856,8 +856,8 @@ function Frame42() {
 
 function Frame45() {
   return (
-    <div className="aspect-[698/698] bg-[#f0f0f0] content-stretch flex flex-[1_0_0] items-center justify-center min-w-px overflow-clip py-[60px] relative">
-      <div className="h-[558px] relative shrink-0 w-[480.341px]" data-name="image 114">
+    <div className="aspect-[698/698] bg-[#f0f0f0] content-stretch flex flex-[1_0_0] items-center justify-center min-w-px overflow-clip py-[60px] max-md:py-[32px] relative max-md:w-full max-md:flex-none">
+      <div className="h-[558px] relative shrink-0 w-[480.341px] max-md:h-full max-md:w-auto max-md:aspect-[480/558]" data-name="image 114">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <img alt="" className="absolute h-full left-[-8.01%] max-w-none top-0 w-[116.17%]" src={typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src} />
         </div>
@@ -868,7 +868,7 @@ function Frame45() {
 
 function Frame41() {
   return (
-    <div className="content-stretch flex items-center pb-[20px] pt-[140px] relative shrink-0 w-full">
+    <div className="content-stretch flex items-center pb-[20px] pt-[140px] max-md:pt-[48px] max-md:flex-col relative shrink-0 w-full">
       <Frame42 />
       <Frame45 />
     </div>
@@ -1054,13 +1054,11 @@ export default function Homepage({ products }: { products?: HomepageProductItem[
       
       {/* "Explore All" Button */}
       <div className="w-full flex items-center justify-center pt-8 pb-16">
-        <Link href="/all-products">
-          <button
-            type="button"
-            className="bg-[#050505] text-white hover:bg-neutral-800 px-[20px] py-[12px] text-[17px] font-normal uppercase tracking-[0.5px] transition-all cursor-pointer rounded-none border border-black shadow-sm"
-          >
-            EXPLORE ALL
-          </button>
+        <Link
+          href="/all-products"
+          className="inline-block bg-[#050505] text-white hover:bg-neutral-800 px-[20px] py-[12px] text-[17px] font-normal uppercase tracking-[0.5px] transition-all cursor-pointer rounded-none border border-black shadow-sm"
+        >
+          EXPLORE ALL
         </Link>
       </div>
 

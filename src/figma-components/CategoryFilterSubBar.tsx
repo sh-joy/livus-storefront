@@ -145,24 +145,24 @@ export function CategoryFilterSubBar({
   };
 
   return (
-    <div ref={barRef} className="w-full relative z-30 bg-white py-4 px-[36px] font-sans select-none max-w-[2560px] mx-auto">
+    <div ref={barRef} className="w-full relative z-30 bg-white py-4 px-[36px] max-md:px-[16px] font-sans select-none max-w-[2560px] mx-auto">
       <div className="flex flex-wrap items-center justify-between gap-4">
         {/* Left Filter Dropdowns */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 max-md:gap-2">
           
           {/* 1. SORT DROPDOWN */}
           <div className="relative">
             <button
               type="button"
               onClick={() => setOpenDropdown(openDropdown === 'sort' ? null : 'sort')}
-              className="px-[20px] py-[12px] border border-neutral-200 bg-white text-black text-[17px] font-normal uppercase tracking-wider flex items-center justify-between gap-3 hover:border-black min-w-[180px] rounded-none cursor-pointer transition-colors"
+              className="px-[16px] py-[10px] border border-neutral-200 bg-white text-black text-[15px] font-normal uppercase tracking-wider flex items-center justify-between gap-3 hover:border-black min-w-[170px] max-md:min-w-0 max-md:px-[12px] rounded-none cursor-pointer transition-colors"
             >
               <span>{getSortButtonText(sortOption)}</span>
               <ChevronDown className={`size-4 text-neutral-600 transition-transform duration-200 ${openDropdown === 'sort' ? 'rotate-180' : ''}`} />
             </button>
 
             {openDropdown === 'sort' && (
-              <div className="absolute top-[calc(100%+4px)] left-0 bg-white border border-neutral-200 p-0 z-50 flex flex-col shadow-xl min-w-[220px] animate-in fade-in zoom-in-95 duration-100 overflow-hidden">
+              <div className="absolute top-[calc(100%+4px)] left-0 bg-white border border-neutral-200 p-0 z-50 flex flex-col shadow-xl min-w-[210px] animate-in fade-in zoom-in-95 duration-100 overflow-hidden">
                 {sortOptions.map((opt) => {
                   const isSelected = sortOption === opt.value;
                   return (
@@ -173,7 +173,7 @@ export function CategoryFilterSubBar({
                         onSortChange(opt.value);
                         setOpenDropdown(null);
                       }}
-                      className={`w-full text-left px-[20px] py-[12px] text-[17px] font-normal uppercase tracking-wider border-b border-neutral-100 last:border-b-0 rounded-none transition-colors cursor-pointer ${
+                      className={`w-full text-left px-[16px] py-[10px] text-[15px] font-normal uppercase tracking-wider border-b border-neutral-100 last:border-b-0 rounded-none transition-colors cursor-pointer ${
                         isSelected
                           ? 'bg-neutral-100 text-black font-medium'
                           : 'bg-white text-neutral-700 hover:bg-neutral-50 hover:text-black'
@@ -193,14 +193,14 @@ export function CategoryFilterSubBar({
               <button
                 type="button"
                 onClick={() => setOpenDropdown(openDropdown === 'gender' ? null : 'gender')}
-                className="px-[20px] py-[12px] border border-neutral-200 bg-white text-black text-[17px] font-normal uppercase tracking-wider flex items-center justify-between gap-3 hover:border-black min-w-[140px] rounded-none cursor-pointer transition-colors"
+                className="px-[16px] py-[10px] border border-neutral-200 bg-white text-black text-[15px] font-normal uppercase tracking-wider flex items-center justify-between gap-3 hover:border-black min-w-[130px] max-md:min-w-0 max-md:px-[12px] rounded-none cursor-pointer transition-colors"
               >
                 <span>{selectedGender === 'all' ? 'GENDER' : getGenderLabel(selectedGender)}</span>
                 <ChevronDown className={`size-4 text-neutral-600 transition-transform duration-200 ${openDropdown === 'gender' ? 'rotate-180' : ''}`} />
               </button>
 
               {openDropdown === 'gender' && (
-                <div className="absolute top-[calc(100%+4px)] left-0 bg-white border border-neutral-200 p-0 z-50 flex flex-col shadow-xl min-w-[180px] animate-in fade-in zoom-in-95 duration-100 overflow-hidden">
+                <div className="absolute top-[calc(100%+4px)] left-0 bg-white border border-neutral-200 p-0 z-50 flex flex-col shadow-xl min-w-[170px] animate-in fade-in zoom-in-95 duration-100 overflow-hidden">
                   {genderOptions.map((opt) => {
                     const isSelected = selectedGender === opt.value;
                     return (
@@ -211,7 +211,7 @@ export function CategoryFilterSubBar({
                           onGenderChange(opt.value);
                           setOpenDropdown(null);
                         }}
-                        className={`w-full text-left px-[20px] py-[12px] text-[17px] font-normal uppercase tracking-wider border-b border-neutral-100 last:border-b-0 rounded-none transition-colors cursor-pointer ${
+                        className={`w-full text-left px-[16px] py-[10px] text-[15px] font-normal uppercase tracking-wider border-b border-neutral-100 last:border-b-0 rounded-none transition-colors cursor-pointer ${
                           isSelected
                             ? 'bg-neutral-100 text-black font-medium'
                             : 'bg-white text-neutral-700 hover:bg-neutral-50 hover:text-black'
@@ -231,14 +231,14 @@ export function CategoryFilterSubBar({
             <button
               type="button"
               onClick={() => setOpenDropdown(openDropdown === 'size' ? null : 'size')}
-              className="px-[20px] py-[12px] border border-neutral-200 bg-white text-black text-[17px] font-normal uppercase tracking-wider flex items-center justify-between gap-3 hover:border-black min-w-[120px] rounded-none cursor-pointer transition-colors"
+              className="px-[16px] py-[10px] border border-neutral-200 bg-white text-black text-[15px] font-normal uppercase tracking-wider flex items-center justify-between gap-3 hover:border-black min-w-[110px] max-md:min-w-0 max-md:px-[12px] rounded-none cursor-pointer transition-colors"
             >
               <span>{selectedSize === 'all' ? 'SIZE' : `SIZE: ${selectedSize}`}</span>
               <ChevronDown className={`size-4 text-neutral-600 transition-transform duration-200 ${openDropdown === 'size' ? 'rotate-180' : ''}`} />
             </button>
 
             {openDropdown === 'size' && (
-              <div className="absolute top-[calc(100%+4px)] left-0 bg-white border border-neutral-200 p-0 z-50 flex flex-col shadow-xl min-w-[140px] animate-in fade-in zoom-in-95 duration-100 overflow-hidden">
+              <div className="absolute top-[calc(100%+4px)] left-0 bg-white border border-neutral-200 p-0 z-50 flex flex-col shadow-xl min-w-[130px] animate-in fade-in zoom-in-95 duration-100 overflow-hidden">
                 {sizeOptions.map((opt) => {
                   const isSelected = selectedSize === opt.value;
                   return (
@@ -249,7 +249,7 @@ export function CategoryFilterSubBar({
                         onSizeChange(opt.value);
                         setOpenDropdown(null);
                       }}
-                      className={`w-full text-left px-[20px] py-[12px] text-[17px] font-normal uppercase tracking-wider border-b border-neutral-100 last:border-b-0 rounded-none transition-colors cursor-pointer ${
+                      className={`w-full text-left px-[16px] py-[10px] text-[15px] font-normal uppercase tracking-wider border-b border-neutral-100 last:border-b-0 rounded-none transition-colors cursor-pointer ${
                         isSelected
                           ? 'bg-neutral-100 text-black font-medium'
                           : 'bg-white text-neutral-700 hover:bg-neutral-50 hover:text-black'
@@ -268,14 +268,14 @@ export function CategoryFilterSubBar({
             <button
               type="button"
               onClick={() => setOpenDropdown(openDropdown === 'category' ? null : 'category')}
-              className="px-[20px] py-[12px] border border-neutral-200 bg-white text-black text-[17px] font-normal uppercase tracking-wider flex items-center justify-between gap-3 hover:border-black min-w-[160px] rounded-none cursor-pointer transition-colors"
+              className="px-[16px] py-[10px] border border-neutral-200 bg-white text-black text-[15px] font-normal uppercase tracking-wider flex items-center justify-between gap-3 hover:border-black min-w-[150px] max-md:min-w-0 max-md:px-[12px] rounded-none cursor-pointer transition-colors"
             >
               <span>{selectedCategory === 'all' ? 'CATEGORY' : getCategoryLabel(selectedCategory)}</span>
               <ChevronDown className={`size-4 text-neutral-600 transition-transform duration-200 ${openDropdown === 'category' ? 'rotate-180' : ''}`} />
             </button>
 
             {openDropdown === 'category' && (
-              <div className="absolute top-[calc(100%+4px)] left-0 bg-white border border-neutral-200 p-0 z-50 flex flex-col shadow-xl min-w-[220px] max-h-[320px] overflow-y-auto animate-in fade-in zoom-in-95 duration-100 border-b border-neutral-100">
+              <div className="absolute top-[calc(100%+4px)] left-0 bg-white border border-neutral-200 p-0 z-50 flex flex-col shadow-xl min-w-[210px] max-h-[320px] overflow-y-auto animate-in fade-in zoom-in-95 duration-100 border-b border-neutral-100">
                 {categoryOptions.map((opt) => {
                   const isSelected = selectedCategory.toLowerCase() === opt.value.toLowerCase();
                   return (
@@ -286,7 +286,7 @@ export function CategoryFilterSubBar({
                         onCategoryChange(opt.value);
                         setOpenDropdown(null);
                       }}
-                      className={`w-full text-left px-[20px] py-[12px] text-[17px] font-normal uppercase tracking-wider border-b border-neutral-100 last:border-b-0 rounded-none transition-colors cursor-pointer ${
+                      className={`w-full text-left px-[16px] py-[10px] text-[15px] font-normal uppercase tracking-wider border-b border-neutral-100 last:border-b-0 rounded-none transition-colors cursor-pointer ${
                         isSelected
                           ? 'bg-neutral-100 text-black font-medium'
                           : 'bg-white text-neutral-700 hover:bg-neutral-50 hover:text-black'

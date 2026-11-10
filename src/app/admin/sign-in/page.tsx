@@ -2,14 +2,15 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { authClient } from '@/lib/auth-client';
-import { ShieldCheck, Loader2, ArrowLeft } from 'lucide-react';
+import { verifyAdminLoginAction } from '@/app/actions/admin-actions';
+import { ShieldCheck, Loader2, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminSignInPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -24,27 +25,22 @@ export default function AdminSignInPage() {
     setErrorMessage('');
 
     try {
-      const res = await authClient.signIn.email({
-        email: email.trim(),
-        password: password,
-      });
+      const cleanEmail = email.trim().toLowerCase();
+      const res = await verifyAdminLoginAction(cleanEmail, password);
 
-      if (res.error) {
-        setErrorMessage(res.error.message || 'Invalid administrative credentials.');
+      if (!res.success || !res.user) {
+        setErrorMessage(res.message || 'Invalid administrative credentials.');
       } else {
-        const userRole = (res.data?.user as any)?.role || 'user';
-        if (userRole === 'superadmin' || userRole === 'admin') {
-          // Set dedicated admin session cookie for admin route isolation
-          document.cookie = `livus_admin_session=true; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`;
-          document.cookie = `livus_admin_role=${userRole}; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`;
-          router.push('/admin');
-        } else {
-          // Reject non-admin users from admin portal
-          await authClient.signOut();
-          document.cookie = 'livus_admin_session=; path=/; max-age=0';
-          document.cookie = 'livus_admin_role=; path=/; max-age=0';
-          setErrorMessage('Access denied: Administrative privileges required.');
-        }
+        const u = res.user;
+        // The real (signed, httpOnly) session cookie is set by the server action.
+        // These readable cookies are display-only (sidebar name/role); they grant no access.
+        const thirtyDays = 60 * 60 * 24 * 7;
+        document.cookie = `livus_admin_role=${u.role}; path=/; max-age=${thirtyDays}; SameSite=Lax`;
+        document.cookie = `livus_admin_name=${encodeURIComponent(u.name)}; path=/; max-age=${thirtyDays}; SameSite=Lax`;
+        document.cookie = `livus_admin_email=${encodeURIComponent(u.email)}; path=/; max-age=${thirtyDays}; SameSite=Lax`;
+        const params = new URLSearchParams(window.location.search);
+        const back = params.get('redirect');
+        router.push(back && back.startsWith('/admin') ? back : '/admin');
       }
     } catch (err: any) {
       console.error('Admin sign-in error:', err);
@@ -67,8 +63,8 @@ export default function AdminSignInPage() {
         
         {/* Top Header */}
         <div className="flex flex-col gap-2 text-center items-center">
-          <div className="size-12 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center mb-2 text-amber-400">
-            <ShieldCheck className="size-6" />
+          <div className="size-12 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center mb-2 text-white">
+            <ShieldCheck className="size-6 text-white" />
           </div>
           <h1 className="text-2xl font-semibold text-white">
             Admin Sign-in
@@ -98,7 +94,7 @@ export default function AdminSignInPage() {
               placeholder="Email address"
               autoComplete="off"
               required
-              className="w-full px-3.5 py-2.5 bg-black border border-neutral-800 text-white text-sm focus:outline-none focus:border-amber-500 transition-colors"
+              className="w-full px-3.5 py-2.5 bg-black border border-neutral-800 text-white placeholder:text-neutral-500 text-sm focus:outline-none focus:border-white rounded-none shadow-none font-sans transition-colors"
             />
           </div>
 
@@ -106,21 +102,30 @@ export default function AdminSignInPage() {
             <label className="text-xs font-medium text-neutral-300">
               Password
             </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
-              autoComplete="new-password"
-              required
-              className="w-full px-3.5 py-2.5 bg-black border border-neutral-800 text-white text-sm focus:outline-none focus:border-amber-500 transition-colors"
-            />
+            <div className="relative w-full">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                autoComplete="new-password"
+                required
+                className="w-full px-3.5 py-2.5 pr-10 bg-black border border-neutral-800 text-white placeholder:text-neutral-500 text-sm focus:outline-none focus:border-white rounded-none shadow-none font-sans transition-colors"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-neutral-400 hover:text-white transition-colors cursor-pointer bg-transparent border-none"
+              >
+                {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              </button>
+            </div>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 py-3 bg-white text-black text-sm font-medium hover:bg-neutral-200 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+            className="w-full mt-2 py-3 bg-white text-black text-sm font-medium hover:bg-neutral-200 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer rounded-none"
           >
             {loading && <Loader2 className="size-4 animate-spin text-black" />}
             <span>{loading ? 'Authenticating...' : 'Sign in to admin'}</span>

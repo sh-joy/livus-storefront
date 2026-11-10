@@ -1,5 +1,6 @@
 'use server';
 
+import { requireAdmin } from '@/lib/admin-guard';
 import { db } from '@/db';
 import { categories } from '@/db/schema';
 import { CategorySchema } from '@/lib/validations/schema';
@@ -36,6 +37,7 @@ export async function getCategories() {
 }
 
 export async function createCategoryAction(formData: FormData) {
+  await requireAdmin();
   const rawData = {
     name: formData.get('name'),
     slug: formData.get('slug'),

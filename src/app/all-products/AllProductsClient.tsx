@@ -107,7 +107,7 @@ function Livus() {
 function MaskGroup() {
   return (
     <div className="-translate-x-1/2 absolute aspect-[949.88671875/1161.09765625] bottom-[-4.47%] contents left-[calc(50%-16.93px)] top-[-27.03%]" data-name="Mask group">
-      <div className="-translate-x-1/2 absolute aspect-[949.88671875/1161.09765625] bottom-[-4.47%] left-[calc(50%-16.93px)] mask-alpha mask-intersect mask-no-clip mask-no-repeat mask-size-[816.499px_998.051px] top-[-27.03%]" style={{ maskImage: `url("${imgImage115}")` }} data-name="image 115">
+      <div className="-translate-x-1/2 absolute aspect-[949.88671875/1161.09765625] bottom-[-4.47%] max-md:bottom-0 max-md:top-0 left-[calc(50%-16.93px)] max-md:left-1/2 mask-alpha mask-intersect mask-no-clip mask-no-repeat mask-size-[816.499px_998.051px] top-[-27.03%]" style={{ maskImage: `url("${imgImage115}")` }} data-name="image 115">
         <img alt="" className="absolute inset-0 max-w-none object-contain pointer-events-none size-full" src={typeof imgImage116 === 'string' ? imgImage116 : imgImage116?.src} />
       </div>
     </div>
@@ -116,7 +116,7 @@ function MaskGroup() {
 
 function Frame10() {
   return (
-    <div className="h-[759px] relative shrink-0 w-full">
+    <div className="h-[759px] max-md:h-[460px] relative shrink-0 w-full overflow-hidden">
       <Livus />
       <MaskGroup />
     </div>
@@ -219,13 +219,13 @@ export default function AllProductsClient({ products = [] }: { products?: Produc
       <div className="content-stretch flex flex-col gap-[3px] items-center pt-[0px] relative shrink-0 w-full">
         <div className="relative shrink-0 w-full">
           <div className="flex flex-row items-center justify-center size-full">
-            <div className="content-stretch flex items-center justify-center pt-[100px] px-[36px] relative size-full">
-              <div className="content-stretch flex flex-[1_0_0] items-end justify-between min-w-px relative">
-                <p className="[word-break:break-word] font-serif font-bold leading-[110px] relative shrink-0 text-[110px] text-black tracking-[-3.3px] whitespace-nowrap">
+            <div className="content-stretch flex items-center justify-center pt-[100px] max-md:pt-[32px] px-[36px] max-md:px-[16px] relative size-full">
+              <div className="content-stretch flex flex-[1_0_0] items-end justify-between min-w-px relative max-md:flex-col max-md:items-start max-md:gap-[16px]">
+                <p className="[word-break:break-word] font-serif font-bold leading-[110px] max-md:leading-[64px] relative shrink-0 text-[110px] max-md:text-[64px] text-black tracking-[-3.3px] max-md:tracking-[-1.5px] whitespace-nowrap">
                   Explore All.
                 </p>
-                <div className="content-stretch flex flex-col items-end justify-center pb-[20px] relative shrink-0 w-[450px]">
-                  <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[20px] text-black text-right tracking-[-0.1px] w-full">
+                <div className="content-stretch flex flex-col items-end justify-center pb-[20px] relative shrink-0 w-[450px] max-md:w-full max-md:items-start max-md:pb-0">
+                  <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[20px] max-md:!text-[16px] text-black text-right max-md:text-left tracking-[-0.1px] w-full">
                     Explore our complete collection of handcrafted apparel, luxury wear, and modern design drops.
                   </p>
                 </div>
@@ -237,12 +237,12 @@ export default function AllProductsClient({ products = [] }: { products?: Produc
       </div>
 
       {/* Collection Header & Description */}
-      <div className="relative shrink-0 w-full pt-[60px] pb-[20px]">
-        <div className="content-stretch flex flex-col gap-[12px] items-start px-[36px] relative size-full">
-          <p className="[word-break:break-word] font-serif font-semibold leading-[90px] relative shrink-0 text-[70px] text-black tracking-[-2.1px] whitespace-nowrap">
+      <div className="relative shrink-0 w-full pt-[60px] max-md:pt-[32px] pb-[20px]">
+        <div className="content-stretch flex flex-col gap-[12px] items-start px-[36px] max-md:px-[16px] relative size-full">
+          <p className="[word-break:break-word] font-serif font-semibold leading-[90px] max-md:leading-[48px] relative shrink-0 text-[70px] max-md:text-[40px] text-black tracking-[-2.1px] max-md:tracking-[-1px] whitespace-nowrap">
             All Collections
           </p>
-          <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[18px] text-[#505050] tracking-[-0.1px] max-w-[650px]">
+          <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[18px] max-md:!text-[16px] text-[#505050] tracking-[-0.1px] max-w-[650px]">
             Browse fully customizable templates or draw inspiration from real designs created by our community. Filter by category to find your next look.
           </p>
         </div>

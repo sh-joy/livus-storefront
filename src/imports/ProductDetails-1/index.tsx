@@ -112,7 +112,7 @@ function renderFormattedMarkdown(text: string) {
 export default function ProductDetails({ product, allProducts = [] }: ProductDetailsProps) {
   const [selectedColorIdx, setSelectedColorIdx] = useState(0);
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
-  const [selectedSize, setSelectedSize] = useState("XL");
+  const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [showGuide, setShowGuide] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
@@ -189,7 +189,7 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
     });
 
     scored.sort((a, b) => b.score - a.score);
-    return scored.slice(0, 3).map((item) => item.product);
+    return scored.slice(0, 4).map((item) => item.product);
   }, [product?.slug, product?.collectionTag, product?.categorySlug, product?.priceBdt, allProducts]);
 
   const { openCart: openCartDrawer } = useDrawer();
@@ -257,28 +257,74 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
     return () => clearInterval(timer);
   }, [activeGallery.length, selectedColorIdx, lastInteractionTime]);
 
-  // Active Size List
-  const availableSizes = ["XS", "S", "M", "L", "XL", "XXL"];
+  // Sizes this colour actually carries (falls back to the standard run when stock isn't tracked)
+  const SIZE_ORDER = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
+  const colorSizes: { size: string; quantity: number; isStockOut: boolean }[] = activeColor?.sizes || [];
+  const availableSizes = colorSizes.length > 0
+    ? [...colorSizes.map((s) => s.size)].sort((a, b) => {
+        const ia = SIZE_ORDER.indexOf(a.toUpperCase());
+        const ib = SIZE_ORDER.indexOf(b.toUpperCase());
+        return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+      })
+    : ["S", "M", "L", "XL"];
+  const isSizeOut = (sz: string) => {
+    const o = colorSizes.find((s) => s.size === sz);
+    return o ? o.isStockOut || o.quantity <= 0 : false;
+  };
+  const selectedSizeObj = colorSizes.find((s) => s.size === selectedSize);
+  const maxQty = selectedSizeObj ? Math.max(0, Math.min(99, selectedSizeObj.quantity)) : 99;
+  const allSoldOut = colorSizes.length > 0 && colorSizes.every((s) => s.isStockOut || s.quantity <= 0);
+  const canAddToCart = !!selectedSize && !isSizeOut(selectedSize) && quantity <= maxQty && !allSoldOut;
+
+  // Default to the first in-stock size whenever the colour changes (or the current one isn't valid)
+  useEffect(() => {
+    if (selectedSize && availableSizes.includes(selectedSize) && !isSizeOut(selectedSize)) return;
+    const firstInStock = availableSizes.find((sz) => !isSizeOut(sz)) || "";
+    setSelectedSize(firstInStock);
+    setQuantity(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedColorIdx, product?.id]);
+
+  // Keep quantity within stock for the chosen size
+  useEffect(() => {
+    if (maxQty > 0 && quantity > maxQty) setQuantity(maxQty);
+  }, [maxQty, quantity]);
 
   const handleSelectColor = (idx: number) => {
     setSelectedColorIdx(idx);
     setCurrentImageIdx(0);
     setLastInteractionTime(Date.now());
+    galleryRef.current?.scrollTo({ left: 0, behavior: "smooth" });
   };
 
+  const [addedFlash, setAddedFlash] = useState(false);
   const handleAddToCart = () => {
+    if (!canAddToCart) return;
     addItemToCart(
       {
         id: `${product?.slug || 'oakwood-long-sleeve'}-${activeColor.name.toLowerCase()}`,
+        productId: product?.id,
+        slug: product?.slug,
         name: productName,
         price: priceBdt,
         color: activeColor.name,
         size: selectedSize,
-        imageUrl: currentImage,
+        imageUrl: activeGallery[0] || currentImage,
       },
       quantity
     );
     openCartDrawer();
+    setAddedFlash(true);
+    setTimeout(() => setAddedFlash(false), 1500);
+  };
+
+  // Mobile swipe gallery: track which photo is in view for the dot indicator
+  const galleryRef = useRef<HTMLDivElement>(null);
+  const [mobileSlide, setMobileSlide] = useState(0);
+  const handleGalleryScroll = () => {
+    const el = galleryRef.current;
+    if (!el || el.clientWidth === 0) return;
+    setMobileSlide(Math.round(el.scrollLeft / el.clientWidth));
   };
 
   const formattedDescriptionText = parseSpecificationsText(product?.specifications, product?.description);
@@ -300,11 +346,16 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
       >
         
         {/* Left: 1.5fr Stacked Vertical Image Gallery (.product-single__medias) */}
-        <div className="product-single__medias w-full flex flex-col gap-4">
+        <div className="relative w-full">
+        <div
+          ref={galleryRef}
+          onScroll={handleGalleryScroll}
+          className="product-single__medias w-full flex flex-col gap-4 max-lg:flex-row max-lg:gap-0 max-lg:overflow-x-auto max-lg:snap-x max-lg:snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
           {activeGallery.map((imgUrl, idx) => (
             <div
-              key={idx}
-              className="w-full aspect-[3/4] bg-[#f0f0f0] relative overflow-hidden shrink-0"
+              key={`${selectedColorIdx}-${idx}`}
+              className="w-full aspect-[3/4] max-lg:min-w-full max-lg:snap-center bg-[#f0f0f0] relative overflow-hidden shrink-0"
             >
               <img
                 alt={`${productName} - View ${idx + 1}`}
@@ -317,20 +368,27 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
             </div>
           ))}
         </div>
+        {activeGallery.length > 1 && (
+          <div className="lg:hidden absolute bottom-3 left-0 right-0 flex justify-center gap-[6px] z-20 pointer-events-none">
+            {activeGallery.map((_, idx) => (
+              <span
+                key={idx}
+                className={`h-[3px] w-[18px] transition-colors ${idx === mobileSlide ? "bg-black" : "bg-black/25"}`}
+              />
+            ))}
+          </div>
+        )}
+        </div>
 
         {/* Right: 1fr Sticky Product Details Panel (Stays sticky at top 98px, ghost-scrolls through tall content with vertical fade mask) */}
         <div
-          className="w-full lg:sticky lg:top-[98px] flex items-start justify-center p-[36px] shrink-0 self-start pb-12 z-20 overflow-y-auto max-h-[calc(100vh-120px)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          style={{
-            maskImage: "linear-gradient(to bottom, transparent, black 40px, black calc(100% - 40px), transparent)",
-            WebkitMaskImage: "linear-gradient(to bottom, transparent, black 40px, black calc(100% - 40px), transparent)",
-          }}
+          className="product-single__panel w-full lg:sticky lg:top-[98px] flex items-start justify-center p-[36px] max-md:px-[16px] max-md:pt-[24px] shrink-0 self-start pb-12 z-20 lg:overflow-y-auto lg:max-h-[calc(100vh-120px)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           <div className="content-stretch flex flex-col gap-[28px] items-start relative shrink-0 w-full max-w-[460px]">
             
             {/* Header Title & Price */}
             <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full">
-              <div className="[word-break:break-word] content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full whitespace-nowrap">
+              <div className="[word-break:break-word] content-stretch flex flex-col gap-[16px] max-md:gap-[10px] items-start relative shrink-0 w-full">
                 <p
                   className="font-serif font-semibold relative shrink-0 text-[#1c1c1c]"
                   style={{
@@ -342,7 +400,7 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
                 >
                   {productName}
                 </p>
-                <div className="content-stretch flex font-sans gap-[8px] items-start leading-[24px] relative shrink-0">
+                <div className="content-stretch flex flex-wrap font-sans gap-[8px] items-start leading-[24px] relative shrink-0 whitespace-nowrap">
                   <p className="relative shrink-0 text-[#1c1c1c] text-[24px] font-medium">
                     {priceBdt}
                   </p>
@@ -366,7 +424,7 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
             </div>
 
             {/* Color Swatch Selectors (Right-aligned rectangular color blocks with underline) */}
-            <div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
+            <div className="content-stretch flex flex-wrap gap-y-[10px] items-center justify-between relative shrink-0 w-full">
               <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#1c1c1c] text-[17px] tracking-[-0.34px] whitespace-nowrap font-medium">
                 Color: <span className="font-medium">{activeColor.name}</span>
                 {activeColor.isLowStock && (
@@ -375,7 +433,7 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
                   </span>
                 )}
               </p>
-              <div className="content-stretch flex gap-[12px] items-center relative shrink-0">
+              <div className="content-stretch flex flex-wrap gap-[12px] items-center relative shrink-0">
                 {activeColorVariants.map((c: any, idx) => {
                   const isSelected = selectedColorIdx === idx;
                   const hex = c.hexCode || c.hexColor || (
@@ -405,7 +463,7 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
             </div>
 
             {/* Size Selection & Sizing Guide */}
-            <div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
+            <div className="content-stretch flex items-center justify-between gap-[12px] relative shrink-0 w-full">
               <div className="[word-break:break-word] content-stretch flex flex-col font-sans items-start leading-[24px] not-italic relative shrink-0 whitespace-nowrap">
                 <p className="relative shrink-0 text-[#1c1c1c] text-[17px] tracking-[-0.34px] font-medium">Size</p>
                 <p
@@ -415,18 +473,17 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
                   View Guide
                 </p>
               </div>
-              <div className="content-stretch flex gap-[20px] items-center relative shrink-0">
+              <div className="content-stretch flex flex-wrap justify-end gap-[20px] max-md:gap-x-[14px] max-md:gap-y-[6px] items-center relative min-w-0">
                 {availableSizes.map((sz) => {
-                  const sizeObj = activeColor.sizes?.find((s: any) => s.size === sz);
-                  const isStockOut = sizeObj ? sizeObj.isStockOut || sizeObj.quantity === 0 : sz === "XXL";
+                  const isStockOut = isSizeOut(sz);
                   const isSelected = selectedSize === sz;
                   return (
                     <button
                       key={sz}
                       type="button"
                       disabled={isStockOut}
-                      onClick={() => !isStockOut && setSelectedSize(sz)}
-                      className={`content-stretch flex items-center justify-center px-[2px] relative shrink-0 ${
+                      onClick={() => { if (!isStockOut) { setSelectedSize(sz); setQuantity(1); } }}
+                      className={`content-stretch flex items-center justify-center px-[2px] max-md:min-w-[28px] max-md:min-h-[32px] relative shrink-0 ${
                         isStockOut
                           ? "line-through opacity-40 cursor-not-allowed text-[#a0a0a0]"
                           : isSelected
@@ -462,8 +519,11 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
                 </p>
                 <button
                   type="button"
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="size-[20px] flex items-center justify-center cursor-pointer hover:opacity-75"
+                  disabled={quantity >= maxQty}
+                  onClick={() => setQuantity(Math.min(maxQty, quantity + 1))}
+                  className={`size-[20px] flex items-center justify-center transition-opacity ${
+                    quantity >= maxQty ? "opacity-30 cursor-not-allowed" : "cursor-pointer hover:opacity-75"
+                  }`}
                 >
                   <svg fill="none" height="20" viewBox="0 0 20 20" width="20" className="block size-full">
                     <path d="M10 2.92893V17.0711" stroke="black" strokeWidth="1.2" strokeLinejoin="round" />
@@ -474,13 +534,23 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
             </div>
 
             {/* Primary Add to Cart Button */}
+            {selectedSizeObj && selectedSizeObj.quantity > 0 && selectedSizeObj.quantity <= 5 && (
+              <p className="font-sans text-[15px] text-[#d4183d] -mt-[12px]">Only {selectedSizeObj.quantity} left in size {selectedSize}</p>
+            )}
             <button
               type="button"
               onClick={handleAddToCart}
-              className="group relative shrink-0 w-full border border-black bg-transparent py-[12px] px-[20px] cursor-pointer transition-all duration-200 hover:bg-[#050505]"
+              disabled={!canAddToCart}
+              className={`group relative shrink-0 w-full border py-[12px] px-[20px] transition-all duration-200 ${
+                canAddToCart
+                  ? "border-black bg-transparent cursor-pointer hover:bg-[#050505] max-md:bg-[#050505]"
+                  : "border-neutral-300 bg-neutral-100 cursor-not-allowed"
+              }`}
             >
-              <p className="font-sans leading-[24px] text-[17px] text-black group-hover:text-white uppercase tracking-[0.85px] font-medium transition-colors">
-                ADD TO CART
+              <p className={`font-sans leading-[24px] text-[17px] uppercase tracking-[0.85px] font-medium transition-colors ${
+                canAddToCart ? "text-black group-hover:text-white max-md:text-white" : "text-neutral-400"
+              }`}>
+                {allSoldOut ? "SOLD OUT" : !selectedSize ? "SELECT A SIZE" : addedFlash ? "ADDED ✓" : "ADD TO CART"}
               </p>
             </button>
 
@@ -522,14 +592,14 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
       {/* "You might also like" Section Heading & Smart Recommendation Grid */}
       {recommendedProducts.length > 0 && (
         <>
-          <div className="w-full px-[36px] pt-[100px] pb-[32px] shrink-0">
-            <h2 className="font-serif text-[36px] font-semibold tracking-[-0.72px] text-[#1c1c1c] leading-[44px]">
+          <div className="w-full px-[36px] max-md:px-[16px] pt-[100px] max-md:pt-[48px] pb-[32px] max-md:pb-[20px] shrink-0">
+            <h2 className="font-serif text-[36px] max-md:text-[28px] font-semibold tracking-[-0.72px] text-[#1c1c1c] leading-[44px]">
               You might also like
             </h2>
           </div>
 
-          <div className="relative shrink-0 w-full pb-[100px]">
-            <div className="gap-x-[24px] gap-y-[60px] grid grid-cols-1 md:grid-cols-3 px-[36px] relative size-full">
+          <div className="relative shrink-0 w-full pb-[100px] max-md:pb-[48px]">
+            <div className="gap-x-[24px] max-md:gap-x-[12px] gap-y-[60px] max-md:gap-y-[32px] grid grid-cols-2 md:grid-cols-3 md:[&>*:nth-child(4)]:hidden px-[36px] max-md:px-[16px] relative size-full">
               {recommendedProducts.map((p) => (
                 <ProductCard key={p.id} product={p} />
               ))}

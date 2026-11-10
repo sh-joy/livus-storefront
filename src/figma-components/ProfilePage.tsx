@@ -110,6 +110,104 @@ const statusStyle: Record<string, CSSProperties> = {
 
 import { authClient, useSession, signOut } from "@/lib/auth-client";
 
+const REGIONS_LIST = [
+  "Dhaka Division",
+  "Chittagong Division",
+  "Sylhet Division",
+  "Rajshahi Division",
+  "Khulna Division",
+  "Barisal Division",
+  "Rangpur Division",
+  "Mymensingh Division",
+];
+
+const REGION_CITIES_MAP: Record<string, string[]> = {
+  "Dhaka Division": ["Dhaka", "Gazipur", "Narayanganj", "Savar", "Uttara", "Faridpur", "Tangail", "Manikganj"],
+  "Chittagong Division": ["Chittagong", "Cox's Bazar", "Comilla", "Feni", "Noakhali", "Brahmanbaria", "Chandpur"],
+  "Sylhet Division": ["Sylhet", "Moulvibazar", "Habiganj", "Sunamganj"],
+  "Rajshahi Division": ["Rajshahi", "Bogra", "Pabna", "Naogaon", "Natore", "Nawabganj"],
+  "Khulna Division": ["Khulna", "Jessore", "Kushtia", "Satkhira", "Bagerhat"],
+  "Barisal Division": ["Barisal", "Bhola", "Patuakhali", "Barguna"],
+  "Rangpur Division": ["Rangpur", "Dinajpur", "Saidpur", "Kurigram"],
+  "Mymensingh Division": ["Mymensingh", "Jamalpur", "Netrokona", "Sherpur"],
+};
+
+const ALL_CITIES = Array.from(new Set(Object.values(REGION_CITIES_MAP).flat()));
+
+interface SelectFieldProps {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: string[];
+  placeholder?: string;
+}
+
+function SelectField({ label, value, onChange, options, placeholder }: SelectFieldProps) {
+  const [focused, setFocused] = useState(false);
+  const hasValue = Boolean(value && String(value).trim().length > 0);
+  const isFloating = focused || hasValue;
+
+  return (
+    <div className="relative w-full pt-4 font-sans" style={{ boxSizing: "border-box" }}>
+      {isFloating && (
+        <label
+          className="absolute left-0 pointer-events-none transition-all duration-200 select-none"
+          style={{
+            top: "0px",
+            transform: "scale(0.82)",
+            transformOrigin: "top left",
+            color: focused ? "#0d0d0d" : "#808080",
+            fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+            fontSize: "16px",
+            lineHeight: "22px",
+            fontWeight: 500,
+            letterSpacing: "0.17px",
+          }}
+        >
+          {label}
+        </label>
+      )}
+      <div style={{
+        borderBottom: `1px solid ${focused ? "#000000" : "rgba(0, 0, 0, 0.2)"}`,
+        transition: "border-color 0.2s ease",
+        background: "transparent",
+      }}>
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          style={{
+            display: "block",
+            width: "100%",
+            padding: "8px 0 6px 0",
+            fontSize: "16px",
+            lineHeight: "22px",
+            color: value ? "#0d0d0d" : "#808080",
+            fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+            letterSpacing: "0.17px",
+            fontWeight: 400,
+            background: "transparent",
+            border: "none",
+            outline: "none",
+            cursor: "pointer",
+            WebkitAppearance: "none",
+          }}
+        >
+          <option value="" disabled style={{ color: "#808080", background: "#ffffff" }}>
+            {placeholder || `Select ${label}`}
+          </option>
+          {options.map((opt) => (
+            <option key={opt} value={opt} style={{ color: "#0d0d0d", background: "#ffffff" }}>
+              {opt}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+  );
+}
+
 export function ProfilePage() {
   const router = useRouter();
 
@@ -130,7 +228,14 @@ export function ProfilePage() {
   const [profileSuccess, setProfileSuccess] = useState(false);
   const [profileError, setProfileError] = useState("");
 
-  // Load customer saved data from database when user is logged in
+  // 1. Sync session user details as soon as session finishes loading
+  useEffect(() => {
+    if (user?.name) setName(user.name);
+    if (user?.email) setEmail(user.email);
+    if ((user as any)?.phoneNumber) setPhone((user as any).phoneNumber);
+  }, [user?.name, user?.email]);
+
+  // 2. Load customer saved address & order history from database when logged in
   useEffect(() => {
     async function loadCustomerData() {
       if (user?.email) {
@@ -147,7 +252,7 @@ export function ProfilePage() {
         }
       }
     }
-    if (isLoggedIn) {
+    if (isLoggedIn && user?.email) {
       loadCustomerData();
     }
   }, [isLoggedIn, user?.email]);
@@ -157,6 +262,14 @@ export function ProfilePage() {
     setSavingProfile(true);
     setProfileSuccess(false);
     setProfileError("");
+
+    // Phone number validation
+    const digitsOnly = phone.replace(/\D/g, '');
+    if (phone && (digitsOnly.length < 11 || digitsOnly.length > 14)) {
+      setProfileError("Please enter a valid phone number (e.g. 01711223344).");
+      setSavingProfile(false);
+      return;
+    }
 
     try {
       const res = await saveCustomerProfileAction({
@@ -209,7 +322,6 @@ export function ProfilePage() {
   };
 
   useEffect(() => {
-    // Only auto-load order history if user is logged in
     if (isLoggedIn) {
       fetchOrders("");
     }
@@ -234,12 +346,14 @@ export function ProfilePage() {
     }
   };
 
+  const availableCities = region && REGION_CITIES_MAP[region] ? REGION_CITIES_MAP[region] : ALL_CITIES;
+
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: "#ffffff" }}>
       <SiteNav />
 
       <div style={{ flex: 1 }}>
-        <div style={{
+        <div className="max-md:!px-[16px] max-md:!pt-[32px] max-md:!pb-[48px] max-md:!gap-[40px]" style={{
           display: "flex",
           flexDirection: "column",
           maxWidth: "1080px",
@@ -250,7 +364,7 @@ export function ProfilePage() {
 
           {/* Heading row — Centered Profile / Sign out container */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px" }}>
-            <p style={{
+            <p className="max-md:!text-[36px] max-md:!leading-[40px]" style={{
               fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
               fontSize: "48px", fontWeight: 600, lineHeight: "56px",
               color: "var(--ink)",
@@ -270,14 +384,31 @@ export function ProfilePage() {
             <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
               <p style={sectionLabel}>Personal information</p>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "28px" }}>
+              <div className="max-md:!grid-cols-1 max-md:!gap-[20px]" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "28px" }}>
                 <InputField label="Full name" value={name} onChange={setName} autoComplete="name" />
                 <InputField label="Phone number" type="tel" value={phone} onChange={setPhone} autoComplete="tel" />
                 <InputField label="Email address" type="email" value={email} onChange={setEmail} autoComplete="email" />
                 <InputField label="Street address" value={address} onChange={setAddress} autoComplete="street-address" />
                 <InputField label="Apt / Suite / Floor" value={apt} onChange={setApt} />
-                <InputField label="City" value={city} onChange={setCity} autoComplete="address-level2" />
-                <InputField label="State / Region" value={region} onChange={setRegion} autoComplete="address-level1" />
+                <SelectField
+                  label="State / Region"
+                  value={region}
+                  onChange={(selectedReg) => {
+                    setRegion(selectedReg);
+                    if (selectedReg && REGION_CITIES_MAP[selectedReg] && !REGION_CITIES_MAP[selectedReg].includes(city)) {
+                      setCity(REGION_CITIES_MAP[selectedReg][0] || "");
+                    }
+                  }}
+                  options={REGIONS_LIST}
+                  placeholder="Select State / Region"
+                />
+                <SelectField
+                  label="City"
+                  value={city}
+                  onChange={setCity}
+                  options={availableCities}
+                  placeholder="Select City"
+                />
                 <InputField label="ZIP / Post code" value={zip} onChange={setZip} autoComplete="postal-code" />
               </div>
 
@@ -324,7 +455,7 @@ export function ProfilePage() {
               textAlign: "center",
               gap: "16px",
             }}>
-              <p style={{
+              <p className="max-md:!text-[26px] max-md:!leading-[32px]" style={{
                 fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
                 fontSize: "32px",
                 fontWeight: 600,
@@ -398,7 +529,8 @@ export function ProfilePage() {
                     type="text"
                     value={orderSearchQuery}
                     onChange={(e) => setOrderSearchQuery(e.target.value)}
-                    placeholder="Search orders by phone number or Order ID..."
+                    placeholder={isLoggedIn ? "Search your orders by Order ID or product..." : "Order ID + phone, e.g. LIV-123456 01712345678"}
+                    className="max-md:!text-[16px]"
                     style={{
                       width: "100%",
                       padding: "10px 36px 10px 14px",
@@ -507,7 +639,7 @@ export function ProfilePage() {
                       border: "1px solid rgba(0,0,0,0.12)",
                       pointerEvents: "none",
                     }} />
-                    <div style={{
+                    <div className="max-md:!p-[16px]" style={{
                       display: "flex", flexDirection: "column", gap: "20px",
                       padding: "28px",
                     }}>
@@ -541,7 +673,7 @@ export function ProfilePage() {
                                 style={{ width: "100%", height: "100%", objectFit: "cover", aspectRatio: "3 / 4" }}
                               />
                             </div>
-                            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
+                            <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "4px" }}>
                               <p style={{ ...base, fontWeight: 500, fontSize: "17px", color: "#1c1c1c" }}>{item.name}</p>
                               <p style={{ ...base, color: "var(--ink-muted)", fontSize: "15px" }}>{item.meta}</p>
                             </div>
@@ -556,6 +688,7 @@ export function ProfilePage() {
                       {/* Pricing summary */}
                       <div style={{ display: "flex", flexDirection: "column", gap: "6px", alignItems: "flex-end" }}>
                         <p style={{ ...base, fontSize: "15px", color: "#555555" }}>Subtotal: {order.subtotal}</p>
+                        {(order as any).discount && <p style={{ ...base, fontSize: "15px", color: "#d4183d" }}>Discount: -{(order as any).discount}</p>}
                         <p style={{ ...base, fontSize: "15px", color: "#555555" }}>VAT: {order.vat}</p>
                         <p style={{ ...base, fontSize: "15px", color: "#555555" }}>Delivery Charge: {order.delivery}</p>
                       </div>

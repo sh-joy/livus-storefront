@@ -66,7 +66,7 @@ export function SiteNav({
   if (variant === "auth") {
     return (
       <nav
-        className="fixed left-0 right-0 top-0 z-[9999] flex items-center justify-between px-[36px] py-[16px] w-full pointer-events-none"
+        className="fixed left-0 right-0 top-0 z-[9999] flex items-center justify-between px-[36px] py-[16px] max-md:px-[16px] w-full pointer-events-none"
         style={{
           position: "fixed",
           top: 0,
@@ -78,7 +78,7 @@ export function SiteNav({
       >
         <Link
           href="/"
-          className="livus-logo !tracking-[9px] pointer-events-auto"
+          className="livus-logo !tracking-[9px] max-md:!tracking-[6px] max-md:!text-[24px] max-md:!text-white pointer-events-auto"
           style={{
             fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
             fontSize: "30px",
@@ -112,7 +112,7 @@ export function SiteNav({
 
       {/* 2. Header Container (Second Child, position: sticky, sticks to top: 0) */}
       <nav
-        className="sticky top-0 left-0 right-0 z-[9999] flex items-center justify-between px-[36px] py-[16px] w-full backdrop-blur-[100px] site-header-fixed"
+        className="sticky top-0 left-0 right-0 z-[9999] flex items-center justify-between px-[36px] py-[16px] max-md:px-[16px] max-md:py-[14px] w-full backdrop-blur-[100px] site-header-fixed"
         style={{
           position: "sticky",
           top: 0,
@@ -125,7 +125,7 @@ export function SiteNav({
         }}
       >
         {/* Left: Menu with btn-group focus fade */}
-        <div className="btn-group" style={{ width: "500px", display: "flex", alignItems: "center" }}>
+        <div className="btn-group flex-1 min-w-0" style={{ maxWidth: "500px", display: "flex", alignItems: "center" }}>
           <button
             type="button"
             onClick={openMenu}
@@ -146,7 +146,7 @@ export function SiteNav({
         {/* Center: Logo */}
         <Link
           href="/"
-          className="livus-logo !tracking-[9px] hover:opacity-85 transition-opacity"
+          className="livus-logo !tracking-[9px] max-md:!tracking-[6px] max-md:!text-[24px] hover:opacity-85 transition-opacity"
           style={{
             fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
             fontSize: "30px",
@@ -165,18 +165,17 @@ export function SiteNav({
 
         {/* Right: Search / Cart / Sign in with btn-group focus fade */}
         <div
-          className="btn-group"
+          className="btn-group flex-1 min-w-0 !gap-[16px] md:!gap-[36px]"
           style={{
-            width: "500px",
+            maxWidth: "500px",
             display: "flex",
-            gap: "36px",
             alignItems: "center",
             justifyContent: "flex-end",
           }}
         >
           <Link
             href="/search"
-            className="nav-link font-normal"
+            className="nav-link font-normal max-md:!hidden"
             style={{ ...navLinkStyle, fontWeight: 400 }}
           >
             <p className="relative shrink-0" style={{ margin: 0, cursor: "pointer", fontSize: "17px" }}>SEARCH</p>
@@ -195,17 +194,17 @@ export function SiteNav({
               fontWeight: 400,
             }}
           >
-            <p className="relative shrink-0" style={{ margin: 0, cursor: "pointer", fontSize: "17px" }}>CART {cartCount > 0 ? `(${cartCount})` : ""}</p>
+            <p className="relative shrink-0" style={{ margin: 0, cursor: "pointer", fontSize: "17px" }}><span className="whitespace-nowrap">CART{cartCount > 0 ? ` (${cartCount})` : ""}</span></p>
           </button>
 
 
 
           {isUserLoggedIn ? (
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-6 max-md:!hidden">
               {(userRole === 'admin' || userRole === 'superadmin') && (
                 <Link
                   href="/admin"
-                  className="nav-link font-normal text-amber-500 hover:text-amber-400"
+                  className="nav-link font-normal text-amber-500 hover:text-amber-400 max-md:!hidden"
                   style={{ ...navLinkStyle, fontWeight: 500, color: "#f59e0b" }}
                 >
                   <p className="relative shrink-0" style={{ margin: 0, cursor: "pointer", fontSize: "17px" }}>
@@ -226,10 +225,10 @@ export function SiteNav({
           ) : (
             <Link
               href="/signin"
-              className="nav-link font-normal"
+              className="nav-link font-normal max-md:!hidden"
               style={{ ...navLinkStyle, fontWeight: 400 }}
             >
-              <p className="relative shrink-0" style={{ margin: 0, cursor: "pointer", fontSize: "17px" }}>SIGN IN</p>
+              <p className="relative shrink-0 whitespace-nowrap" style={{ margin: 0, cursor: "pointer", fontSize: "17px" }}>SIGN IN</p>
             </Link>
           )}
         </div>

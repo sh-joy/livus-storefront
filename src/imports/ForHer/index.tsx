@@ -15,16 +15,16 @@ import { imgImage115 } from "./svg-ssppo";
 
 function Frame7() {
   return (
-    <div className="content-stretch flex flex-col items-end justify-center pb-[20px] relative shrink-0 w-[450px]">
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[20px] text-black text-right tracking-[-0.1px] w-full">{`Exclusive Women's Jersey Collection. Designed with premium fabrics and exceptional style for the modern lady.`}</p>
+    <div className="content-stretch flex flex-col items-end justify-center pb-[20px] relative shrink-0 w-[450px] max-md:w-full max-md:items-start max-md:pb-0">
+      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[20px] max-md:!text-[16px] text-black text-right max-md:text-left tracking-[-0.1px] w-full">{`Exclusive Women's Jersey Collection. Designed with premium fabrics and exceptional style for the modern lady.`}</p>
     </div>
   );
 }
 
 function Frame5() {
   return (
-    <div className="content-stretch flex flex-[1_0_0] items-end justify-between min-w-px relative">
-      <p className="[word-break:break-word] font-serif font-bold leading-[110px] relative shrink-0 text-[110px] text-black tracking-[-3.3px] whitespace-nowrap">For Her.</p>
+    <div className="content-stretch flex flex-[1_0_0] items-end justify-between min-w-px relative max-md:flex-col max-md:items-start max-md:gap-[16px]">
+      <p className="[word-break:break-word] font-serif font-bold leading-[110px] max-md:leading-[64px] relative shrink-0 text-[110px] max-md:text-[64px] text-black tracking-[-3.3px] max-md:tracking-[-1.5px] whitespace-nowrap">For Her.</p>
       <Frame7 />
     </div>
   );
@@ -34,7 +34,7 @@ function Frame4() {
   return (
     <div className="relative shrink-0 w-full">
       <div className="flex flex-row items-center justify-center size-full">
-        <div className="content-stretch flex items-center justify-center pt-[100px] px-[36px] relative size-full">
+        <div className="content-stretch flex items-center justify-center pt-[100px] max-md:pt-[32px] px-[36px] max-md:px-[16px] relative size-full">
           <Frame5 />
         </div>
       </div>
@@ -137,7 +137,7 @@ function Livus() {
 function MaskGroup() {
   return (
     <div className="-translate-x-1/2 absolute aspect-[949.88671875/1161.09765625] bottom-[-4.47%] contents left-[calc(50%-16.93px)] top-[-27.03%]" data-name="Mask group">
-      <div className="-translate-x-1/2 absolute aspect-[949.88671875/1161.09765625] bottom-[-4.47%] left-[calc(50%-16.93px)] mask-alpha mask-intersect mask-no-clip mask-no-repeat mask-size-[816.499px_998.051px] top-[-27.03%]" style={{ maskImage: `url("${imgImage115}")` }} data-name="image 115">
+      <div className="-translate-x-1/2 absolute aspect-[949.88671875/1161.09765625] bottom-[-4.47%] max-md:bottom-0 max-md:top-0 left-[calc(50%-16.93px)] max-md:left-1/2 mask-alpha mask-intersect mask-no-clip mask-no-repeat mask-size-[816.499px_998.051px] top-[-27.03%]" style={{ maskImage: `url("${imgImage115}")` }} data-name="image 115">
         <img alt="" className="absolute inset-0 max-w-none object-contain pointer-events-none size-full" src={typeof imgImage116 === 'string' ? imgImage116 : imgImage116?.src} />
       </div>
     </div>
@@ -146,7 +146,7 @@ function MaskGroup() {
 
 function Frame10() {
   return (
-    <div className="h-[759px] relative shrink-0 w-full">
+    <div className="h-[759px] max-md:h-[460px] relative shrink-0 w-full overflow-hidden">
       <Livus />
       <MaskGroup />
     </div>
@@ -223,7 +223,7 @@ function Frame32({ activeTag, onSelectTag }: { activeTag: string; onSelectTag: (
             {isSelected && (
               <div aria-hidden className="absolute border-[#1a1a1a] border-b border-solid inset-0 pointer-events-none" />
             )}
-            <p className={`[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[17px] tracking-[0.17px] whitespace-nowrap cursor-pointer ${
+            <p className={`[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[15px] tracking-[0.17px] whitespace-nowrap cursor-pointer ${
               isSelected ? "text-[#1a1a1a] font-medium" : "text-[#606060] hover:text-[#1a1a1a]"
             }`}>
               {t}
@@ -258,7 +258,7 @@ function Frame189Status5({ sortOrder, onToggleSort }: { sortOrder: "high-to-low"
       className="content-stretch flex items-center justify-center px-[6px] py-[5px] relative shrink-0 cursor-pointer bg-transparent border-none opacity-60 hover:opacity-100 transition-opacity"
       data-name="Frame 189/Status3"
     >
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#404040] text-[17px] tracking-[0.17px] whitespace-nowrap font-medium cursor-pointer">
+      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#404040] text-[15px] tracking-[0.17px] whitespace-nowrap font-medium cursor-pointer">
         Price: {sortOrder === "high-to-low" ? "High to Low ↓" : "Low to High ↑"}
       </p>
     </button>
@@ -321,8 +321,8 @@ function Frame6({
 }) {
   return (
     <div className="relative shrink-0 w-full">
-      <div className="content-stretch flex flex-col gap-[4px] items-start pb-[25px] px-[36px] relative size-full">
-        <p className="[word-break:break-word] font-serif font-semibold leading-[110px] relative shrink-0 text-[70px] text-black tracking-[-2.1px] whitespace-nowrap">Explore the collection</p>
+      <div className="content-stretch flex flex-col gap-[4px] items-start pb-[25px] px-[36px] max-md:px-[16px] relative size-full">
+        <p className="[word-break:break-word] font-serif font-semibold leading-[110px] max-md:leading-[48px] relative shrink-0 text-[70px] max-md:text-[40px] text-black tracking-[-2.1px] md:whitespace-nowrap">Explore the collection</p>
         <Frame16
           activeTag={activeTag}
           onSelectTag={onSelectTag}
@@ -575,7 +575,7 @@ function Frame28() {
 function Frame14({ products, onResetFilter }: { products?: ProductItem[]; onResetFilter?: () => void }) {
   if (!products || products.length === 0) {
     return (
-      <div className="w-full px-[36px] pb-12">
+      <div className="w-full px-[36px] max-md:px-[16px] pb-12">
         <div className="flex flex-col items-center justify-center text-center gap-[6px] p-[48px_24px] border border-dashed border-[#d0d0d0] w-full bg-[#fafafa]">
           <p
             className="text-[#1c1c1c] uppercase"
@@ -752,8 +752,8 @@ function Frame189Status7() {
 
 function Frame37() {
   return (
-    <div className="content-stretch flex flex-col gap-[20px] items-center relative shrink-0">
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#ccc] text-[18px] text-center w-[623.465px]">Share it with us and watch how we transform it into a unique masterpiece with careful attention to every detail. Let’s create amazing works of art that inspire people.</p>
+    <div className="content-stretch flex flex-col gap-[20px] items-center relative shrink-0 max-w-full">
+      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#ccc] text-[18px] max-md:!text-[16px] text-center w-[623.465px] max-w-full">Share it with us and watch how we transform it into a unique masterpiece with careful attention to every detail. Let’s create amazing works of art that inspire people.</p>
       <Frame189Status7 />
     </div>
   );
@@ -761,8 +761,8 @@ function Frame37() {
 
 function Frame36() {
   return (
-    <div className="content-stretch flex flex-col items-center relative shrink-0">
-      <p className="[word-break:break-word] font-serif font-semibold leading-[110px] relative shrink-0 text-[70px] text-white tracking-[-2.1px] whitespace-nowrap">Have your own design?</p>
+    <div className="content-stretch flex flex-col items-center relative shrink-0 max-w-full">
+      <p className="[word-break:break-word] font-serif font-semibold leading-[110px] max-md:leading-[44px] relative shrink-0 text-[70px] max-md:text-[40px] text-white tracking-[-2.1px] max-md:tracking-[-1px] md:whitespace-nowrap text-center max-md:mb-[16px]">Have your own design?</p>
       <Frame37 />
     </div>
   );
@@ -830,10 +830,10 @@ function Livus1() {
 
 function Frame33() {
   return (
-    <div className="flex flex-[1_0_0] flex-row items-center self-stretch">
+    <div className="flex flex-[1_0_0] flex-row items-center self-stretch max-md:w-full max-md:flex-none">
       <div className="bg-[#0d0d0d] flex-[1_0_0] h-full min-w-px relative">
         <div className="flex flex-col items-center justify-center size-full">
-          <div className="content-stretch flex flex-col gap-[48px] items-center justify-center p-[36px] relative size-full">
+          <div className="content-stretch flex flex-col gap-[48px] max-md:gap-[32px] items-center justify-center p-[36px] max-md:px-[16px] max-md:py-[48px] relative size-full">
             <Frame36 />
             <Livus1 />
           </div>
@@ -845,8 +845,8 @@ function Frame33() {
 
 function Frame38() {
   return (
-    <div className="aspect-[698/698] bg-[#f0f0f0] content-stretch flex flex-[1_0_0] items-center justify-center min-w-px overflow-clip py-[60px] relative">
-      <div className="h-[558px] relative shrink-0 w-[480.341px]" data-name="image 114">
+    <div className="aspect-[698/698] bg-[#f0f0f0] content-stretch flex flex-[1_0_0] items-center justify-center min-w-px overflow-clip py-[60px] max-md:py-[32px] relative max-md:w-full max-md:flex-none">
+      <div className="h-[558px] relative shrink-0 w-[480.341px] max-md:h-full max-md:w-auto max-md:aspect-[480/558]" data-name="image 114">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <img alt="" className="absolute h-full left-[-8.01%] max-w-none top-0 w-[116.17%]" src={typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src} />
         </div>
@@ -857,7 +857,7 @@ function Frame38() {
 
 function Frame31() {
   return (
-    <div className="content-stretch flex items-center pb-[20px] pt-[140px] relative shrink-0 w-full">
+    <div className="content-stretch flex items-center pb-[20px] pt-[140px] max-md:pt-[48px] max-md:flex-col relative shrink-0 w-full">
       <Frame33 />
       <Frame38 />
     </div>

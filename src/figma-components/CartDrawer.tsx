@@ -10,7 +10,7 @@ import imgImage114 from "@/imports/Cart/71b3cd582dab7174e13346a8d88abe33548d2aa7
 function ProductImage({ src }: { src?: string | null }) {
   const imgSrc = src || (typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src);
   return (
-    <div className="bg-[#f0f0f0] relative w-[120px] aspect-[3/4] overflow-hidden shrink-0">
+    <div className="bg-[#f0f0f0] relative w-[120px] max-md:w-[88px] aspect-[3/4] overflow-hidden shrink-0">
       <img alt="product" className="w-full h-full object-cover object-center" src={imgSrc} />
     </div>
   );
@@ -58,7 +58,7 @@ export function CartDrawer() {
           onClick={handleClose}
         >
           <motion.div
-            className="bg-white h-full shrink-0 w-[560px] overflow-hidden flex flex-col justify-between"
+            className="bg-white h-full shrink-0 w-[560px] max-w-full overflow-hidden flex flex-col justify-between"
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
@@ -67,7 +67,7 @@ export function CartDrawer() {
           >
             <div className="flex flex-col justify-between p-[20px] size-full">
               {/* Top: header + items */}
-              <div className="flex flex-col gap-[20px] items-start w-full overflow-y-auto max-h-[calc(100vh-140px)]">
+              <div className="flex flex-col gap-[20px] items-start w-full overflow-y-auto max-h-[calc(100dvh-140px)]">
                 {/* Header */}
                 <div className="flex items-center justify-between w-full shrink-0">
                   <p className="font-sans leading-[28px] text-[20px] text-[#1a1a1a] whitespace-nowrap font-normal">
@@ -122,13 +122,13 @@ export function CartDrawer() {
                         <div className="flex gap-[16px] items-start w-full shrink-0">
                           <ProductImage src={item.product.imageUrl} />
                           <div className="flex-1 flex flex-col justify-between py-[3px] self-stretch min-w-0">
-                            <div className="flex items-start justify-between w-full whitespace-nowrap leading-[24px] text-[#1c1c1c]">
-                              <div className="font-sans flex flex-col items-start shrink-0">
+                            <div className="flex items-start justify-between gap-[8px] w-full leading-[24px] text-[#1c1c1c]">
+                              <div className="font-sans flex flex-col items-start min-w-0">
                                 <p className="text-[17px] font-medium tracking-[-0.34px]">{item.product.name}</p>
                                 {item.product.color && <p className="text-[17px] tracking-[-0.085px]">Color: {item.product.color}</p>}
                                 {item.product.size && <p className="text-[17px] tracking-[-0.085px]">Size: {item.product.size}</p>}
                               </div>
-                              <p className="font-sans text-[17px] font-medium shrink-0">{item.product.price}</p>
+                              <p className="font-sans text-[17px] font-medium shrink-0 whitespace-nowrap">{item.product.price}</p>
                             </div>
                             <div className="flex items-center justify-between w-full shrink-0">
                               <div className="flex gap-[16px] items-center">

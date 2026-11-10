@@ -1,5 +1,6 @@
 'use server';
 
+import { requireAdmin } from '@/lib/admin-guard';
 import { db } from '@/db';
 import { products, colorVariants, variantImages, stockInventory, categories } from '@/db/schema';
 import { CreateProductSchema } from '@/lib/validations';
@@ -112,6 +113,7 @@ export async function checkSlugUniqueAction(slug: string, currentProductId?: str
 }
 
 export async function getProductByIdAction(productId: string) {
+  await requireAdmin();
   if (!db || !productId) return null;
 
   try {
@@ -220,6 +222,9 @@ export async function getProductBySlugAction(slug: string) {
         );
       }
 
+      // Draft / deactivated products are not visible on the storefront
+      if (product && !product.isActive) return null;
+
       if (product) {
         const sizeMatrix = await parseSizeMatrix(product.specifications);
         return {
@@ -253,7 +258,7 @@ export async function getProductBySlugAction(slug: string) {
       }
     }
 
-    const adminRows = await getAdminProducts();
+    const adminRows = await getAdminProducts({ status: 'active' });
     const foundRow = adminRows.find(
       (r) =>
         (r.slug && r.slug.toLowerCase() === cleanSlug) ||
@@ -539,7 +544,8 @@ export async function getAdminProducts(params?: { search?: string; collection?: 
 }
 
 export async function getProducts(catSlug?: string): Promise<ProductItem[]> {
-  const rows = await getAdminProducts();
+  // Storefront only lists active products
+  const rows = await getAdminProducts({ status: 'active' });
 
   let filtered = rows;
   const slug = (catSlug || "").toLowerCase();
@@ -595,7 +601,7 @@ export async function getProducts(catSlug?: string): Promise<ProductItem[]> {
 }
 
 export async function getPopularProductsAction(limit = 12): Promise<ProductItem[]> {
-  const allRows = await getAdminProducts();
+  const allRows = await getAdminProducts({ status: 'active' });
   const now = Date.now();
 
   const scored = allRows.map((p) => {
@@ -642,6 +648,7 @@ export async function getPopularProductsAction(limit = 12): Promise<ProductItem[
 }
 
 export async function updateFullProductAction(productId: string, inputData: unknown) {
+  await requireAdmin();
   if (!db || !productId) {
     return { success: false, message: 'Database or Product ID missing.' };
   }
@@ -727,7 +734,7 @@ export async function updateFullProductAction(productId: string, inputData: unkn
 
     revalidatePath('/admin/products');
     revalidatePath('/admin');
-    revalidatePath('/');
+    revalidatePath('/', 'layout'); // refresh every storefront page (home, categories, all-products, search…)
     revalidatePath('/for-him');
     revalidatePath('/for-her');
     revalidatePath(`/product/${data.slug}`);
@@ -741,6 +748,7 @@ export async function updateFullProductAction(productId: string, inputData: unkn
 }
 
 export async function createFullProductAction(inputData: unknown) {
+  await requireAdmin();
   if (!db) {
     return { success: false, message: 'Database connection missing.' };
   }
@@ -836,7 +844,7 @@ export async function createFullProductAction(inputData: unknown) {
 
     revalidatePath('/admin/products');
     revalidatePath('/admin');
-    revalidatePath('/');
+    revalidatePath('/', 'layout'); // refresh every storefront page (home, categories, all-products, search…)
     revalidatePath('/for-him');
     revalidatePath('/for-her');
     revalidatePath(`/product/${data.slug}`);
@@ -853,6 +861,7 @@ export async function createFullProductAction(inputData: unknown) {
 }
 
 export async function createProductAction(formData: FormData | any) {
+  await requireAdmin();
   let title = "";
   let slug = "";
   let basePrice = "899";
@@ -898,12 +907,14 @@ export async function createProductAction(formData: FormData | any) {
 }
 
 export async function deleteProductAction(productId: string) {
+  await requireAdmin();
   if (!db) return { success: false, message: 'Database missing.' };
 
   try {
     await db.delete(products).where(eq(products.id, productId));
     revalidatePath('/admin/products');
     revalidatePath('/admin');
+    revalidatePath('/', 'layout');
     return { success: true, message: 'Product deleted successfully.' };
   } catch (error) {
     console.error('Failed to delete product:', error);
@@ -912,6 +923,7 @@ export async function deleteProductAction(productId: string) {
 }
 
 export async function bulkUpdateStatusAction(productIds: string[], isActive: boolean) {
+  await requireAdmin();
   if (!db || !productIds || productIds.length === 0) {
     return { success: false, message: 'No product IDs provided.' };
   }
@@ -920,7 +932,7 @@ export async function bulkUpdateStatusAction(productIds: string[], isActive: boo
     await db.update(products).set({ isActive }).where(inArray(products.id, productIds));
     revalidatePath('/admin/products');
     revalidatePath('/admin');
-    revalidatePath('/');
+    revalidatePath('/', 'layout'); // refresh every storefront page (home, categories, all-products, search…)
     return { success: true, message: `Updated status for ${productIds.length} products.` };
   } catch (error: any) {
     console.error('Failed bulk status update:', error);
@@ -929,6 +941,7 @@ export async function bulkUpdateStatusAction(productIds: string[], isActive: boo
 }
 
 export async function getAllInventorySkusAction() {
+  await requireAdmin();
   try {
     if (db) {
       const invList = await db.query.stockInventory.findMany({

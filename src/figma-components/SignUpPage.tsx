@@ -8,6 +8,9 @@ import { authClient } from "@/lib/auth-client";
 import { Loader2 } from "lucide-react";
 import signupPhoto from "@/imports/SignUp/147bb3d7a50a487cfcb2163c878fc1a5c25e19e6.png";
 
+import { sendOtpVerificationAction, registerCustomerRecordAction } from "@/app/actions/auth-actions";
+import { addNewsletterSubscriberAction } from "@/app/actions/subscribers";
+
 export function SignUpPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -33,26 +36,58 @@ export function SignUpPage() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !email || !password || !phone) {
-      setErrorMessage("Please fill in all fields (name, phone number, email, and password).");
+    const cleanName = name.trim();
+    const cleanEmail = email.trim();
+    const cleanPhone = phone.trim();
+
+    if (!cleanName || !password) {
+      setErrorMessage("Please fill in your full name and password.");
       return;
     }
+
+    if (!cleanEmail && !cleanPhone) {
+      setErrorMessage("Please provide either an email address or phone number.");
+      return;
+    }
+
+    const finalEmail = cleanEmail || `${cleanPhone.replace(/\s+/g, '')}@livus-user.bd`;
 
     setLoading(true);
     setErrorMessage("");
 
     try {
       const res = await authClient.signUp.email({
-        email: email.trim(),
+        email: finalEmail,
         password: password,
-        name: name.trim(),
-        phoneNumber: phone.trim(),
+        name: cleanName,
+        phoneNumber: cleanPhone || undefined,
       } as any);
 
       if (res.error) {
         setErrorMessage(res.error.message || "Failed to create account.");
       } else {
-        router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+        // Automatically save new account into PostgreSQL customers table
+        try {
+          await registerCustomerRecordAction(cleanName, finalEmail, cleanPhone);
+        } catch (cErr) {
+          console.warn("Customer record sync notice:", cErr);
+        }
+
+        if (newsletter && finalEmail) {
+          try {
+            await addNewsletterSubscriberAction(finalEmail);
+          } catch (nErr) {
+            console.warn("Newsletter subscription notice:", nErr);
+          }
+        }
+        if (cleanEmail) {
+          try {
+            await sendOtpVerificationAction(cleanEmail, cleanName);
+          } catch (mErr) {
+            console.warn("Verification mail notice:", mErr);
+          }
+        }
+        router.push(`/verify-email?email=${encodeURIComponent(finalEmail)}`);
       }
     } catch (err: any) {
       console.error("Sign up failed:", err);
@@ -95,9 +130,9 @@ export function SignUpPage() {
       <SiteNav variant="auth" />
       <div style={{ position: "relative", display: "flex", width: "100%", minHeight: "100vh" }}>
 
-        {/* Left: photo panel */}
-        <div style={{
-          flex: 1, minWidth: 0, background: "#f0f0f0",
+        {/* Left: 1.5 ratio photo panel */}
+        <div className="max-md:!hidden" style={{
+          flex: 1.5, minWidth: 0, background: "#f0f0f0",
           overflow: "hidden", position: "relative", minHeight: "600px",
         }}>
           <img
@@ -107,12 +142,12 @@ export function SignUpPage() {
           />
         </div>
 
-        {/* Right: dark form panel */}
-        <div style={{
+        {/* Right: 1.0 ratio dark form panel */}
+        <div className="max-md:!px-[16px] max-md:!pt-[96px] max-md:!pb-[48px] max-md:!justify-start" style={{
           flex: 1, minWidth: 0, background: "#0d0d0d",
           display: "flex", flexDirection: "column",
           alignItems: "center", justifyContent: "center",
-          padding: "120px 36px",
+          padding: "120px 36px", boxSizing: "border-box",
         }}>
           <form onSubmit={handleSignUp} style={{ width: "360px", maxWidth: "100%", display: "flex", flexDirection: "column", gap: "24px" }}>
 
@@ -178,13 +213,14 @@ export function SignUpPage() {
                   style={{
                     background: "#ffffff", border: "none", cursor: "pointer",
                     display: "flex", alignItems: "center", gap: "8px",
-                    padding: "12px 20px",
+                    padding: "12px 24px",
                     fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
-                    fontSize: "17px", lineHeight: "24px", color: "#000000", fontWeight: 500,
+                    fontSize: "17px", lineHeight: "24px", color: "#000000", fontWeight: 400,
+                    textTransform: "uppercase", letterSpacing: "1.2px"
                   }}
                 >
                   {loading && <Loader2 className="w-4 h-4 animate-spin text-black" />}
-                  <span>{loading ? "Creating account..." : "Continue"}</span>
+                  <span>{loading ? "CREATING ACCOUNT..." : "CONTINUE"}</span>
                 </button>
               </div>
             </div>
@@ -232,8 +268,8 @@ export function SignUpPage() {
                   aria-label="Sign up with Apple"
                   className="w-full h-12 bg-[#181818] border border-neutral-800 text-white flex items-center justify-center cursor-default rounded-none"
                 >
-                  <svg className="w-5 h-5 shrink-0 fill-current" viewBox="0 0 24 24">
-                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.31c.67-.82 1.13-1.96.99-3.11-.98.04-2.18.66-2.88 1.47-.63.73-1.18 1.9-1.03 3.03 1.1.09 2.24-.57 2.92-1.39z"/>
+                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 800 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M623.666 650C596 691.333 566.666 731.667 522 732.333C477.333 733.333 463 706 412.333 706C361.333 706 345.666 731.667 303.332 733.333C259.665 735 226.665 689.333 198.666 649C141.666 566.667 97.9988 415 156.665 313C185.665 262.333 237.666 230.333 293.999 229.333C336.667 228.667 377.333 258.333 403.666 258.333C429.666 258.333 479 222.667 530.666 228C552.333 229 613 236.667 652 294C649 296 579.666 336.667 580.333 421C581.333 521.667 668.666 555.333 669.666 555.667C668.666 558 655.666 603.667 623.666 650ZM433.333 116.667C457.666 89 498 68 531.333 66.6666C535.666 105.667 520 145 496.666 173C473.666 201.333 435.666 223.333 398.333 220.333C393.333 182 412 142 433.333 116.667Z" fill="currentColor"/>
                   </svg>
                 </button>
               </div>
@@ -242,20 +278,21 @@ export function SignUpPage() {
             <p style={{
               fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
               fontSize: "15px", lineHeight: "24px", color: "#ffffff", fontWeight: 400,
+              textTransform: "uppercase",
             }}>
-              Already have an account?{" "}
+              ALREADY HAVE AN ACCOUNT?{" "}
               <span
-                className="underline underline-offset-4 cursor-pointer font-medium hover:opacity-80 transition-opacity text-[15px]"
+                className="underline underline-offset-4 cursor-pointer font-medium hover:opacity-80 transition-opacity text-[15px] uppercase"
                 onClick={() => router.push("/signin")}
               >
-                Sign in
+                SIGN IN
               </span>
             </p>
-          </form>
-        </div>
+        </form>
       </div>
-
-      <SiteFooter />
     </div>
+
+    <SiteFooter />
+  </div>
   );
 }

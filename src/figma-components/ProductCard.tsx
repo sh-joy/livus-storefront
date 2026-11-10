@@ -131,7 +131,7 @@ export function ProductCard({ product }: { product: any }) {
 
         {/* DISCOUNT BADGE STRICTLY 15PX FONT SIZE & REGULAR 400 WEIGHT */}
         {hasDiscount && (
-          <div className="absolute left-4 top-4 bg-black px-2.5 py-1 flex items-center justify-center z-20">
+          <div className="absolute left-4 top-4 max-md:left-2 max-md:top-2 bg-black px-2.5 py-1 max-md:px-1.5 max-md:py-0.5 flex items-center justify-center z-20">
             <p
               className="text-white text-[15px] font-sans font-normal uppercase tracking-[0.5px]"
               style={{ fontSize: "15px", fontWeight: 400 }}
@@ -145,16 +145,16 @@ export function ProductCard({ product }: { product: any }) {
       </div>
 
       {/* Details */}
-      <div className="flex flex-col gap-2 px-2">
+      <div className="flex flex-col gap-2 max-md:gap-1 px-2 max-md:px-0">
         <p className="text-[17px] font-normal text-black tracking-[-0.4px] group-hover:text-neutral-700 transition-colors">
           {product.name}
         </p>
-        <div className="flex gap-2 items-center">
-          <p className="text-[20px] font-medium text-black">
+        <div className="flex gap-x-2 gap-y-0 items-center flex-wrap">
+          <p className="text-[20px] font-medium text-black whitespace-nowrap">
             ৳{product.priceBdt} BDT
           </p>
           {hasDiscount && (
-            <p className="text-[18px] line-through text-gray-500 font-normal">
+            <p className="text-[18px] line-through text-gray-500 font-normal whitespace-nowrap">
               ৳{product.compareAtPriceBdt} BDT
             </p>
           )}

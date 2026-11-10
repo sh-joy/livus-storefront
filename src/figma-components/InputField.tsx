@@ -79,7 +79,15 @@ export function InputField({
         <input
           type={type}
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => {
+            const val = e.target.value;
+            if (type === "tel") {
+              // Strip non-numeric and non-plus characters for telephone inputs
+              onChange(val.replace(/[^\d+]/g, ""));
+            } else {
+              onChange(val);
+            }
+          }}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           autoComplete={autoComplete}

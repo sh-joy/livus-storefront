@@ -1,117 +1,246 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { fetchAdminOrders, updateOrderStatusAction, deleteAdminOrderAction } from "@/app/actions/admin-actions";
+import { OrderDetailsDrawer } from "@/components/OrderDetailsDrawer";
 import {
   TrendingUp,
-  TrendingDown,
   Search,
+  SlidersHorizontal,
+  X,
   Filter,
   Download,
-  MoreVertical,
+  Eye,
+  Loader2,
   ChevronLeft,
   ChevronRight,
-  Eye,
-  FileText,
-  CheckCircle2,
+  Plus,
+  ChevronDown,
   Package,
-  Truck,
-  Clock,
-  XCircle,
-  Share2,
+  ShoppingBag,
+  Users,
 } from "lucide-react";
 
-// Mock Recent Orders Data matching reference screenshot exactly
-const INITIAL_ORDERS = [
+interface OrderItem {
+  id?: string;
+  productId: string;
+  productName?: string | null;
+  variantName?: string | null;
+  size?: string | null;
+  thumbnailUrl?: string | null;
+  quantity: number;
+  priceBdt?: number | null;
+  price?: string | null;
+}
+
+interface OrderRecord {
+  id: string;
+  orderNumber: string;
+  customerName: string;
+  phone: string;
+  email?: string;
+  shippingAddress: string;
+  city?: string;
+  district?: string;
+  postalCode?: string;
+  deliveryInstructions?: string;
+  subtotalBdt: number;
+  vatBdt: number;
+  deliveryChargeBdt: number;
+  discountBdt: number;
+  totalAmount: number;
+  paymentMethod: string;
+  paymentStatus: string;
+  status: string;
+  createdAt: string;
+  items: OrderItem[];
+}
+
+// Fallback Mock Orders matching exact OrderRecord schema
+const FALLBACK_ORDERS: OrderRecord[] = [
   {
     id: "ORD-9021",
+    orderNumber: "#ORD-9021",
     customerName: "Liam Martinez",
-    itemDescription: "Wireless Headphones - Black",
-    salesChannel: "Amazon",
-    orderDate: "04/25/2026",
-    amount: "$89.99",
+    phone: "+8801712345678",
+    email: "liam@example.com",
+    shippingAddress: "House 12, Road 5, Dhanmondi",
+    city: "Dhaka",
+    district: "Dhaka Division",
+    subtotalBdt: 2450,
+    vatBdt: 0,
+    deliveryChargeBdt: 100,
+    discountBdt: 0,
+    totalAmount: 2550,
+    paymentMethod: "Cash on Delivery",
+    paymentStatus: "Pending",
     status: "Shipped",
-    statusColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    createdAt: "04/25/2026",
+    items: [{ productId: "p1", productName: "Wireless Headphones", quantity: 1, priceBdt: 2450 }],
   },
   {
     id: "ORD-9022",
+    orderNumber: "#ORD-9022",
     customerName: "Noah Kim",
-    itemDescription: "Hardcover Novel - Mystery",
-    salesChannel: "Website",
-    orderDate: "04/23/2026",
-    amount: "$22.00",
-    status: "Out for Delivery",
-    statusColor: "bg-blue-50 text-blue-700 border-blue-200",
+    phone: "+8801812345679",
+    email: "noah@example.com",
+    shippingAddress: "GEC Circle, Chittagong",
+    city: "Chittagong",
+    district: "Chittagong Division",
+    subtotalBdt: 1200,
+    vatBdt: 0,
+    deliveryChargeBdt: 120,
+    discountBdt: 0,
+    totalAmount: 1320,
+    paymentMethod: "bKash",
+    paymentStatus: "Paid",
+    status: "Processing",
+    createdAt: "04/23/2026",
+    items: [{ productId: "p2", productName: "Hardcover Novel", quantity: 1, priceBdt: 1200 }],
   },
   {
     id: "ORD-9023",
+    orderNumber: "#ORD-9023",
     customerName: "Emma Johnson",
-    itemDescription: "LED Desk Lamp - Adjustable",
-    salesChannel: "Etsy",
-    orderDate: "04/24/2026",
-    amount: "$45.50",
+    phone: "+8801912345680",
+    email: "emma@example.com",
+    shippingAddress: "Zindabazar, Sylhet",
+    city: "Sylhet",
+    district: "Sylhet Division",
+    subtotalBdt: 4500,
+    vatBdt: 0,
+    deliveryChargeBdt: 150,
+    discountBdt: 200,
+    totalAmount: 4450,
+    paymentMethod: "Cash on Delivery",
+    paymentStatus: "Pending",
     status: "Processing",
-    statusColor: "bg-amber-50 text-amber-700 border-amber-200",
+    createdAt: "04/24/2026",
+    items: [{ productId: "p3", productName: "LED Desk Lamp", quantity: 2, priceBdt: 2250 }],
   },
   {
     id: "ORD-9024",
+    orderNumber: "#ORD-9024",
     customerName: "John Abraham",
-    itemDescription: "100M Leads by Alex Hormozi",
-    salesChannel: "Website",
-    orderDate: "04/23/2026",
-    amount: "$22.00",
-    status: "Out for Delivery",
-    statusColor: "bg-blue-50 text-blue-700 border-blue-200",
+    phone: "+8801612345681",
+    email: "john@example.com",
+    shippingAddress: "Banani 11, Dhaka",
+    city: "Dhaka",
+    district: "Dhaka Division",
+    subtotalBdt: 1450,
+    vatBdt: 0,
+    deliveryChargeBdt: 60,
+    discountBdt: 0,
+    totalAmount: 1510,
+    paymentMethod: "Cash on Delivery",
+    paymentStatus: "Pending",
+    status: "Pending",
+    createdAt: "04/23/2026",
+    items: [{ productId: "p4", productName: "100M Leads Book", quantity: 1, priceBdt: 1450 }],
   },
   {
     id: "ORD-9025",
+    orderNumber: "#ORD-9025",
     customerName: "Sophia Lee",
-    itemDescription: "Yoga Mat - Blue",
-    salesChannel: "Amazon",
-    orderDate: "04/22/2026",
-    amount: "$30.00",
+    phone: "+8801512345682",
+    email: "sophia@example.com",
+    shippingAddress: "Shaheb Bazar, Rajshahi",
+    city: "Rajshahi",
+    district: "Rajshahi Division",
+    subtotalBdt: 3200,
+    vatBdt: 0,
+    deliveryChargeBdt: 120,
+    discountBdt: 0,
+    totalAmount: 3320,
+    paymentMethod: "Nagad",
+    paymentStatus: "Paid",
     status: "Cancelled",
-    statusColor: "bg-rose-50 text-rose-700 border-rose-200",
+    createdAt: "04/22/2026",
+    items: [{ productId: "p5", productName: "Yoga Mat Blue", quantity: 1, priceBdt: 3200 }],
   },
   {
     id: "ORD-9026",
+    orderNumber: "#ORD-9026",
     customerName: "Ethan Davis",
-    itemDescription: "Livus Apex Jersey - Oversized Black",
-    salesChannel: "Website",
-    orderDate: "04/21/2026",
-    amount: "$120.00",
+    phone: "+8801312345683",
+    email: "ethan@example.com",
+    shippingAddress: "Uttara Sector 7, Dhaka",
+    city: "Dhaka",
+    district: "Dhaka Division",
+    subtotalBdt: 14500,
+    vatBdt: 0,
+    deliveryChargeBdt: 0,
+    discountBdt: 500,
+    totalAmount: 14000,
+    paymentMethod: "Cash on Delivery",
+    paymentStatus: "Paid (COD Collected)",
     status: "Delivered",
-    statusColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    createdAt: "04/21/2026",
+    items: [{ productId: "p6", productName: "Livus Apex Jersey", quantity: 2, priceBdt: 7250 }],
   },
   {
     id: "ORD-9027",
+    orderNumber: "#ORD-9027",
     customerName: "Olivia Wilson",
-    itemDescription: "LIVUS Vintage Heavyweight Hoodie",
-    salesChannel: "Instagram",
-    orderDate: "04/20/2026",
-    amount: "$145.00",
+    phone: "+8801412345684",
+    email: "olivia@example.com",
+    shippingAddress: "Koyla Ghat, Khulna",
+    city: "Khulna",
+    district: "Khulna Division",
+    subtotalBdt: 5800,
+    vatBdt: 0,
+    deliveryChargeBdt: 120,
+    discountBdt: 0,
+    totalAmount: 5920,
+    paymentMethod: "bKash",
+    paymentStatus: "Paid",
     status: "Shipped",
-    statusColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    createdAt: "04/20/2026",
+    items: [{ productId: "p7", productName: "Heavyweight Hoodie", quantity: 1, priceBdt: 5800 }],
   },
   {
     id: "ORD-9028",
+    orderNumber: "#ORD-9028",
     customerName: "Mason Taylor",
-    itemDescription: "Classic Cotton Crewneck Tee",
-    salesChannel: "TikTok Store",
-    orderDate: "04/19/2026",
-    amount: "$48.00",
+    phone: "+8801712345685",
+    email: "mason@example.com",
+    shippingAddress: "Sadot Bazar, Barishal",
+    city: "Barishal",
+    district: "Barishal Division",
+    subtotalBdt: 1800,
+    vatBdt: 0,
+    deliveryChargeBdt: 120,
+    discountBdt: 0,
+    totalAmount: 1920,
+    paymentMethod: "Cash on Delivery",
+    paymentStatus: "Pending",
     status: "Processing",
-    statusColor: "bg-amber-50 text-amber-700 border-amber-200",
+    createdAt: "04/19/2026",
+    items: [{ productId: "p8", productName: "Classic Cotton Tee", quantity: 1, priceBdt: 1800 }],
   },
   {
     id: "ORD-9029",
+    orderNumber: "#ORD-9029",
     customerName: "Ava Anderson",
-    itemDescription: "Minimalist Leather Cardholder",
-    salesChannel: "Website",
-    orderDate: "04/18/2026",
-    amount: "$65.00",
+    phone: "+8801812345686",
+    email: "ava@example.com",
+    shippingAddress: "Town Hall, Mymensingh",
+    city: "Mymensingh",
+    district: "Mymensingh Division",
+    subtotalBdt: 2900,
+    vatBdt: 0,
+    deliveryChargeBdt: 100,
+    discountBdt: 0,
+    totalAmount: 3000,
+    paymentMethod: "Cash on Delivery",
+    paymentStatus: "Paid (COD Collected)",
     status: "Delivered",
-    statusColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    createdAt: "04/18/2026",
+    items: [{ productId: "p9", productName: "Minimalist Leather Cardholder", quantity: 1, priceBdt: 2900 }],
   },
 ];
 
@@ -126,181 +255,336 @@ const REVENUE_CHART_DATA = [
   { day: "19 Jul", revenue: 41000, expense: 9500 },
 ];
 
+const TIME_RANGES = [
+  { label: "24H", value: "24h" },
+  { label: "1W", value: "1w" },
+  { label: "1M", value: "1m" },
+  { label: "6M", value: "6m" },
+  { label: "1Y", value: "1y" },
+  { label: "Custom", value: "custom" },
+];
+
 export default function AdminDashboardPage() {
+  const [ordersList, setOrdersList] = useState<OrderRecord[]>(FALLBACK_ORDERS);
+  const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [selectedTimeRange, setSelectedTimeRange] = useState("1w");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [recordsPerPage, setRecordsPerPage] = useState(9);
   const [currentPage, setCurrentPage] = useState(1);
+  const [sidebarOrder, setSidebarOrder] = useState<OrderRecord | null>(null);
   const [hoveredDataPoint, setHoveredDataPoint] = useState<typeof REVENUE_CHART_DATA[0] | null>(
     REVENUE_CHART_DATA.find((d) => d.highlighted) || REVENUE_CHART_DATA[3]
   );
 
-  // Filter orders by search query
-  const filteredOrders = INITIAL_ORDERS.filter((order) =>
-    order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    order.itemDescription.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    order.salesChannel.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    order.status.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const [quickActionOpen, setQuickActionOpen] = useState(false);
+  const [timeFilterLabel, setTimeFilterLabel] = useState("Last 24 hours");
+  const [timeFilterOpen, setTimeFilterOpen] = useState(false);
 
-  const toggleSelectAll = () => {
-    if (selectedOrders.length === filteredOrders.length) {
-      setSelectedOrders([]);
+  // Fetch real database orders if available
+  useEffect(() => {
+    async function loadRealOrders() {
+      try {
+        const data = await fetchAdminOrders();
+        if (data && data.length > 0) {
+          setOrdersList(data);
+        }
+      } catch (err) {
+        console.log("Using fallback orders for dashboard preview");
+      }
+    }
+    loadRealOrders();
+  }, []);
+
+  // Filter orders matching exact logic from /admin/orders
+  const filteredOrders = ordersList.filter((o) => {
+    const matchesStatus = statusFilter === "all" || o.status.toLowerCase() === statusFilter.toLowerCase();
+    const q = searchQuery.toLowerCase().trim();
+    const matchesQuery =
+      !q ||
+      o.orderNumber.toLowerCase().includes(q) ||
+      o.customerName.toLowerCase().includes(q) ||
+      o.phone.toLowerCase().includes(q) ||
+      (o.city && o.city.toLowerCase().includes(q)) ||
+      (o.district && o.district.toLowerCase().includes(q)) ||
+      (o.items && o.items.some((i) => i.productName?.toLowerCase().includes(q)));
+
+    return matchesStatus && matchesQuery;
+  });
+
+  const activeFilterCount = statusFilter !== "all" ? 1 : 0;
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(filteredOrders.map((o) => o.id));
     } else {
-      setSelectedOrders(filteredOrders.map((o) => o.id));
+      setSelectedIds([]);
     }
   };
 
-  const toggleSelectOrder = (id: string) => {
-    if (selectedOrders.includes(id)) {
-      setSelectedOrders(selectedOrders.filter((item) => item !== id));
+  const handleSelectRow = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedIds([...selectedIds, id]);
     } else {
-      setSelectedOrders([...selectedOrders, id]);
+      setSelectedIds(selectedIds.filter((rowId) => rowId !== id));
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "pending":
+        return <Badge className="bg-amber-50 text-amber-700 border-amber-300 rounded-none text-[11px] font-medium px-2 py-0.5 shadow-none">Pending</Badge>;
+      case "processing":
+        return <Badge className="bg-blue-50 text-blue-700 border-blue-300 rounded-none text-[11px] font-medium px-2 py-0.5 shadow-none">Processing</Badge>;
+      case "shipped":
+        return <Badge className="bg-purple-50 text-purple-700 border-purple-300 rounded-none text-[11px] font-medium px-2 py-0.5 shadow-none">Shipped</Badge>;
+      case "delivered":
+        return <Badge className="bg-emerald-50 text-emerald-700 border-emerald-300 rounded-none text-[11px] font-medium px-2 py-0.5 shadow-none">Delivered</Badge>;
+      case "cancelled":
+        return <Badge className="bg-rose-50 text-rose-700 border-rose-300 rounded-none text-[11px] font-medium px-2 py-0.5 shadow-none">Cancelled</Badge>;
+      default:
+        return <Badge variant="outline" className="rounded-none text-[11px] shadow-none">{status}</Badge>;
     }
   };
 
   return (
-    <div className="flex flex-col gap-6 p-6 min-h-screen bg-[#fafafa] text-neutral-900 font-sans">
+    <div className="flex flex-col gap-4 font-sans bg-white min-h-screen text-neutral-900">
 
-      {/* TOP SECTION: 4 KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* 1. Main Page Header Bar WITH + QUICK ACTION POPUP AT TOP RIGHT */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight text-neutral-900">Dashboard</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Real-time analytics, revenue trends, social channels &amp; order streams.
+          </p>
+        </div>
 
-        {/* KPI Card 1: Total Sales */}
-        <div className="bg-white p-5 border border-neutral-200/80 rounded-xl shadow-xs flex flex-col justify-between">
-          <div className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
-            Total Sales
+        {/* TOP RIGHT BUTTONS: TIME FILTER DROPDOWN & + QUICK ACTION */}
+        <div className="flex items-center gap-2.5">
+          {/* Time Filter Button Dropdown */}
+          <div className="relative">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setTimeFilterOpen(!timeFilterOpen);
+                setQuickActionOpen(false);
+              }}
+              className="flex items-center gap-1.5 text-xs bg-white border border-neutral-200 text-neutral-800 hover:bg-neutral-50 rounded-none shadow-none font-medium"
+            >
+              <span>{timeFilterLabel}</span>
+              <ChevronDown className="size-3 ml-0.5 text-neutral-500" />
+            </Button>
+
+            {timeFilterOpen && (
+              <div className="absolute right-0 top-full mt-1.5 z-50 bg-white border border-neutral-200 shadow-xl rounded-none w-40 py-1 font-sans text-xs animate-in fade-in zoom-in-95 duration-150">
+                <div className="px-3 py-1.5 text-[10px] font-semibold text-neutral-400 uppercase tracking-wider border-b border-neutral-100 flex items-center justify-between">
+                  <span>Time Range</span>
+                  <button onClick={() => setTimeFilterOpen(false)} className="text-neutral-400 hover:text-black">
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+                <div className="flex flex-col py-0.5">
+                  {["Last 24 hours", "Last week", "Last month", "Last year"].map((tf) => (
+                    <button
+                      key={tf}
+                      type="button"
+                      onClick={() => {
+                        setTimeFilterLabel(tf);
+                        setTimeFilterOpen(false);
+                      }}
+                      className={`px-3 py-1.5 text-xs text-left font-medium flex items-center justify-between transition-colors cursor-pointer ${
+                        timeFilterLabel === tf
+                          ? "bg-black text-white"
+                          : "text-neutral-800 hover:bg-neutral-100"
+                      }`}
+                    >
+                      <span>{tf}</span>
+                      {timeFilterLabel === tf && <span className="text-[10px]">✓</span>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-3xl font-extrabold tracking-tight text-neutral-900 font-mono">
-              2,274
-            </span>
+
+          {/* + QUICK ACTION BUTTON WITH POPOVER MENU */}
+          <div className="relative">
+            <Button
+              size="sm"
+              onClick={() => {
+                setQuickActionOpen(!quickActionOpen);
+                setTimeFilterOpen(false);
+              }}
+              className="flex items-center gap-1.5 text-xs bg-[#050505] text-white hover:bg-neutral-800 rounded-none shadow-none font-medium"
+            >
+              <Plus className="size-3.5" />
+              <span>Quick Action</span>
+              <ChevronDown className="size-3 ml-0.5 opacity-70" />
+            </Button>
+
+            {quickActionOpen && (
+              <div className="absolute right-0 top-full mt-1.5 z-50 bg-white border border-neutral-200 shadow-xl rounded-none w-48 py-1 font-sans text-xs animate-in fade-in zoom-in-95 duration-150">
+                <div className="px-3 py-1.5 text-[10px] font-semibold text-neutral-400 uppercase tracking-wider border-b border-neutral-100 flex items-center justify-between">
+                  <span>Quick Create</span>
+                  <button onClick={() => setQuickActionOpen(false)} className="text-neutral-400 hover:text-black">
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+                <div className="flex flex-col py-0.5">
+                  <Link
+                    href="/admin/products/new"
+                    onClick={() => setQuickActionOpen(false)}
+                    className="px-3 py-2 text-xs font-medium text-neutral-800 hover:bg-neutral-100 flex items-center gap-2 transition-colors"
+                  >
+                    <Package className="size-3.5 text-neutral-500" />
+                    <span>Add Product</span>
+                  </Link>
+                  <Link
+                    href="/admin/orders"
+                    onClick={() => setQuickActionOpen(false)}
+                    className="px-3 py-2 text-xs font-medium text-neutral-800 hover:bg-neutral-100 flex items-center gap-2 transition-colors"
+                  >
+                    <ShoppingBag className="size-3.5 text-neutral-500" />
+                    <span>Create Order</span>
+                  </Link>
+                  <Link
+                    href="/admin/customers"
+                    onClick={() => setQuickActionOpen(false)}
+                    className="px-3 py-2 text-xs font-medium text-neutral-800 hover:bg-neutral-100 flex items-center gap-2 transition-colors"
+                  >
+                    <Users className="size-3.5 text-neutral-500" />
+                    <span>Add Customer</span>
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
-          <div className="mt-2 flex items-center gap-1 text-xs font-medium text-emerald-600">
-            <span className="inline-flex items-center gap-0.5 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200">
-              <TrendingUp className="size-3 text-emerald-600" />
+        </div>
+      </div>
+
+      {/* 2. 4 TOP METRIC CARDS GRID */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        
+        {/* Card 1: Total Sales */}
+        <div className="border border-neutral-200 bg-white p-4 font-sans rounded-none shadow-none flex flex-col justify-between">
+          <p className="text-xs uppercase font-medium text-neutral-500">Total Sales</p>
+          <div className="flex items-center gap-2 mt-2">
+            <p className="text-2xl font-bold text-neutral-900 font-mono">2,274</p>
+            <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-emerald-600">
+              <TrendingUp className="size-3.5" />
               +1.3%
             </span>
-            <span className="text-neutral-400 font-normal">last 7 days</span>
           </div>
         </div>
 
-        {/* KPI Card 2: Total Orders */}
-        <div className="bg-white p-5 border border-neutral-200/80 rounded-xl shadow-xs flex flex-col justify-between">
-          <div className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
-            Total Orders
-          </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-3xl font-extrabold tracking-tight text-neutral-900 font-mono">
-              4,818
-            </span>
-          </div>
-          <div className="mt-2 flex items-center gap-1 text-xs font-medium text-emerald-600">
-            <span className="inline-flex items-center gap-0.5 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200">
-              <TrendingUp className="size-3 text-emerald-600" />
+        {/* Card 2: Total Orders */}
+        <div className="border border-neutral-200 bg-white p-4 font-sans rounded-none shadow-none flex flex-col justify-between">
+          <p className="text-xs uppercase font-medium text-neutral-500">Total Orders</p>
+          <div className="flex items-center gap-2 mt-2">
+            <p className="text-2xl font-bold text-neutral-900 font-mono">4,818</p>
+            <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-emerald-600">
+              <TrendingUp className="size-3.5" />
               +0.7%
             </span>
-            <span className="text-neutral-400 font-normal">last 7 days</span>
           </div>
         </div>
 
-        {/* KPI Card 3: Total Returns */}
-        <div className="bg-white p-5 border border-neutral-200/80 rounded-xl shadow-xs flex flex-col justify-between">
-          <div className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
-            Total Returns
-          </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-3xl font-extrabold tracking-tight text-neutral-900 font-mono">
-              243
-            </span>
-          </div>
-          <div className="mt-2 flex items-center gap-1 text-xs font-medium text-rose-600">
-            <span className="inline-flex items-center gap-0.5 bg-rose-50 px-1.5 py-0.5 rounded-md border border-rose-200">
-              <TrendingUp className="size-3 text-rose-600" />
+        {/* Card 3: Total Returns */}
+        <div className="border border-neutral-200 bg-white p-4 font-sans rounded-none shadow-none flex flex-col justify-between">
+          <p className="text-xs uppercase font-medium text-amber-700">Total Returns</p>
+          <div className="flex items-center gap-2 mt-2">
+            <p className="text-2xl font-bold text-amber-600 font-mono">243</p>
+            <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-rose-600">
+              <TrendingUp className="size-3.5" />
               +1.3%
             </span>
-            <span className="text-neutral-400 font-normal">last 7 days</span>
           </div>
         </div>
 
-        {/* KPI Card 4: Conversion Rates */}
-        <div className="bg-white p-5 border border-neutral-200/80 rounded-xl shadow-xs flex flex-col justify-between">
-          <div className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
-            Conversion Rates
-          </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-3xl font-extrabold tracking-tight text-neutral-900 font-mono">
-              6.32%
-            </span>
-          </div>
-          <div className="mt-2 flex items-center gap-1 text-xs font-medium text-emerald-600">
-            <span className="inline-flex items-center gap-0.5 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200">
-              <TrendingUp className="size-3 text-emerald-600" />
+        {/* Card 4: Conversion Rates */}
+        <div className="border border-neutral-200 bg-white p-4 font-sans rounded-none shadow-none flex flex-col justify-between">
+          <p className="text-xs uppercase font-medium text-neutral-500">Conversion Rates</p>
+          <div className="flex items-center gap-2 mt-2">
+            <p className="text-2xl font-bold text-emerald-600 font-mono">6.32%</p>
+            <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-emerald-600">
+              <TrendingUp className="size-3.5" />
               +0.2%
             </span>
-            <span className="text-neutral-400 font-normal">last 7 days</span>
           </div>
         </div>
 
       </div>
 
-      {/* MIDDLE SECTION: Revenue Chart + Social Impressions Breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* 3. MIDDLE SECTION: Revenue Chart + Social Impressions Breakdown */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
         {/* LEFT 2/3 COLUMN: Total Revenue Interactive Dual-Line Chart */}
-        <div className="lg:col-span-2 bg-white p-6 border border-neutral-200/80 rounded-xl shadow-xs flex flex-col justify-between relative">
+        <div className="lg:col-span-2 border border-neutral-200 bg-white p-5 font-sans rounded-none shadow-none flex flex-col justify-between relative">
           
           {/* Chart Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
-              <div className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
-                Total Revenue
-              </div>
+              <p className="text-xs uppercase font-medium text-neutral-500">Total Revenue</p>
               <div className="flex items-center gap-2 mt-1">
-                <span className="text-2xl font-extrabold tracking-tight text-neutral-900 font-mono">
+                <span className="text-2xl font-bold text-neutral-900 font-mono">
                   $38,274
                 </span>
-                <span className="inline-flex items-center gap-0.5 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-600 rounded-md border border-emerald-200">
-                  <TrendingUp className="size-3" />
+                <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-emerald-600">
+                  <TrendingUp className="size-3.5" />
                   +1.3%
                 </span>
-                <span className="text-xs text-neutral-400">last 7 days</span>
               </div>
             </div>
 
             {/* Chart Legend */}
             <div className="flex items-center gap-4 text-xs font-medium text-neutral-600">
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                <span className="w-2.5 h-2.5 rounded-none bg-emerald-500" />
                 <span>Revenue</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                <span className="w-2.5 h-2.5 rounded-none bg-amber-500" />
                 <span>Expense</span>
               </div>
             </div>
           </div>
 
           {/* SVG Line Chart Canvas */}
-          <div className="relative w-full h-[260px] flex items-end">
+          <div className="relative w-full h-[240px] flex items-end">
 
             {/* Y-Axis Grid Lines & Labels */}
             <div className="absolute inset-0 flex flex-col justify-between text-[11px] font-mono text-neutral-400 pointer-events-none">
-              <div className="border-b border-dashed border-neutral-100 pb-1">45k</div>
-              <div className="border-b border-dashed border-neutral-100 pb-1">32k</div>
-              <div className="border-b border-dashed border-neutral-100 pb-1">24k</div>
-              <div className="border-b border-dashed border-neutral-100 pb-1">16k</div>
-              <div className="border-b border-dashed border-neutral-100 pb-1">0</div>
+              <div className="border-b border-dashed border-neutral-200 pb-1">45k</div>
+              <div className="border-b border-dashed border-neutral-200 pb-1">32k</div>
+              <div className="border-b border-dashed border-neutral-200 pb-1">24k</div>
+              <div className="border-b border-dashed border-neutral-200 pb-1">16k</div>
+              <div className="border-b border-dashed border-neutral-200 pb-1">0</div>
             </div>
 
-            {/* SVG Line Paths (Revenue & Expense) */}
-            <svg className="w-full h-[200px] overflow-visible z-10" viewBox="0 0 700 200" preserveAspectRatio="none">
-              {/* Dotted Vertical Guide line for 16 Jul */}
-              <line x1="350" y1="0" x2="350" y2="200" stroke="#e5e5e5" strokeDasharray="3 3" strokeWidth="1.5" />
+            {/* SVG Line Paths with Curve Area Fill */}
+            <svg className="w-full h-[190px] overflow-visible z-10" viewBox="0 0 700 190" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
+                  <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
+                </linearGradient>
+              </defs>
+
+              {/* Dotted Vertical Guide line for hovered day */}
+              <line x1="690" y1="0" x2="690" y2="190" stroke="#d4d4d4" strokeDasharray="3 3" strokeWidth="1.5" />
+
+              {/* Area Gradient Fill under Revenue curve */}
+              <path
+                d="M 10 155 Q 110 115, 210 45 T 350 75 T 490 55 T 690 10 L 690 190 L 10 190 Z"
+                fill="url(#revenueGradient)"
+              />
 
               {/* Expense Line Path (Orange/Amber) */}
               <path
-                d="M 10 120 Q 110 80, 210 130 T 350 110 T 490 130 T 690 160"
+                d="M 10 115 Q 110 75, 210 125 T 350 105 T 490 125 T 690 155"
                 fill="none"
                 stroke="#f59e0b"
                 strokeWidth="2.5"
@@ -309,44 +593,44 @@ export default function AdminDashboardPage() {
 
               {/* Revenue Line Path (Emerald Green) */}
               <path
-                d="M 10 160 Q 110 120, 210 50 T 350 80 T 490 60 T 690 15"
+                d="M 10 155 Q 110 115, 210 45 T 350 75 T 490 55 T 690 10"
                 fill="none"
                 stroke="#10b981"
                 strokeWidth="2.5"
                 strokeLinecap="round"
               />
 
-              {/* Data points on 16 Jul */}
-              <circle cx="350" cy="80" r="5" fill="#10b981" stroke="#ffffff" strokeWidth="2" />
-              <circle cx="350" cy="110" r="5" fill="#f59e0b" stroke="#ffffff" strokeWidth="2" />
+              {/* Data points on 19 Jul */}
+              <circle cx="690" cy="10" r="5" fill="#10b981" stroke="#ffffff" strokeWidth="2" />
+              <circle cx="690" cy="155" r="5" fill="#f59e0b" stroke="#ffffff" strokeWidth="2" />
             </svg>
 
-            {/* Hover Tooltip Card (Exact match to screenshot) */}
+            {/* Hover Tooltip Card */}
             <div
-              className="absolute left-[50%] top-[25%] -translate-x-[50%] bg-white border border-neutral-200 shadow-lg rounded-lg p-3 z-20 font-sans"
+              className="absolute right-[5px] top-[10%] bg-white border border-neutral-300 shadow-md p-3 z-20 font-sans rounded-none"
               style={{ width: "160px" }}
             >
-              <div className="text-xs font-bold text-neutral-800 border-b border-neutral-100 pb-1 mb-1.5">
-                {hoveredDataPoint?.day || "16 Jul"}, 2026
+              <div className="text-xs font-bold text-neutral-900 border-b border-neutral-100 pb-1 mb-1.5">
+                19 Jul, 2026
               </div>
               <div className="text-[12px] text-neutral-600 flex justify-between items-center font-mono">
                 <span className="text-neutral-500 font-sans">Revenue:</span>
-                <span className="font-semibold text-emerald-600">$26,532</span>
+                <span className="font-bold text-emerald-600">$26,532</span>
               </div>
               <div className="text-[12px] text-neutral-600 flex justify-between items-center font-mono mt-0.5">
                 <span className="text-neutral-500 font-sans">Expense:</span>
-                <span className="font-semibold text-amber-600">$20,341</span>
+                <span className="font-bold text-amber-600">$20,341</span>
               </div>
             </div>
           </div>
 
           {/* X-Axis Date Labels */}
-          <div className="flex justify-between text-xs text-neutral-400 font-mono mt-4 pt-2 border-t border-neutral-100">
+          <div className="flex justify-between text-xs text-neutral-500 font-mono mt-4 pt-2 border-t border-neutral-100">
             {REVENUE_CHART_DATA.map((item) => (
               <span
                 key={item.day}
                 onMouseEnter={() => setHoveredDataPoint(item)}
-                className={`cursor-pointer transition-colors ${item.day === (hoveredDataPoint?.day || "16 Jul") ? "text-neutral-900 font-bold" : "hover:text-neutral-700"}`}
+                className={`cursor-pointer transition-colors ${item.day === "19 Jul" ? "text-black font-bold border-b border-black" : "hover:text-black"}`}
               >
                 {item.day}
               </span>
@@ -356,24 +640,21 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* RIGHT 1/3 COLUMN: Total Impressions & Social Breakdown */}
-        <div className="bg-white p-6 border border-neutral-200/80 rounded-xl shadow-xs flex flex-col justify-between">
+        <div className="border border-neutral-200 bg-white p-5 font-sans rounded-none shadow-none flex flex-col justify-between">
           <div>
-            <div className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
-              Total Impressions
-            </div>
+            <p className="text-xs uppercase font-medium text-neutral-500">Total Impressions</p>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-2xl font-extrabold tracking-tight text-neutral-900 font-mono">
+              <span className="text-2xl font-bold text-neutral-900 font-mono">
                 275k
               </span>
-              <span className="inline-flex items-center gap-0.5 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-600 rounded-md border border-emerald-200">
-                <TrendingUp className="size-3" />
+              <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-emerald-600">
+                <TrendingUp className="size-3.5" />
                 +1.3%
               </span>
-              <span className="text-xs text-neutral-400">last 7 days</span>
             </div>
 
             {/* Social Proportion Segmented Color Bar */}
-            <div className="mt-4 flex h-3 w-full rounded-full overflow-hidden gap-0.5">
+            <div className="mt-4 flex h-3 w-full rounded-none overflow-hidden gap-0.5 border border-neutral-100">
               <div className="bg-blue-600 h-full" style={{ width: "46%" }} title="Facebook (46%)" />
               <div className="bg-rose-500 h-full" style={{ width: "22%" }} title="Instagram (22%)" />
               <div className="bg-amber-400 h-full" style={{ width: "8%" }} title="X (8%)" />
@@ -382,26 +663,28 @@ export default function AdminDashboardPage() {
               <div className="bg-neutral-200 h-full" style={{ width: "15%" }} title="Direct (15%)" />
             </div>
 
-            {/* Social Channels Legend Bar */}
+            {/* Social Channels Legend */}
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-[11px] text-neutral-500 font-medium">
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-600" /> Facebook</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-rose-500" /> Instagram</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400" /> X</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-indigo-600" /> LinkedIn</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-purple-600" /> Threads</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-none bg-blue-600" /> Facebook</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-none bg-rose-500" /> Instagram</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-none bg-amber-400" /> X</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-none bg-indigo-600" /> LinkedIn</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-none bg-purple-600" /> Threads</span>
             </div>
           </div>
 
-          {/* Social Channels Breakdown List */}
+          {/* Social Channels List with User-Uploaded Brand Images */}
           <div className="mt-6 flex flex-col gap-3.5 border-t border-neutral-100 pt-4">
             
             {/* Facebook */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm">
-                  f
-                </div>
-                <span className="text-sm font-semibold text-neutral-800">Facebook</span>
+                <img
+                  src="/images/social/facebook.png"
+                  alt="Facebook"
+                  className="w-7 h-7 rounded-full object-cover shrink-0"
+                />
+                <span className="text-xs font-semibold text-neutral-800">Facebook</span>
               </div>
               <div className="text-xs text-neutral-500 font-mono">
                 <span className="font-bold text-neutral-900">162.4k</span> <span className="text-neutral-400">(46%)</span>
@@ -411,10 +694,12 @@ export default function AdminDashboardPage() {
             {/* Instagram */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center font-bold text-sm">
-                  📷
-                </div>
-                <span className="text-sm font-semibold text-neutral-800">Instagram</span>
+                <img
+                  src="/images/social/instagram.png"
+                  alt="Instagram"
+                  className="w-7 h-7 rounded-full object-cover shrink-0"
+                />
+                <span className="text-xs font-semibold text-neutral-800">Instagram</span>
               </div>
               <div className="text-xs text-neutral-500 font-mono">
                 <span className="font-bold text-neutral-900">32.6K</span> <span className="text-neutral-400">(22%)</span>
@@ -424,10 +709,12 @@ export default function AdminDashboardPage() {
             {/* X (Twitter) */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-neutral-900 text-white flex items-center justify-center font-bold text-xs">
-                  𝕏
-                </div>
-                <span className="text-sm font-semibold text-neutral-800">X</span>
+                <img
+                  src="/images/social/x.png"
+                  alt="X"
+                  className="w-7 h-7 rounded-full object-cover shrink-0"
+                />
+                <span className="text-xs font-semibold text-neutral-800">X</span>
               </div>
               <div className="text-xs text-neutral-500 font-mono">
                 <span className="font-bold text-neutral-900">12.7K</span> <span className="text-neutral-400">(8%)</span>
@@ -437,10 +724,12 @@ export default function AdminDashboardPage() {
             {/* LinkedIn */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs">
-                  in
-                </div>
-                <span className="text-sm font-semibold text-neutral-800">LinkedIn</span>
+                <img
+                  src="/images/social/linkedin.png"
+                  alt="LinkedIn"
+                  className="w-7 h-7 rounded-full object-cover shrink-0"
+                />
+                <span className="text-xs font-semibold text-neutral-800">LinkedIn</span>
               </div>
               <div className="text-xs text-neutral-500 font-mono">
                 <span className="font-bold text-neutral-900">4.9K</span> <span className="text-neutral-400">(6%)</span>
@@ -450,10 +739,12 @@ export default function AdminDashboardPage() {
             {/* Threads */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-xs">
-                  @
-                </div>
-                <span className="text-sm font-semibold text-neutral-800">Threads</span>
+                <img
+                  src="/images/social/threads.png"
+                  alt="Threads"
+                  className="w-7 h-7 rounded-full object-cover shrink-0"
+                />
+                <span className="text-xs font-semibold text-neutral-800">Threads</span>
               </div>
               <div className="text-xs text-neutral-500 font-mono">
                 <span className="font-bold text-neutral-900">1.8K</span> <span className="text-neutral-400">(3%)</span>
@@ -466,245 +757,330 @@ export default function AdminDashboardPage() {
 
       </div>
 
-      {/* BOTTOM SECTION: Recent Orders Table Card (Exact match to reference screenshot) */}
-      <div className="bg-white border border-neutral-200/80 rounded-xl shadow-xs overflow-hidden flex flex-col">
-        
-        {/* Table Controls Header */}
-        <div className="p-5 border-b border-neutral-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h2 className="text-lg font-bold text-neutral-900 tracking-tight">
-            Recent Orders
-          </h2>
-
-          <div className="flex items-center gap-2.5">
-            {/* Search Input */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400" />
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-4 py-1.5 bg-neutral-50 border border-neutral-200 rounded-lg text-xs font-sans text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-400 transition-colors w-48"
-              />
+      {/* Side Slide-Over Filter Drawer Modal */}
+      {isFilterDrawerOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex justify-end font-sans">
+          <div className="bg-white border-l border-neutral-200 w-full max-w-md h-full flex flex-col justify-between shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="p-4 border-b border-neutral-200 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal className="size-4 text-black" />
+                <h3 className="font-bold text-sm text-foreground">Filter Orders</h3>
+              </div>
+              <button onClick={() => setIsFilterDrawerOpen(false)} className="p-1 text-muted-foreground hover:text-black">
+                <X className="size-4" />
+              </button>
             </div>
 
-            {/* Filters Button */}
-            <button
-              type="button"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-neutral-200 rounded-lg text-xs font-medium text-neutral-700 hover:bg-neutral-50 transition-colors cursor-pointer"
-            >
-              <Filter className="size-3.5 text-neutral-500" />
-              <span>Filters</span>
-            </button>
+            <div className="p-5 flex flex-col gap-5 overflow-y-auto flex-1 text-xs">
+              <div className="space-y-1.5">
+                <label className="font-semibold text-foreground block">Order Status</label>
+                <select
+                  className="w-full h-9 bg-background px-3 text-xs outline-none rounded-none border border-neutral-200 focus:border-black"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <option value="all">All Order Statuses</option>
+                  <option value="pending">Pending</option>
+                  <option value="processing">Processing</option>
+                  <option value="shipped">Shipped</option>
+                  <option value="delivered">Delivered</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+            </div>
 
-            {/* Export All Button */}
-            <button
-              type="button"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-neutral-200 rounded-lg text-xs font-medium text-neutral-700 hover:bg-neutral-50 transition-colors cursor-pointer"
-            >
-              <Download className="size-3.5 text-neutral-500" />
-              <span>Export all</span>
-            </button>
+            <div className="p-4 border-t border-neutral-200 flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setStatusFilter("all")}
+                className="rounded-none text-xs border border-neutral-200"
+              >
+                Reset
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => setIsFilterDrawerOpen(false)}
+                className="flex-1 rounded-none text-xs bg-black text-white hover:bg-neutral-800"
+              >
+                Apply Filters ({activeFilterCount})
+              </Button>
+            </div>
           </div>
         </div>
+      )}
 
-        {/* Data Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-neutral-50/80 border-b border-neutral-100 text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">
-                <th className="py-3 px-4 w-10 text-center">
+      {/* Table Section (EXACT COPIED FROM /admin/orders) */}
+      <div className="flex flex-col gap-4">
+        <div className="pt-2">
+          <h3 className="text-base font-semibold tracking-tight text-foreground">
+            All Live Orders ({filteredOrders.length})
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            Live order statuses and customer details. Click View to inspect or edit details in sidebar.
+          </p>
+        </div>
+
+        {/* Search & Filter Toolbar (Matching Orders & Products Page) */}
+        <div className="flex flex-wrap items-center justify-between gap-4 w-full">
+          <div className="flex items-center w-[320px]">
+            <div className="relative w-full">
+              <Search className="size-4 text-muted-foreground absolute left-3 top-2.5 shrink-0 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search by order #, customer, phone..."
+                className="text-xs h-9 rounded-none border border-neutral-200 bg-white pl-9 pr-3 w-full outline-none focus:border-black font-sans text-foreground shadow-none"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsFilterDrawerOpen(true)}
+            className="h-9 text-xs rounded-none border border-neutral-200 bg-white text-neutral-800 flex items-center gap-2 hover:bg-neutral-50 shadow-none font-medium"
+          >
+            <SlidersHorizontal className="size-3.5 text-black" />
+            <span>Filters</span>
+            {activeFilterCount > 0 && (
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 rounded-none bg-black text-white ml-1">
+                {activeFilterCount}
+              </Badge>
+            )}
+          </Button>
+        </div>
+
+        {/* Clean Orders Table (Matching Orders & Products Page structure) */}
+        <div className="border border-neutral-200 bg-white overflow-hidden">
+          <Table>
+            <TableHeader className="bg-neutral-50/50">
+              <TableRow className="border-b border-neutral-200">
+                <TableHead className="w-12 text-center">
                   <input
                     type="checkbox"
-                    checked={selectedOrders.length === filteredOrders.length && filteredOrders.length > 0}
-                    onChange={toggleSelectAll}
-                    className="rounded border-neutral-300 text-neutral-900 focus:ring-0 cursor-pointer"
+                    checked={selectedIds.length > 0 && selectedIds.length === filteredOrders.length}
+                    onChange={(e) => handleSelectAll(e.target.checked)}
+                    className="size-3.5 rounded-none accent-black cursor-pointer"
                   />
-                </th>
-                <th className="py-3 px-4">Customer Name</th>
-                <th className="py-3 px-4">Item Description</th>
-                <th className="py-3 px-4">Sales Channel</th>
-                <th className="py-3 px-4">Order Date</th>
-                <th className="py-3 px-4">Amount</th>
-                <th className="py-3 px-4">Order Status</th>
-                <th className="py-3 px-4 text-center">Modify</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-neutral-100 text-xs text-neutral-700">
-              {filteredOrders.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="py-8 text-center text-neutral-400 font-sans">
-                    No matching orders found.
-                  </td>
-                </tr>
+                </TableHead>
+                <TableHead className="font-semibold text-xs text-foreground">Order #</TableHead>
+                <TableHead className="font-semibold text-xs text-foreground">Customer</TableHead>
+                <TableHead className="font-semibold text-xs text-foreground">Location</TableHead>
+                <TableHead className="font-semibold text-xs text-foreground">Items</TableHead>
+                <TableHead className="font-semibold text-xs text-foreground">Total Price</TableHead>
+                <TableHead className="font-semibold text-xs text-foreground">Status</TableHead>
+                <TableHead className="text-right font-semibold text-xs text-foreground pr-4">Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-12 text-neutral-400 text-xs">
+                    <div className="flex flex-col items-center gap-2">
+                      <Loader2 className="size-5 animate-spin text-neutral-500" />
+                      <span>Loading orders from database...</span>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : filteredOrders.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-12 text-neutral-400 text-xs">
+                    No orders match your filter criteria.
+                  </TableCell>
+                </TableRow>
               ) : (
-                filteredOrders.map((order) => {
-                  const isSelected = selectedOrders.includes(order.id);
+                filteredOrders.map((ord) => {
+                  const isSelected = selectedIds.includes(ord.id);
+                  const itemCount = ord.items?.length || 1;
+
                   return (
-                    <tr
-                      key={order.id}
-                      className={`hover:bg-neutral-50/60 transition-colors ${isSelected ? "bg-neutral-50" : ""}`}
-                    >
+                    <TableRow key={ord.id} className={`border-b border-neutral-200 hover:bg-neutral-50/80 transition-colors ${isSelected ? "bg-neutral-50" : ""}`}>
                       {/* Checkbox */}
-                      <td className="py-3.5 px-4 text-center">
+                      <TableCell className="text-center w-12 py-3">
                         <input
                           type="checkbox"
                           checked={isSelected}
-                          onChange={() => toggleSelectOrder(order.id)}
-                          className="rounded border-neutral-300 text-neutral-900 focus:ring-0 cursor-pointer"
+                          onChange={(e) => handleSelectRow(ord.id, e.target.checked)}
+                          className="size-3.5 rounded-none accent-black cursor-pointer"
                         />
-                      </td>
+                      </TableCell>
 
-                      {/* Customer Name */}
-                      <td className="py-3.5 px-4 font-bold text-neutral-900">
-                        {order.customerName}
-                      </td>
+                      {/* Order # */}
+                      <TableCell className="py-3 font-sans">
+                        <span className="font-semibold text-xs text-foreground block">{ord.orderNumber}</span>
+                        <span className="text-[11px] text-neutral-400 block mt-0.5">{ord.createdAt}</span>
+                      </TableCell>
 
-                      {/* Item Description */}
-                      <td className="py-3.5 px-4 text-neutral-600 max-w-xs truncate">
-                        {order.itemDescription}
-                      </td>
+                      {/* Customer */}
+                      <TableCell className="py-3">
+                        <div className="flex flex-col">
+                          <span className="font-medium text-xs text-foreground">{ord.customerName}</span>
+                          <span className="text-[11px] font-mono text-neutral-500">{ord.phone}</span>
+                        </div>
+                      </TableCell>
 
-                      {/* Sales Channel */}
-                      <td className="py-3.5 px-4 text-neutral-500 font-medium">
-                        {order.salesChannel}
-                      </td>
-
-                      {/* Order Date */}
-                      <td className="py-3.5 px-4 font-mono text-neutral-500">
-                        {order.orderDate}
-                      </td>
-
-                      {/* Amount */}
-                      <td className="py-3.5 px-4 font-bold text-neutral-900 font-mono">
-                        {order.amount}
-                      </td>
-
-                      {/* Order Status Pill */}
-                      <td className="py-3.5 px-4">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${order.statusColor}`}>
-                          {order.status}
+                      {/* Location */}
+                      <TableCell className="py-3">
+                        <span className="text-xs text-neutral-700 font-medium block">
+                          {ord.district || ord.city || "Bangladesh"}
                         </span>
-                      </td>
-
-                      {/* Modify Dropdown Menu */}
-                      <td className="py-3.5 px-4 text-center relative">
-                        <button
-                          type="button"
-                          onClick={() => setActiveDropdown(activeDropdown === order.id ? null : order.id)}
-                          className="p-1 hover:bg-neutral-100 rounded-md transition-colors text-neutral-400 hover:text-neutral-700 cursor-pointer"
-                        >
-                          <MoreVertical className="size-4" />
-                        </button>
-
-                        {/* Dropdown Menu */}
-                        {activeDropdown === order.id && (
-                          <div className="absolute right-4 top-10 bg-white border border-neutral-200 shadow-lg rounded-lg py-1.5 w-40 z-30 text-left font-sans text-xs">
-                            <Link
-                              href="/admin/orders"
-                              className="flex items-center gap-2 px-3 py-1.5 text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900"
-                            >
-                              <Eye className="size-3.5 text-neutral-400" />
-                              <span>View Order</span>
-                            </Link>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                alert(`Updating status for ${order.id}`);
-                                setActiveDropdown(null);
-                              }}
-                              className="w-full flex items-center gap-2 px-3 py-1.5 text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900 cursor-pointer"
-                            >
-                              <Package className="size-3.5 text-neutral-400" />
-                              <span>Update Status</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                alert(`Generating PDF Packing Slip for ${order.id}`);
-                                setActiveDropdown(null);
-                              }}
-                              className="w-full flex items-center gap-2 px-3 py-1.5 text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900 cursor-pointer"
-                            >
-                              <FileText className="size-3.5 text-neutral-400" />
-                              <span>Print Invoice</span>
-                            </button>
-                          </div>
+                        {ord.city && ord.district && (
+                          <span className="text-[11px] text-neutral-400 block">{ord.city}</span>
                         )}
-                      </td>
-                    </tr>
+                      </TableCell>
+
+                      {/* Items */}
+                      <TableCell className="py-3">
+                        <Badge variant="outline" className="rounded-none text-[11px] font-medium border-neutral-200">
+                          {itemCount} {itemCount === 1 ? "Item" : "Items"}
+                        </Badge>
+                      </TableCell>
+
+                      {/* Total Price */}
+                      <TableCell className="py-3 font-semibold text-xs text-foreground">
+                        ৳{ord.totalAmount.toLocaleString()} BDT
+                      </TableCell>
+
+                      {/* Status */}
+                      <TableCell className="py-3">
+                        {getStatusBadge(ord.status)}
+                      </TableCell>
+
+                      {/* Action: ONLY View Button */}
+                      <TableCell className="py-3 text-right pr-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSidebarOrder(ord)}
+                          className="h-8 text-xs rounded-none border border-neutral-200 bg-white text-neutral-800 hover:bg-neutral-100 flex items-center gap-1.5 px-3 font-medium ml-auto"
+                        >
+                          <Eye className="size-3.5 text-neutral-600" />
+                          <span>View</span>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
                   );
                 })
               )}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
 
-        {/* Table Footer Controls */}
-        <div className="p-4 border-t border-neutral-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs font-sans">
-          
-          {/* Records per page selector */}
-          <div className="flex items-center gap-2 text-neutral-500">
-            <span>Showing</span>
-            <select
-              value={recordsPerPage}
-              onChange={(e) => setRecordsPerPage(Number(e.target.value))}
-              className="bg-neutral-50 border border-neutral-200 rounded px-2 py-1 text-xs text-neutral-800 focus:outline-none cursor-pointer"
-            >
-              <option value={9}>9</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-            </select>
-            <span>of 134 records</span>
+          {/* Table Footer Controls */}
+          <div className="p-4 border-t border-neutral-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs font-sans">
+            <div className="flex items-center gap-2 text-neutral-500">
+              <span>Showing</span>
+              <select
+                value={recordsPerPage}
+                onChange={(e) => setRecordsPerPage(Number(e.target.value))}
+                className="bg-white border border-neutral-200 rounded-none px-2 py-1 text-xs text-neutral-800 focus:outline-none cursor-pointer"
+              >
+                <option value={9}>9</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+              <span>of {filteredOrders.length} records</span>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(currentPage - 1)}
+                className="p-1.5 border border-neutral-200 rounded-none hover:bg-neutral-50 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              >
+                <ChevronLeft className="size-3.5" />
+              </button>
+              <button
+                type="button"
+                className="px-2.5 py-1 bg-black text-white font-medium rounded-none text-xs"
+              >
+                1
+              </button>
+              <button
+                type="button"
+                className="px-2.5 py-1 hover:bg-neutral-100 text-neutral-600 font-medium rounded-none text-xs transition-colors"
+              >
+                2
+              </button>
+              <span className="px-1 text-neutral-400">...</span>
+              <button
+                type="button"
+                className="px-2.5 py-1 hover:bg-neutral-100 text-neutral-600 font-medium rounded-none text-xs transition-colors"
+              >
+                12
+              </button>
+              <button
+                type="button"
+                className="px-2.5 py-1 hover:bg-neutral-100 text-neutral-600 font-medium rounded-none text-xs transition-colors"
+              >
+                13
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentPage(currentPage + 1)}
+                className="p-1.5 border border-neutral-200 rounded-none hover:bg-neutral-50 cursor-pointer"
+              >
+                <ChevronRight className="size-3.5" />
+              </button>
+            </div>
           </div>
-
-          {/* Page Selector Buttons */}
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(currentPage - 1)}
-              className="p-1.5 border border-neutral-200 rounded hover:bg-neutral-50 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-            >
-              <ChevronLeft className="size-3.5" />
-            </button>
-            <button
-              type="button"
-              className="px-2.5 py-1 bg-emerald-700 text-white font-medium rounded text-xs"
-            >
-              1
-            </button>
-            <button
-              type="button"
-              className="px-2.5 py-1 hover:bg-neutral-100 text-neutral-600 font-medium rounded text-xs transition-colors"
-            >
-              2
-            </button>
-            <span className="px-1 text-neutral-400">...</span>
-            <button
-              type="button"
-              className="px-2.5 py-1 hover:bg-neutral-100 text-neutral-600 font-medium rounded text-xs transition-colors"
-            >
-              12
-            </button>
-            <button
-              type="button"
-              className="px-2.5 py-1 hover:bg-neutral-100 text-neutral-600 font-medium rounded text-xs transition-colors"
-            >
-              13
-            </button>
-            <button
-              type="button"
-              onClick={() => setCurrentPage(currentPage + 1)}
-              className="p-1.5 border border-neutral-200 rounded hover:bg-neutral-50 cursor-pointer"
-            >
-              <ChevronRight className="size-3.5" />
-            </button>
-          </div>
-
         </div>
 
       </div>
+
+      {/* Slide-over OrderDetailsDrawer when clicking View */}
+      {sidebarOrder && (
+        <OrderDetailsDrawer
+          order={{
+            id: sidebarOrder.id,
+            orderNumber: sidebarOrder.orderNumber,
+            customerName: sidebarOrder.customerName,
+            phone: sidebarOrder.phone,
+            email: sidebarOrder.email || undefined,
+            shippingAddress: sidebarOrder.shippingAddress,
+            city: sidebarOrder.city || undefined,
+            district: sidebarOrder.district || undefined,
+            subtotalBdt: Number(sidebarOrder.subtotalBdt) || 0,
+            vatBdt: Number(sidebarOrder.vatBdt) || 0,
+            deliveryChargeBdt: Number(sidebarOrder.deliveryChargeBdt) || 0,
+            totalAmount: Number(sidebarOrder.totalAmount) || 0,
+            paymentMethod: sidebarOrder.paymentMethod,
+            paymentStatus: sidebarOrder.paymentStatus,
+            status: sidebarOrder.status,
+            createdAt: String(sidebarOrder.createdAt),
+            items: (sidebarOrder.items || []).map((it) => ({
+              name: it.productName || 'Apparel Item',
+              variant: it.variantName || 'Primary',
+              size: it.size || 'M',
+              quantity: it.quantity,
+              priceBdt: it.priceBdt || parseFloat(it.price || '0') || 0,
+              price: `৳${(it.priceBdt || parseFloat(it.price || '0') || 0).toLocaleString()} BDT`,
+              thumbnailUrl: it.thumbnailUrl || '/images/for_him.jpg',
+            })),
+          }}
+          onClose={() => setSidebarOrder(null)}
+          onStatusChange={async (orderId: string, newStatus: string) => {
+            const res = await updateOrderStatusAction(orderId, newStatus);
+            if (res?.success !== false) {
+              setOrdersList((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)));
+              setSidebarOrder((prev) => (prev && prev.id === orderId ? { ...prev, status: newStatus } : prev));
+            }
+          }}
+          onEditSave={async () => {
+            // Full editing lives on the Orders page; reload the list so the dashboard reflects changes.
+            const fresh = await fetchAdminOrders();
+            setOrdersList(fresh as typeof ordersList);
+          }}
+          onDeleteOrder={async (order) => {
+            if (!confirm(`Delete order ${order.orderNumber}? This cannot be undone.`)) return;
+            await deleteAdminOrderAction(order.id);
+            setOrdersList((prev) => prev.filter((o) => o.id !== order.id));
+            setSidebarOrder(null);
+          }}
+        />
+      )}
 
     </div>
   );

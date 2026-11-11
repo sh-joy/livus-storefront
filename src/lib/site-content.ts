@@ -1,6 +1,13 @@
 import { eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { storeSettings } from '@/db/schema';
+import {
+  privacyPolicyText,
+  termsText,
+  shippingReturnsText,
+  cookiesPolicyText,
+  type PolicyContext,
+} from '@/content/policy-defaults';
 
 export const SITE_CONTENT_KEYS = [
   'shipping_returns',
@@ -8,6 +15,7 @@ export const SITE_CONTENT_KEYS = [
   'privacy_page',
   'terms_page',
   'shipping_page',
+  'cookies_page',
   'contact_intro',
   'contact_faqs',
   'home_collection_text',
@@ -68,22 +76,10 @@ export const DEFAULT_CONTENT: Record<SiteContentKey, string> = {
     'Designed in Dhaka, our pieces bridge functional sports performance with runway aesthetic standards.',
   ].join('\n\n'),
 
-  privacy_page: [
-    'At LIVUS Atelier, we respect your personal privacy. When you browse our collections, place an order, or subscribe to our newsletter, we collect necessary data including your name, delivery address, phone number, and transaction references.',
-    '**Information Security:**\nAll sensitive information is processed over encrypted SSL connections. We never share, sell, or rent your personal contact information to third-party marketing companies.',
-    '**Payment Verification:**\nFor bKash and Nagad manual transactions, Transaction IDs and sender phone numbers are used exclusively by our financial verification desk to reconcile orders.',
-  ].join('\n\n'),
-
-  terms_page: [
-    'Welcome to LIVUS. By placing an order through our storefront or contacting our team, you agree to the terms outlined below.',
-    '**Pricing & Payment:**\nAll prices are listed in Bangladeshi Taka (BDT) inclusive of applicable VAT. Payment methods accepted include Cash on Delivery (COD) and manual bKash/Nagad transfers with valid TrxIDs.',
-    '**Order Acceptance & Stock:**\nOrders are subject to item availability. While items in your bag reserve temporary inventory, orders may be cancelled if payment verification fails or fraud is suspected.',
-  ].join('\n\n'),
-
-  shipping_page: [
-    '**Delivery Rates & Speed:**\n- **Dhaka Division:** ৳100 BDT flat delivery (delivered within 24 to 48 hours).\n- **All Other Divisions:** ৳150 BDT flat delivery (delivered within 48 to 72 hours).\n- **Free Shipping:** Automatically applied to all orders with an apparel subtotal of ৳2,500 BDT or more.',
-    '**7-Day Exchanges:**\nWe accept size and item exchanges within 7 days of delivery, provided the garment is unworn, unwashed, and retains all original tags.',
-  ].join('\n\n'),
+  privacy_page: '', // Computed dynamically with getPolicyContext()
+  terms_page: '', // Computed dynamically with getPolicyContext()
+  shipping_page: '', // Computed dynamically with getPolicyContext()
+  cookies_page: '', // Computed dynamically with getPolicyContext()
 
   contact_intro:
     'Have a question about an order, sizing or delivery, or want to share feedback? Send us a message or reach us through any of the channels below. We are happy to help.',
@@ -97,6 +93,41 @@ export const DEFAULT_CONTENT: Record<SiteContentKey, string> = {
 
   shipping_returns: '', // Built dynamically with storeSettings
 };
+
+/** Build policy context dynamically from site profile with fallback to storeSettings */
+export async function getPolicyContext(): Promise<PolicyContext> {
+  let storeName = 'LIVUS';
+  let supportEmail = 'support@livus.com.bd';
+  let supportPhone = '';
+  let deliveryFeeBdt = 150;
+  let freeDeliveryOverBdt = 0;
+
+  try {
+    const { getSiteProfile } = await import('@/lib/site-profile');
+    const profile = await getSiteProfile();
+    if (profile.brand?.name) storeName = profile.brand.name;
+    if (profile.contact?.email) supportEmail = profile.contact.email;
+    if (profile.contact?.phones?.[0]) supportPhone = profile.contact.phones[0];
+  } catch {
+    /* fallback to storeSettings or defaults */
+  }
+
+  try {
+    if (db) {
+      const s = await db.query.storeSettings.findFirst({ where: eq(storeSettings.id, 'general') });
+      if (s) {
+        if (!supportEmail && s.supportEmail) supportEmail = s.supportEmail;
+        if (!supportPhone && s.supportPhone) supportPhone = s.supportPhone;
+        if (s.defaultDeliveryChargeBdt != null) deliveryFeeBdt = s.defaultDeliveryChargeBdt;
+        if (s.freeShippingThresholdBdt != null) freeDeliveryOverBdt = s.freeShippingThresholdBdt;
+      }
+    }
+  } catch {
+    /* use defaults */
+  }
+
+  return { storeName, supportEmail, supportPhone, deliveryFeeBdt, freeDeliveryOverBdt };
+}
 
 /** Default product-page shipping text, built from the current fees and free-delivery setting. */
 export async function defaultShippingText(): Promise<string> {
@@ -120,4 +151,28 @@ export async function defaultShippingText(): Promise<string> {
   ]
     .filter(Boolean)
     .join('\n\n');
+}
+
+/** Compute default site content for any key */
+export async function getDefaultSiteContent(key: SiteContentKey): Promise<string> {
+  if (key === 'shipping_returns') {
+    return await defaultShippingText();
+  }
+  if (key === 'privacy_page') {
+    const ctx = await getPolicyContext();
+    return privacyPolicyText(ctx);
+  }
+  if (key === 'terms_page') {
+    const ctx = await getPolicyContext();
+    return termsText(ctx);
+  }
+  if (key === 'shipping_page') {
+    const ctx = await getPolicyContext();
+    return shippingReturnsText(ctx);
+  }
+  if (key === 'cookies_page') {
+    const ctx = await getPolicyContext();
+    return cookiesPolicyText(ctx);
+  }
+  return DEFAULT_CONTENT[key] ?? '';
 }

@@ -96,6 +96,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
       { label: "Shipping & returns", href: "/shipping-returns" },
       { label: "Privacy policy", href: "/privacy" },
       { label: "Terms & conditions", href: "/terms" },
+      { label: "Cookie policy", href: "/cookies" },
     ],
   },
 ];

@@ -271,6 +271,20 @@ export default function AdminContentPage() {
             onRestore={() => restoreDefault('shipping_page')}
             viewUrl="/shipping-returns"
           />
+
+          {/* Cookie Policy */}
+          <ContentBlockCard
+            title="Cookie Policy (/cookies)"
+            description="Cookie disclosure, strictly necessary, functional and analytical cookie usage."
+            contentKey="cookies_page"
+            value={contents.cookies_page?.value || ''}
+            isCustom={contents.cookies_page?.isCustom || false}
+            saving={savingKey === 'cookies_page'}
+            onChange={(val) => updateText('cookies_page', val)}
+            onSave={() => saveText('cookies_page')}
+            onRestore={() => restoreDefault('cookies_page')}
+            viewUrl="/cookies"
+          />
         </div>
       )}
 

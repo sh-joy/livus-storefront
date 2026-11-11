@@ -9,8 +9,7 @@ import { requireAdmin } from '@/lib/admin-guard';
 import {
   SITE_CONTENT_KEYS,
   type SiteContentKey,
-  DEFAULT_CONTENT,
-  defaultShippingText,
+  getDefaultSiteContent,
 } from '@/lib/site-content';
 
 /** Public: the text to show. Falls back to default when nothing is saved (or table not created yet). */
@@ -24,11 +23,7 @@ export async function getSiteContentAction(key: SiteContentKey): Promise<string>
     /* table missing: migration 0006/0007 not run yet */
   }
 
-  if (key === 'shipping_returns') {
-    return await defaultShippingText();
-  }
-
-  return DEFAULT_CONTENT[key] ?? '';
+  return await getDefaultSiteContent(key);
 }
 
 /** Admin: get specific content block with saved status */
@@ -117,6 +112,9 @@ export async function saveSiteContentAction(input: z.input<typeof SaveSchema>) {
         break;
       case 'shipping_page':
         revalidatePath('/shipping-returns');
+        break;
+      case 'cookies_page':
+        revalidatePath('/cookies');
         break;
       case 'contact_intro':
       case 'contact_faqs':

@@ -1,238 +1,168 @@
 'use client';
-import { useCartStore } from '@/lib/store/cart-store';
 
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
-import type { CSSProperties } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Menu, Search, ShoppingBag, User } from "lucide-react";
+import { useCartStore } from '@/lib/store/cart-store';
+import { useSession } from '@/lib/auth-client';
 import { useDrawer } from "./DrawerContext";
 import { AnnouncementMarquee } from "./AnnouncementMarquee";
 
-import { useSession } from '@/lib/auth-client';
-
 interface SiteNavProps {
-  /** "standard" shows Menu + Search/Cart/Sign in. "auth" shows just Visit Shop. */
+  /** "standard" = full store header. "auth" = minimal header for sign-in pages. */
   variant?: "standard" | "auth";
-  /** Override logo color */
+  /** Override logo color (auth variant) */
   logoColor?: string;
-  /** Override right-side text color */
+  /** Kept for backwards compatibility with existing callers */
   textColor?: string;
-  /** Override background */
   bgStyle?: string;
 }
 
-export function SiteNav({
-  variant = "standard",
-  logoColor = "#0d0d0d",
-  textColor = "#0d0d0d",
-  bgStyle = "rgba(255, 255, 255, 0.55)",
-}: SiteNavProps) {
-  const router = useRouter();
+const PRIMARY_LINKS = [
+  { label: "Shop All", href: "/all-products" },
+  { label: "For Him", href: "/for-him" },
+  { label: "For Her", href: "/for-her" },
+  { label: "New In", href: "/latest" },
+];
+
+const logoClass =
+  "livus-logo select-none no-underline text-[#0d0d0d] font-semibold leading-none " +
+  "text-[24px] tracking-[0.28em] md:text-[28px] md:tracking-[0.32em]";
+const logoStyle = { fontFamily: "'Big Shoulders', 'Big Shoulders Display', sans-serif" } as const;
+
+export function SiteNav({ variant = "standard", logoColor = "#0d0d0d" }: SiteNavProps) {
   const pathname = usePathname();
   const { openMenu, openCart } = useDrawer();
   const cartItems = useCartStore((state) => state.items);
-  const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const storeOpenCart = useCartStore((state) => state.openCart);
-
   const { data: sessionData } = useSession();
+
+  // The cart lives in localStorage, so only show the count after mounting (avoids hydration mismatch).
+  const [mounted, setMounted] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const cartCount = mounted ? cartItems.reduce((acc, item) => acc + item.quantity, 0) : 0;
   const user = sessionData?.user;
-  const isUserLoggedIn = !!user;
-  const userRole = (user as any)?.role || "user";
+  const isAdmin = ["admin", "superadmin"].includes(((user as { role?: string } | undefined)?.role) || "");
+
+  if (variant === "auth") {
+    return (
+      <nav className="fixed inset-x-0 top-0 z-[9999] flex items-center justify-between px-[var(--lv-gutter)] h-16 md:h-[72px] pointer-events-none">
+        <Link
+          href="/"
+          className={`${logoClass} pointer-events-auto max-md:!text-white`}
+          style={{ ...logoStyle, color: logoColor }}
+        >
+          LIVUS
+        </Link>
+        <Link href="/" className="t-nav lv-link pointer-events-auto text-white">
+          Visit shop
+        </Link>
+      </nav>
+    );
+  }
 
   const handleCartClick = () => {
     openCart();
     storeOpenCart();
   };
 
-  // Exclude marquee on signin, signup, profile, and checkout pages
-  const excludedMarqueeRoutes = ["/signin", "/signup", "/profile", "/checkout"];
-  const showMarquee = variant !== "auth" && !excludedMarqueeRoutes.includes(pathname);
-
-  const navLinkStyle: CSSProperties = {
-    fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
-    fontSize: "17px",
-    lineHeight: "24px",
-    letterSpacing: "0.85px",
-    textTransform: "uppercase",
-    color: textColor,
-    cursor: "pointer",
-    fontWeight: 400,
-    userSelect: "none",
-    WebkitUserSelect: "none",
-    transition: "opacity 0.2s ease",
-    textDecoration: "none",
-    display: "inline-block",
-  };
-
-  if (variant === "auth") {
-    return (
-      <nav
-        className="fixed left-0 right-0 top-0 z-[9999] flex items-center justify-between px-[36px] py-[16px] max-md:px-[16px] w-full pointer-events-none"
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100%",
-          zIndex: 9999,
-          pointerEvents: "none",
-        }}
-      >
-        <Link
-          href="/"
-          className="livus-logo !tracking-[9px] max-md:!tracking-[6px] max-md:!text-[24px] max-md:!text-white pointer-events-auto"
-          style={{
-            fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
-            fontSize: "30px",
-            lineHeight: "26px",
-            letterSpacing: "9px",
-            color: logoColor,
-            cursor: "pointer",
-            fontWeight: 600,
-            userSelect: "none",
-            textDecoration: "none",
-            pointerEvents: "auto",
-          }}
-        >
-          LIVUS
-        </Link>
-        <Link
-          href="/"
-          className="nav-link hover:opacity-75 pointer-events-auto"
-          style={{ ...navLinkStyle, color: "#ffffff", pointerEvents: "auto" }}
-        >
-          Visit Shop
-        </Link>
-      </nav>
-    );
-  }
+  const showMarquee = !["/signin", "/signup", "/profile", "/checkout"].includes(pathname);
+  const isActive = (href: string) => pathname === href;
 
   return (
     <>
-      {/* 1. Marquee (First Child, position: relative, scrolls away) */}
       {showMarquee && <AnnouncementMarquee />}
 
-      {/* 2. Header Container (Second Child, position: sticky, sticks to top: 0) */}
-      <nav
-        className="sticky top-0 left-0 right-0 z-[9999] flex items-center justify-between px-[36px] py-[16px] max-md:px-[16px] max-md:py-[14px] w-full backdrop-blur-[100px] site-header-fixed"
-        style={{
-          position: "sticky",
-          top: 0,
-          left: 0,
-          width: "100%",
-          zIndex: 9999,
-          backdropFilter: "blur(100px)",
-          WebkitBackdropFilter: "blur(100px)",
-          backgroundColor: bgStyle,
-        }}
+      <header
+        className={`site-header-fixed sticky top-0 z-[9999] w-full transition-[background-color,border-color,box-shadow] duration-300 ${
+          scrolled
+            ? "bg-white/90 border-b border-[var(--lv-line)] shadow-[0_1px_12px_rgba(0,0,0,0.04)]"
+            : "bg-white/70 border-b border-transparent"
+        }`}
+        style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}
       >
-        {/* Left: Menu with btn-group focus fade */}
-        <div className="btn-group flex-1 min-w-0" style={{ maxWidth: "500px", display: "flex", alignItems: "center" }}>
-          <button
-            type="button"
-            onClick={openMenu}
-            className="nav-link font-normal"
-            style={{
-              ...navLinkStyle,
-              background: "none",
-              border: "none",
-              padding: 0,
-              margin: 0,
-              fontWeight: 400,
-            }}
-          >
-            <p className="relative shrink-0" style={{ margin: 0, cursor: "pointer", fontSize: "17px" }}>Menu</p>
-          </button>
-        </div>
-
-        {/* Center: Logo */}
-        <Link
-          href="/"
-          className="livus-logo !tracking-[9px] max-md:!tracking-[6px] max-md:!text-[24px] hover:opacity-85 transition-opacity"
-          style={{
-            fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
-            fontSize: "30px",
-            lineHeight: "26px",
-            letterSpacing: "9px",
-            color: logoColor,
-            cursor: "pointer",
-            fontWeight: 600,
-            flexShrink: 0,
-            userSelect: "none",
-            textDecoration: "none",
-          }}
+        <nav
+          aria-label="Main"
+          className="grid grid-cols-[1fr_auto_1fr] items-center h-16 md:h-[72px] px-[var(--lv-gutter)] text-[#0d0d0d]"
         >
-          LIVUS
-        </Link>
+          {/* Left: menu + primary links */}
+          <div className="flex items-center gap-7 min-w-0">
+            <button
+              type="button"
+              onClick={openMenu}
+              aria-label="Open menu"
+              className="flex items-center gap-2.5 -ml-1 p-1 bg-transparent border-none cursor-pointer text-inherit"
+            >
+              <Menu className="size-[22px] stroke-[1.5]" aria-hidden />
+              <span className="t-nav hidden md:inline">Menu</span>
+            </button>
+            <ul className="hidden lg:flex items-center gap-7 list-none m-0 p-0">
+              {PRIMARY_LINKS.map((l) => (
+                <li key={l.href}>
+                  <Link
+                    href={l.href}
+                    className="t-nav lv-link"
+                    aria-current={isActive(l.href) ? "page" : undefined}
+                  >
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-        {/* Right: Search / Cart / Sign in with btn-group focus fade */}
-        <div
-          className="btn-group flex-1 min-w-0 !gap-[16px] md:!gap-[36px]"
-          style={{
-            maxWidth: "500px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-end",
-          }}
-        >
-          <Link
-            href="/search"
-            className="nav-link font-normal max-md:!hidden"
-            style={{ ...navLinkStyle, fontWeight: 400 }}
-          >
-            <p className="relative shrink-0" style={{ margin: 0, cursor: "pointer", fontSize: "17px" }}>SEARCH</p>
+          {/* Center: logo */}
+          <Link href="/" aria-label="LIVUS home" className={logoClass} style={logoStyle}>
+            LIVUS
           </Link>
 
-          <button
-            type="button"
-            onClick={handleCartClick}
-            className="nav-link font-normal"
-            style={{
-              ...navLinkStyle,
-              background: "none",
-              border: "none",
-              padding: 0,
-              margin: 0,
-              fontWeight: 400,
-            }}
-          >
-            <p className="relative shrink-0" style={{ margin: 0, cursor: "pointer", fontSize: "17px" }}><span className="whitespace-nowrap">CART{cartCount > 0 ? ` (${cartCount})` : ""}</span></p>
-          </button>
-
-
-
-          {isUserLoggedIn ? (
-            <div className="flex items-center gap-6 max-md:!hidden">
-              {(userRole === 'admin' || userRole === 'superadmin') && (
-                <Link
-                  href="/admin"
-                  className="nav-link font-normal text-amber-500 hover:text-amber-400 max-md:!hidden"
-                  style={{ ...navLinkStyle, fontWeight: 500, color: "#f59e0b" }}
-                >
-                  <p className="relative shrink-0" style={{ margin: 0, cursor: "pointer", fontSize: "17px" }}>
-                    ADMIN
-                  </p>
-                </Link>
-              )}
-              <Link
-                href="/profile"
-                className="nav-link font-normal"
-                style={{ ...navLinkStyle, fontWeight: 400 }}
-              >
-                <p className="relative shrink-0" style={{ margin: 0, cursor: "pointer", fontSize: "17px" }}>
-                  PROFILE
-                </p>
+          {/* Right: search, account, cart */}
+          <div className="flex items-center justify-end gap-4 md:gap-7 min-w-0">
+            {isAdmin && (
+              <Link href="/admin" className="t-nav lv-link hidden xl:inline text-[#b45309]">
+                Admin
               </Link>
-            </div>
-          ) : (
-            <Link
-              href="/signin"
-              className="nav-link font-normal max-md:!hidden"
-              style={{ ...navLinkStyle, fontWeight: 400 }}
-            >
-              <p className="relative shrink-0 whitespace-nowrap" style={{ margin: 0, cursor: "pointer", fontSize: "17px" }}>SIGN IN</p>
+            )}
+            <Link href="/search" aria-label="Search" className="flex items-center gap-2 p-1 text-inherit no-underline">
+              <Search className="size-[20px] stroke-[1.5]" aria-hidden />
+              <span className="t-nav hidden md:inline">Search</span>
             </Link>
-          )}
-        </div>
-      </nav>
+            <Link
+              href={user ? "/profile" : "/signin"}
+              aria-label={user ? "My account" : "Sign in"}
+              className="flex items-center gap-2 p-1 text-inherit no-underline"
+            >
+              <User className="size-[20px] stroke-[1.5]" aria-hidden />
+              <span className="t-nav hidden lg:inline">{user ? "Account" : "Sign in"}</span>
+            </Link>
+            <button
+              type="button"
+              onClick={handleCartClick}
+              aria-label={`Open cart, ${cartCount} item${cartCount === 1 ? "" : "s"}`}
+              className="relative flex items-center gap-2 p-1 bg-transparent border-none cursor-pointer text-inherit"
+            >
+              <span className="relative">
+                <ShoppingBag className="size-[20px] stroke-[1.5]" aria-hidden />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1.5 -right-2 min-w-[17px] h-[17px] px-1 rounded-full bg-[#0d0d0d] text-white text-[10px] leading-[17px] text-center font-medium tabular-nums">
+                    {cartCount > 99 ? "99+" : cartCount}
+                  </span>
+                )}
+              </span>
+              <span className="t-nav hidden md:inline">Cart</span>
+            </button>
+          </div>
+        </nav>
+      </header>
     </>
   );
 }

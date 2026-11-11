@@ -1,5 +1,30 @@
 # LIVUS — SQA Report
 
+## ▶▶ Latest status — re-test of commit `363831b` (all SQA items)
+
+`tsc` clean · `next build` 48 routes · live DB in sync (migrations 0001–0004, 21 tables) · re-tested on the private DB copy.
+
+**All code items from the previous table now pass:**
+E1 stock no longer lost on rejected bKash/Nagad attempts (4 attempts → stock unchanged; rejection reason is the payment check) ·
+C2 staff blocked from changing payment numbers, superadmin allowed, other settings still editable ·
+C4 no reviewer emails returned · E2 bKash shows and displays the configured number · E7 non-buyer reviews not "verified" ·
+E4 cancel by order number no longer crashes · E6 COD orders can't be "payment verified" · E8 DB-backed rate limit (6th review blocked) ·
+H2 category pages strict · H3 fake dashboard data removed · H5 categories/product types from DB · H7 unknown product → 404 ·
+M2 one `<h1>` per page · M7 security headers present, `X-Powered-By` removed · M4 `/variants` blocked in production.
+
+**Still needs you (not code bugs):**
+| Item | What to do |
+|---|---|
+| Social links | Footer now points to `facebook.com/livus.bd` and `instagram.com/livus.atelier` — **confirm these are your pages** (they were not provided by you). |
+| Policy pages | `/about`, `/contact`, `/privacy`, `/terms`, `/shipping-returns` are drafts written by AI: they show the placeholder phone **+880 1711 000000**, `support@livus.com.bd`, and a **7-day return** rule. Review and correct every page before launch. |
+| Support phone | Still `+880 1711 000000` in Admin → Settings. |
+| M1 | Decide whether VAT and free delivery use the price after discount. |
+| H1 | Create Accessories category in Admin and move tie, cufflinks, belt. |
+| Rate limits | Only applied to reviews and abandoned-checkout saving; consider adding to order placement, newsletter and reset-code requests. |
+| Not tested | Real email delivery, Google/Facebook login on the live domain, payments on a real phone — do these once deployed. |
+
+---
+
 ## ▶ Current status — re-test of commit `7a89451` ("complete all P0, P1, and P2 fixes")
 
 `tsc` clean · `next build` passes (48 routes) · `'use server'` lines fixed · live DB schema in sync (migrations 0001–0003).

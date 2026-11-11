@@ -293,9 +293,6 @@ footer .footer-btn-group a {
     padding-right: 16px !important;
   }
   /* Product card text scales down for the 2-column phone grid */
-  [data-product-card="true"] .text-\[17px\] { font-size: 15px !important; }
-  [data-product-card="true"] .text-\[20px\] { font-size: 16px !important; }
-  [data-product-card="true"] .text-\[18px\] { font-size: 14px !important; }
   [data-product-card="true"] .text-\[15px\] { font-size: 12px !important; }
   /* Inputs at 16px stop iOS Safari from zooming in on focus */
   input, select, textarea { font-size: 16px; }
@@ -340,4 +337,75 @@ footer .footer-btn-group a {
 [data-slot="dialog-content"].admin-portal,
 [data-slot="dialog-content"].admin-portal * {
   font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   STOREFRONT TYPE SCALE
+   Fluid sizes (clamp) so headings scale smoothly from phone → tablet → desktop
+   instead of jumping between fixed pixel sizes. Use these classes on new UI.
+   ══════════════════════════════════════════════════════════════════ */
+:root {
+  --lv-ink: #0d0d0d;
+  --lv-ink-muted: #5c5c5c;
+  --lv-line: #e4e4e4;
+  --lv-surface-dark: #0d0d0d;
+  --lv-gutter: clamp(16px, 2.5vw, 36px);
+}
+
+.t-display,
+.t-h2,
+.t-h3 {
+  font-family: 'Big Shoulders', 'Big Shoulders Display', sans-serif;
+  font-weight: 600 !important;
+  color: var(--lv-ink);
+}
+.t-display { font-size: clamp(52px, 8.4vw, 128px); line-height: 0.92; letter-spacing: -0.03em; }
+.t-h2      { font-size: clamp(36px, 4.8vw, 72px);  line-height: 0.98; letter-spacing: -0.025em; }
+.t-h3      { font-size: clamp(24px, 2.2vw, 32px);  line-height: 1.1;  letter-spacing: -0.01em; }
+
+.t-lead,
+.t-body,
+.t-small,
+.t-eyebrow,
+.t-nav {
+  font-family: 'Barlow Semi Condensed', sans-serif;
+}
+.t-lead    { font-size: clamp(16px, 1.25vw, 19px); line-height: 1.5; color: var(--lv-ink-muted); font-weight: 400 !important; }
+.t-body    { font-size: 16px; line-height: 1.55; }
+.t-small   { font-size: 14px; line-height: 1.5; }
+.t-eyebrow { font-size: 13px; line-height: 1.2; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 500 !important; }
+.t-nav     { font-size: 15px; line-height: 1; letter-spacing: 0.08em; text-transform: uppercase; }
+
+/* Buttons */
+.lv-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 48px; padding: 0 26px;
+  font-family: 'Barlow Semi Condensed', sans-serif; font-size: 15px; font-weight: 500 !important;
+  letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; white-space: nowrap;
+  border: 1px solid var(--lv-ink); transition: background-color .2s ease, color .2s ease, border-color .2s ease;
+}
+.lv-btn--solid   { background: var(--lv-ink); color: #fff; }
+.lv-btn--solid:hover { background: #2a2a2a; border-color: #2a2a2a; }
+.lv-btn--outline { background: transparent; color: var(--lv-ink); }
+.lv-btn--outline:hover { background: var(--lv-ink); color: #fff; }
+.lv-btn--light   { background: #fff; color: var(--lv-ink); border-color: #fff; }
+.lv-btn--light:hover { background: transparent; color: #fff; }
+.lv-btn:focus-visible, .lv-link:focus-visible { outline: 2px solid #0d0d0d; outline-offset: 3px; }
+
+/* Underline-on-hover link used in header and footer */
+.lv-link { position: relative; text-decoration: none; color: inherit; }
+.lv-link::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -4px; height: 1px;
+  background: currentColor; transform: scaleX(0); transform-origin: left; transition: transform .25s ease;
+}
+.lv-link:hover::after, .lv-link[aria-current='page']::after { transform: scaleX(1); }
+
+/* Consistent product card text (overrides the old ad-hoc sizes) */
+[data-product-card="true"] .text-\[17px\] { font-size: 16px !important; line-height: 1.35; }
+[data-product-card="true"] .text-\[20px\] { font-size: 17px !important; }
+[data-product-card="true"] .text-\[18px\] { font-size: 15px !important; }
+@media (max-width: 767px) {
+  [data-product-card="true"] .text-\[17px\] { font-size: 14px !important; }
+  [data-product-card="true"] .text-\[20px\] { font-size: 15px !important; }
+  [data-product-card="true"] .text-\[18px\] { font-size: 13px !important; }
 }

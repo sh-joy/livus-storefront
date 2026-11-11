@@ -1,189 +1,197 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import type { CSSProperties } from "react";
-import { InputField } from "./InputField";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+
+// Brand icons (lucide no longer ships brand logos)
+function Facebook({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden>
+      <path d="M13.5 21v-7.5h2.53l.38-2.94H13.5V8.69c0-.85.24-1.43 1.46-1.43h1.55V4.63c-.27-.04-1.19-.12-2.26-.12-2.24 0-3.77 1.37-3.77 3.88v2.17H7.95v2.94h2.53V21h3.02Z" />
+    </svg>
+  );
+}
+function Instagram({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth={1.5} aria-hidden>
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.5" cy="6.5" r="0.9" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
 import { addNewsletterSubscriberAction } from "@/app/actions/subscribers";
 
 interface SiteFooterProps {
+  /** Kept for backwards compatibility; the footer is always the dark brand footer now. */
   variant?: "light" | "dark";
 }
 
-export function SiteFooter({ variant = "light" }: SiteFooterProps) {
-  const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [subscribeState, setSubscribeState] = useState<"idle" | "loading" | "done" | "error">("idle");
-  const [subscribeMsg, setSubscribeMsg] = useState("");
+// TODO(owner): confirm these are the official LIVUS pages before launch.
+const SOCIAL_LINKS = [
+  { label: "Facebook", href: "https://www.facebook.com/livus.bd", icon: Facebook },
+  { label: "Instagram", href: "https://www.instagram.com/livus.atelier", icon: Instagram },
+];
 
-  const handleSubscribe = async () => {
+const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
+  {
+    title: "Shop",
+    links: [
+      { label: "All products", href: "/all-products" },
+      { label: "For him", href: "/for-him" },
+      { label: "For her", href: "/for-her" },
+      { label: "Unisex", href: "/unisex" },
+      { label: "Accessories", href: "/accessories" },
+      { label: "New in", href: "/latest" },
+    ],
+  },
+  {
+    title: "Help",
+    links: [
+      { label: "Track your order", href: "/profile" },
+      { label: "Shipping & returns", href: "/shipping-returns" },
+      { label: "Contact us", href: "/contact" },
+      { label: "My account", href: "/profile" },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { label: "About LIVUS", href: "/about" },
+      { label: "Privacy policy", href: "/privacy" },
+      { label: "Terms & conditions", href: "/terms" },
+    ],
+  },
+];
+
+export function SiteFooter(_props: SiteFooterProps) {
+  const [email, setEmail] = useState("");
+  const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [message, setMessage] = useState("");
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
     const clean = email.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)) {
-      setSubscribeState("error");
-      setSubscribeMsg("Please enter a valid email address.");
+      setState("error");
+      setMessage("Please enter a valid email address.");
       return;
     }
-    setSubscribeState("loading");
+    setState("loading");
     const res = await addNewsletterSubscriberAction(clean);
     if (res.success) {
-      setSubscribeState("done");
-      setSubscribeMsg("Thanks for subscribing!");
+      setState("done");
+      setMessage("You're on the list. Watch your inbox for the next drop.");
       setEmail("");
     } else {
-      setSubscribeState("error");
-      setSubscribeMsg(res.message || "Could not subscribe. Please try again.");
+      setState("error");
+      setMessage(res.message || "Could not subscribe right now. Please try again.");
     }
   };
 
-  const isDark = variant === "dark";
-  const bg = isDark ? "var(--surface-dark)" : "#ffffff";
-  const textColor = isDark ? "#ffffff" : "#333333";
-  const mutedColor = isDark ? "rgba(255,255,255,0.5)" : "#1c1c1c";
-
-  const linkStyle: CSSProperties = {
-    fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
-    fontSize: "17px", lineHeight: "24px", letterSpacing: "0.17px",
-    color: textColor, cursor: "pointer", fontWeight: 400,
-    transition: "opacity 0.2s ease",
-  };
-
-  const navLinks = [
-    { label: "Home", path: "/" },
-    { label: "Collections", path: "/for-him" },
-    { label: "All Products", path: "/all-products" },
-    { label: "About Us", path: "/about" },
-    { label: "Contact", path: "/contact" },
-    { label: "Profile", path: "/profile" },
-    { label: "Privacy Policy", path: "/privacy" },
-    { label: "Terms of Service", path: "/terms" },
-    { label: "Shipping & Returns", path: "/shipping-returns" },
-  ];
-
-  const socialLinks = [
-    { label: "Facebook", href: "https://www.facebook.com/livus.bd" },
-    { label: "Instagram", href: "https://www.instagram.com/livus.atelier" },
-    { label: "Contact Us", href: "/contact" },
-  ];
-
   return (
-    <footer className="!px-[36px] !pt-[140px] !pb-[36px] max-md:!px-[16px] max-md:!pt-[72px] max-md:!pb-[24px]" style={{
-      background: bg,
-      borderTop: "none",
-      flexShrink: 0,
-      width: "100%",
-      boxSizing: "border-box",
-    }}>
-      <div className="max-md:!flex-col-reverse max-md:!gap-[48px]" style={{
-        display: "flex",
-        alignItems: "stretch",
-        justifyContent: "space-between",
-        gap: "36px",
-      }}>
-
-        {/* Left: LIVUS logo + copyright space-between vertically */}
-        <div className="max-md:!gap-[24px]" style={{
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          flex: "1 0 0",
-          minWidth: 0,
-        }}>
-          <p
-            className="livus-logo"
-            style={{
-              fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
-              fontSize: "30px", fontWeight: 600, letterSpacing: "9px",
-              lineHeight: "26px", color: isDark ? "#ffffff" : "#000000",
-              cursor: "pointer",
-            }}
-            onClick={() => router.push("/")}
-          >
-            LIVUS
-          </p>
-          <div style={{
-            fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
-            fontSize: "14px", letterSpacing: "0.7px", textTransform: "uppercase",
-            lineHeight: "24px", color: mutedColor,
-          }}>
-            <p>Copyright © 2026 LIVUS</p>
-            <p>
-              Made with ❤️ by{" "}
-              <span style={{ fontWeight: 500, textDecoration: "underline" }}>joy</span>
+    <footer className="w-full shrink-0 bg-[var(--lv-surface-dark)] text-white mt-[clamp(48px,8vw,120px)]">
+      <div className="px-[var(--lv-gutter)] pt-[clamp(56px,7vw,96px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-14 lg:gap-10">
+          {/* Newsletter */}
+          <div className="lg:col-span-5 flex flex-col gap-5 max-w-[520px]">
+            <p className="t-eyebrow m-0 text-white/55">Newsletter</p>
+            <h2 className="t-h3 m-0 !text-white">Join the LIVUS list</h2>
+            <p className="t-body m-0 text-white/65">
+              New drops, restocks and members-only offers. No spam — unsubscribe any time.
             </p>
-          </div>
-        </div>
-
-        {/* Right: nav + social + subscribe */}
-        <div className="max-md:!flex-col max-md:!gap-[40px]" style={{ display: "flex", flex: "1 0 0", minWidth: 0, gap: "4px", alignItems: "flex-start" }}>
-
-          {/* Unified btn-group across both Nav & Social link columns */}
-          <div
-            className="footer-btn-group max-md:!w-full"
-            style={{ flex: "2 0 0", display: "flex", gap: "16px", alignItems: "flex-start" }}
-          >
-            {/* Nav links column */}
-            <div style={{ flex: "1 0 0", display: "flex", flexDirection: "column", gap: "16px", padding: "0 8px" }}>
-              {navLinks.map(({ label, path }) => (
-                <p key={label} style={linkStyle} onClick={() => router.push(path)}>{label}</p>
-              ))}
-            </div>
-
-            {/* Social links column */}
-            <div style={{ flex: "1 0 0", display: "flex", flexDirection: "column", gap: "16px", padding: "0 8px" }}>
-              {socialLinks.map(({ label, href }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target={href.startsWith("http") ? "_blank" : undefined}
-                  rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
-                  style={{ ...linkStyle, textDecoration: "none", display: "block" }}
+            <form onSubmit={handleSubscribe} noValidate className="flex flex-col gap-3 mt-1">
+              <div className="flex items-stretch border-b border-white/30 focus-within:border-white transition-colors">
+                <label htmlFor="footer-newsletter-email" className="sr-only">Email address</label>
+                <input
+                  id="footer-newsletter-email"
+                  type="email"
+                  autoComplete="email"
+                  inputMode="email"
+                  placeholder="Your email address"
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); if (state !== "loading") setState("idle"); }}
+                  className="flex-1 min-w-0 bg-transparent border-none outline-none text-white placeholder:text-white/40 py-3 text-[16px]"
+                  style={{ fontFamily: "'Barlow Semi Condensed', sans-serif" }}
+                />
+                <button
+                  type="submit"
+                  disabled={state === "loading"}
+                  aria-label="Subscribe"
+                  className="flex items-center gap-2 px-1 bg-transparent border-none text-white cursor-pointer disabled:opacity-50 t-nav"
                 >
-                  {label}
-                </a>
-              ))}
-            </div>
-          </div>
-
-          {/* Subscribe */}
-          <div className="max-md:!w-full max-md:!max-w-none max-md:!flex-none" style={{ flex: "320 0 0", maxWidth: "320px", minWidth: "200px", display: "flex", flexDirection: "column", gap: "30px" }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-              <p style={{
-                fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
-                fontSize: "14px", letterSpacing: "0.7px", textTransform: "uppercase",
-                lineHeight: "24px", color: mutedColor, whiteSpace: "nowrap",
-              }}>Subscribe to our newsletter</p>
-
-              <InputField
-                label="Enter your email address"
-                type="email"
-                value={email}
-                onChange={(v: string) => { setEmail(v); if (subscribeState !== "loading") setSubscribeState("idle"); }}
-                variant={isDark ? "dark" : "light"}
-              />
-            </div>
-            {subscribeState === "done" || subscribeState === "error" ? (
-              <p style={{ fontSize: "14px", marginTop: "-18px", color: subscribeState === "error" ? "#c0392b" : (isDark ? "#9fe0a8" : "#1e7a34") }}>
-                {subscribeMsg}
+                  <span className="hidden sm:inline">{state === "loading" ? "Joining…" : "Subscribe"}</span>
+                  <ArrowRight className="size-[18px] stroke-[1.5]" aria-hidden />
+                </button>
+              </div>
+              <p
+                role="status"
+                className={`t-small m-0 min-h-[21px] ${state === "error" ? "text-[#ff8a8a]" : "text-[#9fe0a8]"}`}
+              >
+                {state === "done" || state === "error" ? message : ""}
               </p>
-            ) : null}
-            <button
-              type="button"
-              disabled={subscribeState === "loading"}
-              onClick={handleSubscribe}
-              style={{
-                display: "inline-flex", alignItems: "center", justifyContent: "center",
-                background: "#050505", color: "#ffffff", border: "none", cursor: "pointer",
-                padding: "12px 20px", alignSelf: "flex-start",
-                fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
-                fontSize: "17px", lineHeight: "24px", fontWeight: 400,
-                textTransform: "uppercase",
-              }}
-            >
-              {subscribeState === "loading" ? "SUBSCRIBING…" : "SUBSCRIBE"}
-            </button>
+            </form>
           </div>
 
+          {/* Link columns */}
+          <nav aria-label="Footer" className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-10">
+            {COLUMNS.map((col) => (
+              <div key={col.title} className="flex flex-col gap-5">
+                <p className="t-eyebrow m-0 text-white/55">{col.title}</p>
+                <ul className="list-none m-0 p-0 flex flex-col gap-3.5">
+                  {col.links.map((l) => (
+                    <li key={l.label}>
+                      <Link href={l.href} className="lv-link t-body text-white/85 hover:text-white">
+                        {l.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </nav>
         </div>
+
+        {/* Wordmark */}
+        <Link
+          href="/"
+          aria-label="LIVUS home"
+          className="livus-logo block select-none no-underline text-white/[0.08] hover:text-white/[0.14] transition-colors leading-[0.8] mt-[clamp(56px,8vw,112px)] -mb-[0.06em] text-center"
+          style={{
+            fontFamily: "'Big Shoulders', 'Big Shoulders Display', sans-serif",
+            fontSize: "clamp(96px, 24vw, 380px)",
+            letterSpacing: "0.12em",
+            fontWeight: 700,
+          }}
+        >
+          LIVUS
+        </Link>
+      </div>
+
+      {/* Bottom bar */}
+      <div className="border-t border-white/10 px-[var(--lv-gutter)] py-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <p className="t-small m-0 text-white/55">
+          © {new Date().getFullYear()} LIVUS. All rights reserved. · Made with ❤️ by <span className="underline">joy</span>
+        </p>
+        <p className="t-small m-0 text-white/55">
+          We accept: <span className="text-white/85">Cash on delivery · bKash · Nagad</span>
+        </p>
+        <ul className="list-none m-0 p-0 flex items-center gap-5">
+          {SOCIAL_LINKS.map(({ label, href, icon: Icon }) => (
+            <li key={label}>
+              <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`LIVUS on ${label}`}
+                className="flex text-white/70 hover:text-white transition-colors"
+              >
+                <Icon className="size-5 stroke-[1.5]" aria-hidden />
+              </a>
+            </li>
+          ))}
+        </ul>
       </div>
     </footer>
   );

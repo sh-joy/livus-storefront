@@ -12,7 +12,6 @@ const NAV_LINKS = [
   { label: "Latest", path: "/latest" },
   { label: "Popular", path: "/popular" },
   { label: "Accessories", path: "/accessories" },
-  { label: "Gift Card", path: "/all-products" },
   { label: "Search", path: "/search" },
   { label: "My Account", path: "/profile" },
   { label: "About", path: "/about" },

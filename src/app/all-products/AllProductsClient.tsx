@@ -219,14 +219,14 @@ export default function AllProductsClient({ products = [] }: { products?: Produc
       <div className="content-stretch flex flex-col gap-[3px] items-center pt-[0px] relative shrink-0 w-full">
         <div className="relative shrink-0 w-full">
           <div className="flex flex-row items-center justify-center size-full">
-            <div className="content-stretch flex items-center justify-center pt-[100px] max-md:pt-[32px] px-[36px] max-md:px-[16px] relative size-full">
-              <div className="content-stretch flex flex-[1_0_0] items-end justify-between min-w-px relative max-md:flex-col max-md:items-start max-md:gap-[16px]">
-                <h1 className="[word-break:break-word] font-serif font-bold leading-[110px] max-md:leading-[64px] relative shrink-0 text-[110px] max-md:text-[64px] text-black tracking-[-3.3px] max-md:tracking-[-1.5px] whitespace-nowrap">
-                  Explore All.
+            <div className="flex items-center justify-center pt-[clamp(32px,6vw,96px)] px-[var(--lv-gutter)] relative size-full">
+              <div className="flex flex-1 min-w-0 flex-col md:flex-row md:items-end md:justify-between gap-4 md:gap-10">
+                <h1 className="t-display m-0 whitespace-nowrap">
+                  Shop All.
                 </h1>
-                <div className="content-stretch flex flex-col items-end justify-center pb-[20px] relative shrink-0 w-[450px] max-md:w-full max-md:items-start max-md:pb-0">
-                  <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[20px] max-md:!text-[16px] text-black text-right max-md:text-left tracking-[-0.1px] w-full">
-                    Explore our complete collection of handcrafted apparel, luxury wear, and modern design drops.
+                <div className="flex flex-col items-start md:items-end justify-center pb-2 w-full md:max-w-[420px]">
+                  <p className="t-lead m-0 text-left md:text-right w-full">
+                    Every LIVUS piece in one place — jerseys, shirts, trousers and accessories for him and her.
                   </p>
                 </div>
               </div>
@@ -238,12 +238,11 @@ export default function AllProductsClient({ products = [] }: { products?: Produc
 
       {/* Collection Header & Description */}
       <div className="relative shrink-0 w-full pt-[60px] max-md:pt-[32px] pb-[20px]">
-        <div className="content-stretch flex flex-col gap-[12px] items-start px-[36px] max-md:px-[16px] relative size-full">
-          <p className="[word-break:break-word] font-serif font-semibold leading-[90px] max-md:leading-[48px] relative shrink-0 text-[70px] max-md:text-[40px] text-black tracking-[-2.1px] max-md:tracking-[-1px] whitespace-nowrap">
-            All Collections
-          </p>
-          <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[18px] max-md:!text-[16px] text-[#505050] tracking-[-0.1px] max-w-[650px]">
-            Browse fully customizable templates or draw inspiration from real designs created by our community. Filter by category to find your next look.
+        <div className="flex flex-col gap-3 items-start px-[var(--lv-gutter)]">
+          <p className="t-eyebrow m-0 text-[var(--lv-ink-muted)]">The full range</p>
+          <h2 className="t-h2 m-0">All collections</h2>
+          <p className="t-lead m-0 max-w-[560px]">
+            Filter by category, size or price to find your next favourite.
           </p>
         </div>
       </div>

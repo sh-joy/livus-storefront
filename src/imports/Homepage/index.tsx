@@ -7,6 +7,7 @@ import type { ProductItem } from '@/app/actions/products';
 import { ProductCard } from '@/figma-components/ProductCard';
 import { SiteNav } from '@/figma-components/SiteNav';
 import { SiteFooter } from '@/figma-components/SiteFooter';
+import { TrustStrip } from '@/components/storefront/TrustStrip';
 import svgPaths from "./svg-8f9q8i8m4a";
 import imgImage116 from "./147bb3d7a50a487cfcb2163c878fc1a5c25e19e6.png";
 import imgFrame1597881163 from "./d0bebc10c59b7c075b3c9a8b180df7af46874e97.png";
@@ -45,16 +46,19 @@ function Frame() {
 
 function Frame189Status() {
   return (
-    <div className="bg-[#050505] content-stretch flex items-center justify-center py-[12px] px-[20px] relative shrink-0 cursor-pointer hover:bg-neutral-800 transition-colors" data-name="Frame 189/Status3">
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[17px] text-white uppercase tracking-[0.5px] font-normal">EXPLORE DESIGNS</p>
+    <div className="flex flex-wrap gap-3">
+      <Link href="/latest" className="lv-btn lv-btn--solid">Shop new in</Link>
+      <Link href="/all-products" className="lv-btn lv-btn--outline">Shop all</Link>
     </div>
   );
 }
 
 function Frame8() {
   return (
-    <div className="content-stretch flex flex-col gap-[20px] items-end justify-center pb-[10px] relative shrink-0 w-[450px] max-md:w-full max-md:items-start">
-      <p className="[word-break:break-word] font-sans leading-[24px] min-w-full not-italic relative shrink-0 text-[20px] max-md:text-[16px] text-black text-right max-md:text-left tracking-[-0.1px] w-[min-content] max-md:w-full">We’re Bangladesh’s very first brand to let you design and print your own jersey. Stand out like never before!</p>
+    <div className="flex flex-col gap-6 items-start md:items-end md:text-right w-full md:max-w-[420px] pb-2">
+      <p className="t-lead m-0">
+        Premium jerseys and athletic streetwear for him and her — delivered anywhere in Bangladesh, with cash on delivery.
+      </p>
       <Frame189Status />
     </div>
   );
@@ -62,11 +66,14 @@ function Frame8() {
 
 function Frame6() {
   return (
-    <div className="content-stretch flex flex-[1_0_0] items-end justify-between min-w-px relative max-md:flex-col max-md:items-start max-md:gap-[20px]">
-      <h1 className="[word-break:break-word] font-serif font-bold leading-[0] relative shrink-0 text-[110px] max-md:text-[56px] text-black tracking-[-3.3px] max-md:tracking-[-1.5px] whitespace-nowrap">
-        <span className="block leading-[110px] max-md:leading-[56px] mb-0">Your game.</span>
-        <span className="block leading-[110px] max-md:leading-[56px]">Your Design.</span>
-      </h1>
+    <div className="flex flex-1 min-w-0 flex-col md:flex-row md:items-end md:justify-between gap-6 md:gap-10">
+      <div className="flex flex-col gap-4 min-w-0">
+        <p className="t-eyebrow m-0 text-[var(--lv-ink-muted)]">LIVUS · Athletic streetwear</p>
+        <h1 className="t-display m-0">
+          <span className="block">Your game.</span>
+          <span className="block">Your style.</span>
+        </h1>
+      </div>
       <Frame8 />
     </div>
   );
@@ -76,7 +83,7 @@ function Frame5() {
   return (
     <div className="relative shrink-0 w-full">
       <div className="flex flex-row items-center justify-center size-full">
-        <div className="content-stretch flex items-center justify-center px-[36px] max-md:px-[16px] relative size-full">
+        <div className="flex items-center justify-center px-[var(--lv-gutter)] relative size-full">
           <Frame6 />
         </div>
       </div>
@@ -199,7 +206,7 @@ function Frame11() {
 
 function Frame4() {
   return (
-    <div className="content-stretch flex flex-col gap-[3px] items-center pt-[60px] max-md:pt-[32px] relative shrink-0 w-full">
+    <div className="content-stretch flex flex-col gap-[3px] items-center pt-[clamp(32px,5vw,72px)] relative shrink-0 w-full">
       <Frame5 />
       <Frame11 />
     </div>
@@ -318,7 +325,7 @@ function Frame18() {
 function Frame16() {
   return (
     <div className="content-stretch flex items-center relative shrink-0 w-[600px]">
-      <p className="[word-break:break-word] flex-[1_0_0] font-sans leading-[24px] min-w-px not-italic relative text-[20px] text-black tracking-[-0.1px]">Browse fully customizable templates or draw inspiration from real designs created by our community. Filter by sport to find your team’s next look.</p>
+      <p className="[word-break:break-word] flex-[1_0_0] font-sans leading-[24px] min-w-px not-italic relative text-[20px] text-black tracking-[-0.1px]">Our most-loved pieces right now. New styles land with every drop.</p>
     </div>
   );
 }
@@ -428,10 +435,13 @@ function Frame20({
 function Frame7() {
   return (
     <div className="relative shrink-0 w-full">
-      <div className="content-stretch flex flex-col gap-[12px] items-start pb-[25px] px-[36px] max-md:px-[16px] relative size-full">
-        <p className="[word-break:break-word] font-serif font-semibold leading-[90px] max-md:leading-[44px] relative shrink-0 text-[70px] max-md:text-[40px] text-black tracking-[-2.1px] max-md:tracking-[-1px] md:whitespace-nowrap">Explore the collection</p>
-        <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[18px] max-md:!text-[16px] text-[#505050] tracking-[-0.1px] max-w-[650px]">
-          Browse fully customizable templates or draw inspiration from real designs created by our community. Filter by sport to find your team’s next look.
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 pb-8 px-[var(--lv-gutter)]">
+        <div className="flex flex-col gap-3">
+          <p className="t-eyebrow m-0 text-[var(--lv-ink-muted)]">Popular now</p>
+          <h2 className="t-h2 m-0">Explore the collection</h2>
+        </div>
+        <p className="t-lead m-0 max-w-[460px] md:text-right">
+          Our most-loved pieces right now. New styles land with every drop.
         </p>
       </div>
     </div>
@@ -755,16 +765,16 @@ function Frame15({ products, onResetFilter }: { products?: HomepageProductItem[]
 
 function Frame189Status11() {
   return (
-    <div className="bg-white content-stretch flex items-center justify-center py-[12px] px-[20px] relative shrink-0 cursor-pointer hover:opacity-85 transition-opacity" data-name="Frame 189/Status3">
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#0d0d0d] text-[17px] font-normal uppercase tracking-[0.5px] whitespace-nowrap m-0">LET'S TALK</p>
-    </div>
+    <Link href="/all-products" className="lv-btn lv-btn--light">Shop the collection</Link>
   );
 }
 
 function Frame44() {
   return (
-    <div className="content-stretch flex flex-col gap-[20px] items-center relative shrink-0 max-w-full">
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#ccc] text-[18px] max-md:!text-[16px] text-center w-[623.465px] max-w-full">Share it with us and watch how we transform it into a unique masterpiece with careful attention to every detail. Let’s create amazing works of art that inspire people.</p>
+    <div className="flex flex-col gap-7 items-center max-w-full">
+      <p className="t-lead m-0 text-center max-w-[560px] !text-[#bdbdbd]">
+        Breathable fabrics, athletic fits and bold graphics — made to move with you from the pitch to the city.
+      </p>
       <Frame189Status11 />
     </div>
   );
@@ -772,8 +782,8 @@ function Frame44() {
 
 function Frame43() {
   return (
-    <div className="content-stretch flex flex-col items-center relative shrink-0 max-w-full">
-      <p className="[word-break:break-word] font-serif font-semibold leading-[110px] max-md:leading-[44px] relative shrink-0 text-[70px] max-md:text-[40px] text-white tracking-[-2.1px] max-md:tracking-[-1px] md:whitespace-nowrap text-center max-md:mb-[16px]">Have your own design?</p>
+    <div className="flex flex-col items-center gap-6 max-w-full">
+      <h2 className="t-h2 m-0 text-center !text-white">Made for the game.<br />Built for the street.</h2>
       <Frame44 />
     </div>
   );
@@ -1048,17 +1058,16 @@ export default function Homepage({ products }: { products?: HomepageProductItem[
     <div className="bg-white content-stretch flex flex-col items-start relative size-full" data-name="Homepage">
       <SiteNav />
       <Frame4 />
+      <TrustStrip />
+      <div className="h-[clamp(48px,6vw,96px)]" aria-hidden />
       <Frame18 />
       <Frame7 />
       <Frame15 products={popularProducts} />
       
       {/* "Explore All" Button */}
       <div className="w-full flex items-center justify-center pt-8 pb-16">
-        <Link
-          href="/all-products"
-          className="inline-block bg-[#050505] text-white hover:bg-neutral-800 px-[20px] py-[12px] text-[17px] font-normal uppercase tracking-[0.5px] transition-all cursor-pointer rounded-none border border-black shadow-sm"
-        >
-          EXPLORE ALL
+        <Link href="/all-products" className="lv-btn lv-btn--solid">
+          Explore all
         </Link>
       </div>
 

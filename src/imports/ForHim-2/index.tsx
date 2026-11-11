@@ -15,8 +15,8 @@ import { imgImage115 } from "./svg-mkkoy";
 
 function Frame7({ subtitle }: { subtitle?: string }) {
   return (
-    <div className="content-stretch flex flex-col items-end justify-center pb-[20px] relative shrink-0 w-[450px] max-md:w-full max-md:items-start max-md:pb-0">
-      <p className="category-hero-subtitle [word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[20px] max-md:!text-[16px] text-black text-right max-md:text-left tracking-[-0.1px] w-full font-normal" style={{ fontWeight: 400 }}>
+    <div className="flex flex-col items-start md:items-end justify-center pb-2 w-full md:max-w-[420px]">
+      <p className="category-hero-subtitle t-lead m-0 text-left md:text-right w-full" style={{ fontWeight: 400 }}>
         {subtitle || `Exclusive Men's Jersey Collection. Crafted with premium fabrics and unparalleled design for the true gentleman.`}
       </p>
     </div>
@@ -25,8 +25,8 @@ function Frame7({ subtitle }: { subtitle?: string }) {
 
 function Frame5({ title, subtitle }: { title?: string; subtitle?: string }) {
   return (
-    <div className="content-stretch flex flex-[1_0_0] items-end justify-between min-w-px relative max-md:flex-col max-md:items-start max-md:gap-[16px]">
-      <h1 className="[word-break:break-word] font-serif font-semibold leading-[110px] max-md:leading-[64px] relative shrink-0 text-[110px] max-md:text-[64px] text-black tracking-[-3.3px] max-md:tracking-[-1.5px] whitespace-nowrap" style={{ fontWeight: 600 }}>
+    <div className="flex flex-1 min-w-0 flex-col md:flex-row md:items-end md:justify-between gap-4 md:gap-10">
+      <h1 className="t-display m-0 whitespace-nowrap" style={{ fontWeight: 600 }}>
         {title || "For Him."}
       </h1>
       <Frame7 subtitle={subtitle} />
@@ -38,7 +38,7 @@ function Frame4({ title, subtitle }: { title?: string; subtitle?: string }) {
   return (
     <div className="relative shrink-0 w-full">
       <div className="flex flex-row items-center justify-center size-full">
-        <div className="content-stretch flex items-center justify-center pt-[100px] max-md:pt-[32px] px-[36px] max-md:px-[16px] relative size-full">
+        <div className="content-stretch flex items-center justify-center pt-[clamp(32px,6vw,96px)] px-[var(--lv-gutter)] relative size-full">
           <Frame5 title={title} subtitle={subtitle} />
         </div>
       </div>
@@ -164,7 +164,7 @@ function Frame3() {
 function Frame15() {
   return (
     <div className="content-stretch flex items-center relative shrink-0 w-[600px]">
-      <p className="[word-break:break-word] flex-[1_0_0] font-sans leading-[24px] min-w-px not-italic relative text-[20px] text-black tracking-[-0.1px]">Browse fully customizable templates or draw inspiration from real designs created by our community. Filter by sport to find your team’s next look.</p>
+      <p className="[word-break:break-word] flex-[1_0_0] font-sans leading-[24px] min-w-px not-italic relative text-[20px] text-black tracking-[-0.1px]">Our most-loved pieces right now. New styles land with every drop.</p>
     </div>
   );
 }
@@ -625,16 +625,16 @@ function Frame14({ products, onResetFilter }: { products?: ProductItem[]; onRese
 
 function Frame189Status7() {
   return (
-    <div className="bg-white content-stretch flex items-center justify-center py-[12px] px-[20px] relative shrink-0 cursor-pointer hover:opacity-85 transition-opacity" data-name="Frame 189/Status3">
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#0d0d0d] text-[17px] font-normal uppercase tracking-[0.5px] whitespace-nowrap m-0">LET'S TALK</p>
-    </div>
+    <Link href="/all-products" className="lv-btn lv-btn--light">Shop the collection</Link>
   );
 }
 
 function Frame37() {
   return (
-    <div className="content-stretch flex flex-col gap-[20px] items-center relative shrink-0 max-w-full">
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#ccc] text-[18px] max-md:!text-[16px] text-center w-[623.465px] max-w-full">Share it with us and watch how we transform it into a unique masterpiece with careful attention to every detail. Let’s create amazing works of art that inspire people.</p>
+    <div className="flex flex-col gap-7 items-center max-w-full">
+      <p className="t-lead m-0 text-center max-w-[560px] !text-[#bdbdbd]">
+        Breathable fabrics, athletic fits and bold graphics — made to move with you from the pitch to the city.
+      </p>
       <Frame189Status7 />
     </div>
   );
@@ -642,8 +642,8 @@ function Frame37() {
 
 function Frame36() {
   return (
-    <div className="content-stretch flex flex-col items-center relative shrink-0 max-w-full">
-      <p className="[word-break:break-word] font-serif font-semibold leading-[110px] max-md:leading-[44px] relative shrink-0 text-[70px] max-md:text-[40px] text-white tracking-[-2.1px] max-md:tracking-[-1px] md:whitespace-nowrap text-center max-md:mb-[16px]">Have your own design?</p>
+    <div className="flex flex-col items-center gap-6 max-w-full">
+      <h2 className="t-h2 m-0 text-center !text-white">Made for the game.<br />Built for the street.</h2>
       <Frame37 />
     </div>
   );

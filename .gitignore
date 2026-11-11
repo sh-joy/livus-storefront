@@ -42,3 +42,4 @@ yarn-error.log*
 
 # local admin passwords (never commit)
 .admin-credentials.json
+.vercel-bypass

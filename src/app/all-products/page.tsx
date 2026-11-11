@@ -3,6 +3,8 @@ import { getProducts } from '@/app/actions/products';
 import AllProductsClient from './AllProductsClient';
 import { NavigationWrapper } from '@/components/NavigationWrapper';
 
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: "Shop All Products",
   description: "Browse the full LIVUS range of athletic streetwear, jerseys, tees and accessories. Cash on Delivery, bKash and Nagad across Bangladesh.",

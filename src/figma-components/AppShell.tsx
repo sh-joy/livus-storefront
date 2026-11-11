@@ -1,12 +1,19 @@
 'use client';
 
 import { Suspense } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useDrawer } from "./DrawerContext";
-import { MenuDrawer } from "./MenuDrawer";
-import { CartDrawer } from "./CartDrawer";
-import { SizingGuideModal } from "./SizingGuideModal";
-import { PromoPopup } from "./PromoPopup";
+
+const MenuDrawer = dynamic(() => import("./MenuDrawer").then((mod) => mod.MenuDrawer), {
+  ssr: false,
+});
+const CartDrawer = dynamic(() => import("./CartDrawer").then((mod) => mod.CartDrawer), {
+  ssr: false,
+});
+const PromoPopup = dynamic(() => import("./PromoPopup").then((mod) => mod.PromoPopup), {
+  ssr: false,
+});
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { openMenu, openCart, openSizingGuide } = useDrawer();

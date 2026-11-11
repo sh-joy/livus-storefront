@@ -22,7 +22,7 @@
 /* Body / UI font: Overused Grotesk (SIL Open Font License, see /fonts/overused-grotesk-LICENSE.txt) */
 @font-face {
   font-family: 'Overused Grotesk';
-  src: url('/fonts/overused-grotesk-vf.ttf') format('truetype');
+  src: url('/fonts/overused-grotesk-vf.woff2') format('woff2');
   font-weight: 300 900;
   font-display: swap;
 }

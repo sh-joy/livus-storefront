@@ -33,7 +33,7 @@ import imgImage114 from "./71b3cd582dab7174e13346a8d88abe33548d2aa7.png";
 
 
 
-function CategoryPanel({ href, line1, line2, cta, src }: { href: string; line1: string; line2: string; cta: string; src: typeof imgFrame1597881163 }) {
+function CategoryPanel({ href, line1, line2, cta, src, preload = false }: { href: string; line1: string; line2: string; cta: string; src: typeof imgFrame1597881163; preload?: boolean }) {
   return (
     <Link
       href={href}
@@ -46,7 +46,8 @@ function CategoryPanel({ href, line1, line2, cta, src }: { href: string; line1: 
         fill
         sizes="(max-width: 639px) 100vw, 50vw"
         className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-        preload
+        preload={preload}
+        priority={preload}
       />
       <div className="absolute inset-0 flex flex-col justify-between p-[clamp(16px,2.4vw,32px)]">
         <h2 className="t-display m-0" style={{ fontSize: "clamp(56px, 7vw, 112px)", lineHeight: 0.85 }}>
@@ -66,8 +67,8 @@ function CategoryPanels() {
   return (
     <section aria-label="Shop by category" className="w-full px-[var(--lv-gutter)]">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        <CategoryPanel href="/for-him" line1="For" line2="Him" cta="Shop for him" src={imgFrame1597881163} />
-        <CategoryPanel href="/for-her" line1="For" line2="Her" cta="Shop for her" src={imgFrame1597881164} />
+        <CategoryPanel href="/for-him" line1="For" line2="Him" cta="Shop for him" src={imgFrame1597881163} preload={true} />
+        <CategoryPanel href="/for-her" line1="For" line2="Her" cta="Shop for her" src={imgFrame1597881164} preload={false} />
       </div>
     </section>
   );

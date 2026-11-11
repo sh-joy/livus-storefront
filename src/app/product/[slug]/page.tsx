@@ -8,6 +8,8 @@ import { BreadcrumbJsonLd } from '@/components/seo/JsonLd';
 
 const siteUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/+$/, '');
 
+export const revalidate = 60;
+
 // Shared between generateMetadata and the page so the product is fetched once per request.
 const getProduct = cache((slug: string) => getProductBySlugAction(slug));
 

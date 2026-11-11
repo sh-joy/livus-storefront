@@ -41,13 +41,18 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 2678400,
     // Keep in sync with src/components/storefront/SmartImage.tsx
     remotePatterns: [
-      { protocol: "https", hostname: "cdn.gentlepark.com", port: "", pathname: "/**", search: "" },
+      { protocol: "https", hostname: "cdn.gentlepark.com", port: "", pathname: "/**" },
       {
         protocol: "https",
         hostname: "**.public.blob.vercel-storage.com",
         port: "",
         pathname: "/**",
-        search: "",
+      },
+      {
+        protocol: "https",
+        hostname: "**.blob.vercel-storage.com",
+        port: "",
+        pathname: "/**",
       },
     ],
   },

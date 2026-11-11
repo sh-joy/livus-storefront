@@ -9,12 +9,21 @@ import { useDrawer } from "./DrawerContext";
 import { useCartStore, getCartItemKey } from "@/lib/store/cart-store";
 import { useStoreSettings, freeDeliveryThreshold } from "@/lib/hooks/use-store-settings";
 import imgImage114 from "@/imports/Cart/71b3cd582dab7174e13346a8d88abe33548d2aa7.png";
+import { SmartImage } from "@/components/storefront/SmartImage";
 
 function ProductImage({ src }: { src?: string | null }) {
   const imgSrc = src || (typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src);
   return (
     <div className="bg-[#f0f0f0] relative w-[120px] max-md:w-[88px] aspect-[3/4] overflow-hidden shrink-0">
-      <img alt="" aria-hidden="true" width={120} height={160} loading="lazy" decoding="async" className="w-full h-full object-cover object-center" src={imgSrc} />
+      <SmartImage
+        alt=""
+        aria-hidden="true"
+        fill
+        sizes="120px"
+        className="object-cover object-center"
+        src={imgSrc}
+        fallbackSrc="/images/for_him.jpg"
+      />
     </div>
   );
 }

@@ -8,7 +8,7 @@ import Image, { type ImageProps, type StaticImageData } from 'next/image';
  * Anything else is rendered as a plain lazy <img> so it still works.
  */
 const OPTIMIZABLE_HOSTS = ['cdn.gentlepark.com'];
-const OPTIMIZABLE_HOST_SUFFIXES = ['.public.blob.vercel-storage.com'];
+const OPTIMIZABLE_HOST_SUFFIXES = ['.public.blob.vercel-storage.com', '.blob.vercel-storage.com'];
 
 /** Can next/image's default loader optimise this src with the current config? */
 export function canOptimize(src: string): boolean {
@@ -17,11 +17,11 @@ export function canOptimize(src: string): boolean {
   if (src.startsWith('/') && !src.startsWith('//')) return !src.includes('?');
   try {
     const url = new URL(src);
-    if (url.protocol !== 'https:' || url.port || url.search) return false;
+    if (url.protocol !== 'https:' || url.port) return false;
     const host = url.hostname;
     return (
       OPTIMIZABLE_HOSTS.includes(host) ||
-      OPTIMIZABLE_HOST_SUFFIXES.some((suffix) => host.endsWith(suffix))
+      OPTIMIZABLE_HOST_SUFFIXES.some((suffix) => host.endsWith(suffix) || host === suffix.replace(/^\./, ''))
     );
   } catch {
     return false; // data:, blob:, malformed, protocol-relative, etc.

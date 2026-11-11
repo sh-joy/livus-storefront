@@ -13,6 +13,7 @@ import {
   cancelCustomerOrderAction,
 } from "@/app/actions/orders";
 import productImg from "@/imports/ProductDetails/71b3cd582dab7174e13346a8d88abe33548d2aa7.png";
+import { SmartImage } from "@/components/storefront/SmartImage";
 
 const base: CSSProperties = {
   fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
@@ -815,14 +816,17 @@ export function ProfilePage() {
                       <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                         {order.items.map((item, j) => (
                           <div key={j} style={{ display: "flex", gap: "16px", alignItems: "center" }}>
-                            <div style={{
+                            <div className="relative" style={{
                               width: "60px", height: "80px", aspectRatio: "3 / 4", background: "#f0f0f0",
                               overflow: "hidden", flexShrink: 0, border: "1px solid #e2e2e2",
                             }}>
-                              <img
+                              <SmartImage
                                 alt={item.name}
+                                fill
+                                sizes="60px"
+                                className="object-cover"
                                 src={item.imageUrl || (typeof productImg === 'string' ? productImg : productImg?.src) || "/images/for_him.jpg"}
-                                style={{ width: "100%", height: "100%", objectFit: "cover", aspectRatio: "3 / 4" }}
+                                fallbackSrc="/images/for_him.jpg"
                               />
                             </div>
                             <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "4px" }}>

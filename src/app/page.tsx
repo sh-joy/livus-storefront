@@ -6,6 +6,8 @@ import { NavigationWrapper } from '@/components/NavigationWrapper';
 
 const siteUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/+$/, '');
 
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: { absolute: 'LIVUS — Athletic Streetwear & Jerseys | Bangladesh' },
   description:

@@ -9,8 +9,8 @@ import imgFrame1597881192 from "@/imports/ForHim-2/cd8123b8a9ab8a34443daf47f9596
 import imgImage114 from "@/imports/ForHim-2/71b3cd582dab7174e13346a8d88abe33548d2aa7.png";
 import { SmartImage } from '@/components/storefront/SmartImage';
 
-// Matches .product-grid-4col (globals.css): 2 cols < 1024px, 3 cols >= 1024px, 4 cols >= 1600px (max 1920px wide).
-const PRODUCT_CARD_SIZES = '(min-width: 1600px) min(25vw, 480px), (min-width: 1024px) 33vw, 50vw';
+// Mobile-first responsive card sizes: 2 cols on mobile (<640px), 3 cols on tablet (<1024px), 4 cols on desktop.
+const PRODUCT_CARD_SIZES = '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw';
 const FALLBACK_IMAGE = '/images/for_him.jpg';
 
 export function ProductCard({ product }: { product: any }) {

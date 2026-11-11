@@ -368,12 +368,11 @@ export default function ProductDetails({ product, allProducts = [], shippingText
               <SmartImage
                 alt={`${productName} - View ${idx + 1}`}
                 fill
-                // Gallery column is 1.5fr of 2.5fr (60vw) at lg+, full width below
-                sizes="(min-width: 1024px) 60vw, 100vw"
+                sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover z-10"
                 src={imgUrl}
                 fallbackSrc="/images/for_him.jpg"
-                {...(idx === 0 ? { preload: true } : { loading: 'lazy' as const })}
+                {...(idx === 0 ? { priority: true, preload: true } : { loading: 'lazy' as const })}
               />
             </div>
           ))}

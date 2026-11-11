@@ -3,6 +3,8 @@ import { getProducts } from '@/app/actions/products';
 import ForHim from '@/imports/ForHim-2';
 import { NavigationWrapper } from '@/components/NavigationWrapper';
 
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: "Best Sellers",
   description: "Top-rated and trending LIVUS athletic streetwear and jerseys loved by customers across Bangladesh.",

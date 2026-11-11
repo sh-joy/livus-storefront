@@ -221,7 +221,7 @@ export default function VerifyEmailPage() {
         </div>
 
         {/* Right: 1.0 ratio Dark Form Panel */}
-        <div className="max-md:!px-[16px] max-md:!py-[80px]" style={{
+        <div className="auth-panel max-md:!px-[16px]" style={{
           flex: 1,
           minWidth: 0,
           background: "#0d0d0d",

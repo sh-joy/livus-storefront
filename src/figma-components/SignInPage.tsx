@@ -272,7 +272,7 @@ export function SignInPage() {
         </div>
 
         {/* Right: 1.0 ratio dark form panel */}
-        <div className="max-md:!px-[16px] max-md:!py-[80px]" style={{
+        <div className="auth-panel max-md:!px-[16px]" style={{
           flex: 1, minWidth: 0, background: "#0d0d0d",
           display: "flex", flexDirection: "column",
           alignItems: "center", justifyContent: "center",

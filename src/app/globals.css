@@ -450,3 +450,17 @@ footer .footer-btn-group a {
 .lv-prose li + li { margin-top: 0.5em; }
 .lv-prose strong { color: var(--lv-ink); font-weight: 600; }
 .lv-prose a { color: var(--lv-ink); text-decoration: underline; text-underline-offset: 3px; }
+
+/* Sign in / Sign up / Verify on phones: compact so the whole form fits on one screen.
+   (The forms use inline desktop sizes; these rules scale them down below 768px.) */
+@media (max-width: 767px) {
+  .auth-panel { padding-top: 76px !important; padding-bottom: 24px !important; justify-content: safe center !important; }
+  .auth-panel form,
+  .auth-panel form > div,
+  .auth-panel > div { row-gap: 18px !important; }
+  .auth-panel p[style*="font-size: 48px"] { font-size: 36px !important; line-height: 40px !important; }
+  .auth-panel p[style*="font-size: 18px"] { font-size: 15px !important; line-height: 21px !important; }
+  .auth-panel [style*="gap: 12px"] { row-gap: 6px !important; }
+  .auth-panel [style*="gap: 20px"] { row-gap: 8px !important; }
+  .auth-panel [style*="gap: 14px"] { row-gap: 10px !important; }
+}

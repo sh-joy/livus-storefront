@@ -230,3 +230,27 @@ Then **stop**. Claude will review the diff, run the full end-to-end test on phon
 ## 8. Copy-paste prompt for Antigravity
 
 > Read `docs/HANDOFF_ANTIGRAVITY_ROUND5.md` in `/Users/shamimhossen/.gemini/antigravity/my-store` and follow it exactly. You are the lead; run four parallel agents as described in section 1 (A: site settings + Brand & Contact admin, B: SEO, C: editable page content, D: Vercel/Neon/data operations). Agent A must finish section 2.1 first and commit it before B and C start. Respect the file-ownership table so agents never edit the same files. Work on branch `claude-first-change`, never push to `main`. Ask me before every live change in Vercel, Neon, OAuth or data deletion, never show or commit secrets, and run `npx tsc --noEmit`, `npm test` and `npm run build` after each change. When everything is done, write `docs/ROUND5_REPORT.md` as described in section 7 and stop.
+
+---
+
+## 9. Addendum from Claude (read before continuing Agent C and B)
+
+**9.1 Build blocker in Agent C's in-progress work — fix first**
+`src/app/actions/site-content.ts` starts with `'use server'`. A server-action file may **only export async functions**, but it now exports constants (`SITE_CONTENT_KEYS`, `DEFAULT_FAQS`, `DEFAULT_NEWSLETTER_CTA`, `DEFAULT_CONTENT`) and interfaces are fine but constants are not. `next build` will fail with "Only async functions are allowed to be exported in a 'use server' file".
+→ Move the constants and types into `src/content/site-content-defaults.ts` (no `'use server'`) and import them from both the action file and the admin page.
+
+**9.2 Full policy text is ready — use it as the defaults**
+Claude wrote complete, plain-language policies in `src/content/policy-defaults.ts` (RichText format):
+- `privacyPolicyText(ctx)` → default for `privacy_page`
+- `termsText(ctx)` → default for `terms_page` (fixes the old wrong line "prices inclusive of VAT" — VAT is added at checkout)
+- `shippingReturnsText(ctx)` → default for `shipping_page` (no hard-coded ৳100/৳150; uses the real fee and only mentions free delivery when it is on)
+- `cookiesPolicyText(ctx)` → default for a new `cookies_page` key
+
+`ctx` = `{ storeName, supportEmail, supportPhone, deliveryFeeBdt, freeDeliveryOverBdt }`. Build it from Agent A's site profile (fallback `store_settings`). Replace the short placeholder texts in `DEFAULT_CONTENT` with calls to these functions (they need the ctx, so compute the default inside `getSiteContentAction`, the same way `defaultShippingText()` works).
+
+**9.3 New Cookie Policy page**
+Claude added `/cookies` (`src/app/cookies/page.tsx`, currently renders `cookiesPolicyText` directly). Agent C: add `cookies_page` to the content keys and the Pages & Text editor, then switch the page to `getSiteContentAction('cookies_page')`. Add **"Cookie policy"** under Legal in the footer (`SiteFooter.tsx`). Agent B: add `/cookies` to `sitemap.ts` and give it metadata. If the owner later targets EU visitors, add a cookie consent banner that loads the Meta Pixel / GA only after consent — not needed for Bangladesh-only sales now.
+
+**9.4 Keep these small spacing edits Claude made in files Agent C is editing (they are uncommitted in the working tree)**
+- `SiteFooter.tsx`: footer main block top padding is `pt-[clamp(40px,6vw,88px)]` when the newsletter block is shown (same as the gap above the newsletter block), and stays `pt-[clamp(32px,4vw,56px)]` for the slim footer.
+- `InfoPage.tsx`: intro `mt-3`; prose block `mt-[clamp(14px,1.8vw,20px)] pt-[clamp(14px,1.8vw,20px)]` (smaller gap between title and text).

@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { InfoPage } from '@/components/storefront/InfoPage';
+import { RichText } from '@/components/storefront/RichText';
+import { getSiteContentAction } from '@/app/actions/site-content';
 
 export const metadata: Metadata = {
   title: "About Us",
@@ -7,11 +9,14 @@ export const metadata: Metadata = {
   alternates: { canonical: '/about' },
 };
 
-export default function AboutPage() {
+export const revalidate = 60;
+
+export default async function AboutPage() {
+  const content = await getSiteContentAction('about_page');
+
   return (
     <InfoPage newsletter title="About LIVUS">
-      <p>LIVUS is a contemporary Bangladeshi streetwear atelier focused on architectural silhouettes, heavy cotton fabrications, and minimalist luxury.</p>
-      <p>Designed in Dhaka, our pieces bridge functional sports performance with runway aesthetic standards.</p>
+      <RichText text={content} />
     </InfoPage>
   );
 }

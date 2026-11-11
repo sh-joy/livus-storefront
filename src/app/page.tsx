@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { getPopularProductsAction } from '@/app/actions/products';
+import { getSiteContentAction } from '@/app/actions/site-content';
 import Homepage from '@/imports/Homepage';
 import { NavigationWrapper } from '@/components/NavigationWrapper';
 
@@ -23,7 +24,10 @@ const organizationJsonLd = {
 };
 
 export default async function Page() {
-  const popularProducts = await getPopularProductsAction(12);
+  const [popularProducts, collectionText] = await Promise.all([
+    getPopularProductsAction(12),
+    getSiteContentAction('home_collection_text'),
+  ]);
 
   return (
     <NavigationWrapper>
@@ -31,7 +35,7 @@ export default async function Page() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd).replace(/</g, '\\u003c') }}
       />
-      <Homepage products={popularProducts} />
+      <Homepage products={popularProducts} collectionText={collectionText} />
     </NavigationWrapper>
   );
 }

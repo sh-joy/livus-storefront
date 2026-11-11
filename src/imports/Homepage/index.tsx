@@ -183,13 +183,13 @@ function Frame20({
   );
 }
 
-function Frame7() {
+function Frame7({ text }: { text?: string }) {
   return (
     <div className="relative shrink-0 w-full px-[var(--lv-gutter)] pb-[clamp(20px,2.5vw,32px)]">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between md:gap-10">
         <h2 className="t-h2 m-0">Explore the collection</h2>
         <p className="t-lead m-0 max-w-[440px] md:text-right md:pb-1">
-          Our most-loved jerseys, shirts and everyday athletic wear right now. New styles land with every drop.
+          {text || "Our most-loved jerseys, shirts and everyday athletic wear right now. New styles land with every drop."}
         </p>
       </div>
     </div>
@@ -661,7 +661,13 @@ function Frame47() {
   );
 }
 
-export default function Homepage({ products }: { products?: HomepageProductItem[] }) {
+export default function Homepage({
+  products,
+  collectionText,
+}: {
+  products?: HomepageProductItem[];
+  collectionText?: string;
+}) {
   // Popularity Scoring & New Drops Logic
   const popularProducts = useMemo(() => {
     if (!products || products.length === 0) return [];
@@ -718,7 +724,7 @@ export default function Homepage({ products }: { products?: HomepageProductItem[
       <div className="h-2 md:h-3" aria-hidden />
       <CategoryPanels />
       <div className="h-[clamp(80px,10.3vw,148px)]" aria-hidden />
-      <Frame7 />
+      <Frame7 text={collectionText} />
       <CategoryFilterSubBar
         totalCount={shownProducts.length}
         sortOption={sortOption}

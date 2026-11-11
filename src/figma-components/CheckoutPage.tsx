@@ -419,10 +419,10 @@ export function CheckoutPage() {
       <SiteNav />
 
       <div style={{ flex: 1 }}>
-        <div className="max-[1112px]:!px-[16px] max-md:!pt-[24px] max-md:!pb-[32px]" style={{
+        <div className="max-[1112px]:!px-[16px] max-md:!pt-[16px] max-md:!pb-[32px]" style={{
           maxWidth: "1080px",
           margin: "0px auto",
-          padding: "48px 0px",
+          padding: "36px 0px",
         }}>
 
           {/* Top Row: Checkout Heading & Subtitle */}

@@ -61,7 +61,7 @@ export default async function ContactPage() {
       <SiteNav />
       <main className="flex-1 w-full">
         {/* Get in touch: details left, form right */}
-        <section className="px-[var(--lv-gutter)] pt-[clamp(28px,4vw,56px)] pb-[clamp(40px,5vw,72px)]">
+        <section className="px-[var(--lv-gutter)] pt-[clamp(20px,3vw,44px)] pb-[clamp(40px,5vw,72px)]">
           <div className="mx-auto w-full max-w-[1200px] grid gap-12 lg:grid-cols-2 lg:gap-[clamp(48px,6vw,96px)]">
             <div className="flex flex-col">
               <h1 className="t-h2 m-0">Get in touch</h1>

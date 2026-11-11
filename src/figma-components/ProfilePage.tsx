@@ -497,12 +497,12 @@ export function ProfilePage() {
       <SiteNav />
 
       <div style={{ flex: 1 }}>
-        <div className="max-md:!px-[16px] max-md:!pt-[24px] max-md:!pb-[32px] max-md:!gap-[28px]" style={{
+        <div className="max-md:!px-[16px] max-md:!pt-[16px] max-md:!pb-[32px] max-md:!gap-[28px]" style={{
           display: "flex",
           flexDirection: "column",
           maxWidth: "1080px",
           margin: "0px auto",
-          padding: "48px 24px",
+          padding: "36px 24px",
           gap: "40px",
         }}>
 

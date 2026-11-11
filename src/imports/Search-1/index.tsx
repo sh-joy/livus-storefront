@@ -182,7 +182,7 @@ export default function Search() {
       <SiteNav />
 
       {/* Search Input Bar */}
-      <div className="w-full px-[var(--lv-gutter)] pt-[clamp(24px,3.5vw,48px)] pb-[clamp(20px,2.5vw,32px)]">
+      <div className="w-full px-[var(--lv-gutter)] pt-[clamp(16px,2.5vw,36px)] pb-[clamp(20px,2.5vw,32px)]">
         <form onSubmit={handleSearchSubmit} role="search" className="mx-auto w-full max-w-[760px] flex items-stretch gap-2">
           <div className="flex-1 min-w-0 flex items-center gap-3 h-11 px-4 border border-[#d9d9d9] bg-white focus-within:border-[#0d0d0d] transition-colors">
             {query ? (

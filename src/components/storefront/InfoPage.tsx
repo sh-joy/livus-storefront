@@ -8,7 +8,7 @@ export function InfoPage({ title, intro, newsletter = false, children }: { title
   return (
     <div className="min-h-screen bg-white text-[#0d0d0d] flex flex-col">
       <SiteNav />
-      <main className="flex-1 w-full px-[var(--lv-gutter)] pt-[clamp(28px,4vw,56px)]">
+      <main className="flex-1 w-full px-[var(--lv-gutter)] pt-[clamp(20px,3vw,44px)]">
         <div className="mx-auto w-full max-w-[760px]">
           <h1 className="t-h2 m-0">{title}</h1>
           {intro && <div className="t-lead mt-5 max-w-[620px]">{intro}</div>}

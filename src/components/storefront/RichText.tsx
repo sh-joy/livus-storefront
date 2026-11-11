@@ -1,7 +1,20 @@
 import type { ReactNode } from 'react';
 
+/**
+ * A line that starts with a short label ending in ":" gets the label in bold,
+ * e.g. "Styling Tips:", "Care Instructions:", "Fabric: Cotton mixed".
+ * Lines that already use **bold** are left as written.
+ */
+function autoBoldLabel(line: string): string {
+  if (line.includes('**')) return line;
+  const m = line.match(/^(\s*)([A-Z][A-Za-z0-9 &/()'’.-]{1,40}):(\s|$)/);
+  if (!m) return line;
+  return `${m[1]}**${m[2]}:**${line.slice(m[0].length - m[3].length)}`;
+}
+
 /** Render **bold** spans inside one line of text. */
-function inline(line: string): ReactNode[] {
+function inline(rawLine: string): ReactNode[] {
+  const line = autoBoldLabel(rawLine);
   return line.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
     part.startsWith('**') && part.endsWith('**') && part.length > 4 ? (
       <strong key={i} className="font-semibold text-[#0d0d0d]">

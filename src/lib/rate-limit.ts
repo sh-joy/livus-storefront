@@ -16,7 +16,8 @@ const inMemoryFallback = new Map<string, RateLimitRecord>();
 export async function checkRateLimit(
   actionKey: string,
   maxRequests: number = 10,
-  windowMs: number = 60000
+  windowMs: number = 60000,
+  customIdentifier?: string
 ): Promise<{ success: boolean; remaining: number }> {
   try {
     const headerList = await headers();
@@ -26,7 +27,8 @@ export async function checkRateLimit(
     const forwarded = headerList.get('x-forwarded-for');
     const ip = vercelIp || realIp || (forwarded ? forwarded.split(',')[0].trim() : '127.0.0.1');
 
-    const key = `${actionKey}:${ip}`;
+    const identifier = customIdentifier ? customIdentifier.trim().toLowerCase() : ip;
+    const key = `${actionKey}:${identifier}`;
     const now = new Date();
     const resetAt = new Date(Date.now() + windowMs);
 

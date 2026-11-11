@@ -15,6 +15,11 @@ export interface SubscriberItem {
 }
 
 export async function addNewsletterSubscriberAction(email: string) {
+  const rate = await checkRateLimit('subscribe', 5, 60000);
+  if (!rate.success) {
+    return { success: false, message: 'Too many subscription attempts. Please wait a minute and try again.' };
+  }
+
   const cleanEmail = (email || '').trim().toLowerCase();
   if (!cleanEmail || !cleanEmail.includes('@')) {
     return { success: false, message: 'Invalid email address' };

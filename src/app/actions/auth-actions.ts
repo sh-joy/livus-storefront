@@ -8,6 +8,7 @@ import { sendVerificationEmail } from '@/lib/email';
 import { revalidatePath } from 'next/cache';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 const OTP_TTL_MS = 15 * 60 * 1000;
 const OTP_MAX_ATTEMPTS = 5;
@@ -66,6 +67,16 @@ export async function sendOtpVerificationAction(email: string, userName?: string
     const cleanEmail = (email || '').trim().toLowerCase();
     if (!db || !EMAIL_RE.test(cleanEmail)) {
       return { success: false, error: 'Please enter a valid email address.' };
+    }
+
+    // Rate limit: 3 requests per 10 minutes per IP and per email
+    const ipRate = await checkRateLimit('send_otp_ip', 3, 10 * 60 * 1000);
+    if (!ipRate.success) {
+      return { success: false, error: 'Too many verification requests from your device. Please wait 10 minutes.' };
+    }
+    const emailRate = await checkRateLimit('send_otp_email', 3, 10 * 60 * 1000, cleanEmail);
+    if (!emailRate.success) {
+      return { success: false, error: 'Too many verification requests for this email address. Please wait 10 minutes.' };
     }
 
     // Resend cooldown

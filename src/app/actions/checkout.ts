@@ -8,6 +8,8 @@ import { CheckoutFormSchema, type CheckoutFormValues } from '@/lib/validations';
 import { quoteOrder, reserveStock, releaseStock, type QuoteItemInput } from '@/lib/order-pricing';
 import { sendOrderConfirmationEmail } from '@/lib/email';
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
+import { signOrderConfirmationToken } from '@/lib/order-token';
 import { eq, or } from 'drizzle-orm';
 
 /** Live order summary for the checkout page — computed by the same code that saves the order. */
@@ -355,6 +357,21 @@ export async function placeOrderAction(data: CheckoutFormValues & { promoCode?: 
       revalidatePath('/profile');
     } catch {
       // safe outside HTTP request context
+    }
+
+    // Set signed confirmation cookie to allow guest access to order-confirmed details (SQA M5)
+    try {
+      const confirmToken = signOrderConfirmationToken(newOrder.orderNumber, cleanPhone);
+      const cookieStore = await cookies();
+      cookieStore.set('livus_order_confirm', confirmToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 30 * 60, // 30 minutes
+        path: '/',
+      });
+    } catch (cookieErr) {
+      console.warn('Failed to set confirmation cookie:', cookieErr);
     }
 
     return {

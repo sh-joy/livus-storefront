@@ -3,11 +3,13 @@
 import { db } from '@/db';
 import { orders, customers, user } from '@/db/schema';
 import { revalidatePath } from 'next/cache';
-import { headers } from 'next/headers';
+import { headers, cookies } from 'next/headers';
 import { and, eq, or, desc } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { restoreStockForOrderItems } from '@/lib/order-pricing';
 import { sendOrderStatusNotificationEmail } from '@/lib/email';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { verifyOrderConfirmationToken } from '@/lib/order-token';
 
 // NOTE: the old createOrderAction / getOrderByIdAction were removed. They were public endpoints that
 // trusted browser-supplied totals and exposed any order by number. Orders are placed via
@@ -105,7 +107,10 @@ export async function searchCustomerOrdersAction(_ignored?: string, query?: stri
       return filtered.map(formatOrder);
     }
 
-    // Guest lookup: exact order number + matching phone
+    // Guest lookup: exact order number + matching phone (rate limit 10/min)
+    const rate = await checkRateLimit('guest_order_lookup', 10, 60000);
+    if (!rate.success) return [];
+
     const orderNumMatch = q.match(/liv-\d{4,8}/i);
     const phoneMatch = q.replace(/liv-\d+/i, '').replace(/[^\d+]/g, '');
     if (!orderNumMatch || !BD_PHONE_RE.test(phoneMatch)) return [];
@@ -262,6 +267,12 @@ export async function saveCustomerProfileAction(data: {
  * Re-stores inventory in stock_inventory and triggers status email.
  */
 export async function cancelCustomerOrderAction(orderIdOrNumber: string, guestPhone?: string) {
+  // Rate limit: 10 cancellations per minute per IP
+  const rate = await checkRateLimit('cancel_order', 10, 60000);
+  if (!rate.success) {
+    return { success: false, message: 'Too many cancellation requests. Please wait a minute and try again.' };
+  }
+
   try {
     if (!db) return { success: false, message: 'Database not initialized.' };
     const sessionUser = await getSessionUser();
@@ -355,4 +366,84 @@ export async function cancelCustomerOrderAction(orderIdOrNumber: string, guestPh
     return { success: false, message: 'An unexpected error occurred while cancelling your order.' };
   }
 }
+
+/**
+ * Server-verified order confirmation lookup (SQA M5).
+ * NEVER trusts query params for sensitive details.
+ * Authorized ONLY if:
+ * 1. Visitor is signed into the account matching the order's email or customer phone.
+ * 2. Visitor holds the short-lived signed HMAC cookie set by placeOrderAction on checkout.
+ */
+export async function getConfirmedOrderDetailsAction(orderNumber: string) {
+  try {
+    if (!db) return { authorized: false as const, error: 'Database unavailable' };
+    const cleanNum = (orderNumber || '').trim().toUpperCase();
+    if (!cleanNum || !/^LIV-\d+$/i.test(cleanNum)) {
+      return { authorized: false as const };
+    }
+
+    const ord = await db.query.orders.findFirst({
+      where: eq(orders.orderNumber, cleanNum),
+      with: { items: true },
+    });
+
+    if (!ord) {
+      return { authorized: false as const };
+    }
+
+    // Ownership check:
+    let isOwner = false;
+
+    // 1. Check signed-in account session
+    const sessionUser = await getSessionUser();
+    if (sessionUser) {
+      const email = sessionUser.email.toLowerCase();
+      if (ord.email && ord.email.toLowerCase() === email) {
+        isOwner = true;
+      } else {
+        const cust = await db.query.customers.findFirst({ where: eq(customers.email, email) });
+        if (cust?.phone && normPhone(cust.phone) === normPhone(ord.phone)) {
+          isOwner = true;
+        }
+      }
+    }
+
+    // 2. Check signed confirmation cookie from placeOrderAction
+    if (!isOwner) {
+      try {
+        const cookieStore = await cookies();
+        const token = cookieStore.get('livus_order_confirm')?.value;
+        if (token) {
+          const verified = verifyOrderConfirmationToken(token, cleanNum);
+          if (verified.valid && verified.phone && normPhone(verified.phone) === normPhone(ord.phone)) {
+            isOwner = true;
+          }
+        }
+      } catch (cookieErr) {
+        console.warn('Cookie verification non-fatal error:', cookieErr);
+      }
+    }
+
+    if (!isOwner) {
+      return { authorized: false as const };
+    }
+
+    const totalNum = parseFloat(ord.totalAmount) || 0;
+    return {
+      authorized: true as const,
+      orderNumber: ord.orderNumber,
+      customerName: ord.customerName,
+      location: `${ord.shippingAddress}${ord.city ? `, ${ord.city}` : ''}`,
+      paymentMethod: ord.paymentMethod || 'Cash on Delivery',
+      totalAmount: totalNum,
+      status: ord.status || 'Pending',
+      itemsCount: ord.items?.length || 0,
+      createdAt: ord.createdAt ? new Date(ord.createdAt).toISOString() : new Date().toISOString(),
+    };
+  } catch (err) {
+    console.error('Error in getConfirmedOrderDetailsAction:', err);
+    return { authorized: false as const };
+  }
+}
+
 

@@ -1,10 +1,10 @@
 import type { MetadataRoute } from 'next';
 import { db } from '@/db';
-import { products } from '@/db/schema';
+import { products, categories } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/+$/, '');
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://mylivus.vercel.app').replace(/\/+$/, '');
 
   const staticRoutes: MetadataRoute.Sitemap = [
     '',
@@ -23,24 +23,41 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
-    changeFrequency: 'daily' as const,
-    priority: route === '' ? 1.0 : 0.8,
+    changeFrequency: route === '' ? ('daily' as const) : ('weekly' as const),
+    priority: route === '' ? 1.0 : route.startsWith('/for-') ? 0.9 : 0.7,
   }));
 
   try {
     if (db) {
-      const activeProducts = await db.query.products.findMany({
-        where: eq(products.isActive, true),
-      });
+      const [activeProducts, allCategories] = await Promise.all([
+        db.query.products.findMany({
+          where: eq(products.isActive, true),
+        }),
+        db.query.categories.findMany(),
+      ]);
 
       const productRoutes: MetadataRoute.Sitemap = activeProducts.map((p) => ({
         url: `${baseUrl}/product/${p.slug}`,
         lastModified: p.createdAt || new Date(),
         changeFrequency: 'weekly' as const,
-        priority: 0.9,
+        priority: 0.85,
       }));
 
-      return [...staticRoutes, ...productRoutes];
+      const categoryRoutes: MetadataRoute.Sitemap = allCategories.map((c) => ({
+        url: `${baseUrl}/${c.slug}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly' as const,
+        priority: 0.8,
+      }));
+
+      // Deduplicate routes
+      const seen = new Set<string>();
+      const combined = [...staticRoutes, ...categoryRoutes, ...productRoutes];
+      return combined.filter((item) => {
+        if (seen.has(item.url)) return false;
+        seen.add(item.url);
+        return true;
+      });
     }
   } catch (err) {
     console.warn('Sitemap generation product lookup fallback:', err);

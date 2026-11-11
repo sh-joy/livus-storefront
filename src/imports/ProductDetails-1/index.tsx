@@ -13,6 +13,7 @@ import { SiteFooter } from '@/figma-components/SiteFooter';
 import { SizingGuideModal } from '@/figma-components/SizingGuideModal';
 import { useDrawer } from '@/figma-components/DrawerContext';
 import { useCartStore } from '@/lib/store/cart-store';
+import { trackViewContent, trackAddToCart } from '@/lib/analytics';
 import type { ProductItem } from '@/app/actions/products';
 import { generateCleanSku } from '@/lib/utils';
 import imgImage115 from "./147bb3d7a50a487cfcb2163c878fc1a5c25e19e6.png";
@@ -286,9 +287,27 @@ export default function ProductDetails({ product, allProducts = [], shippingText
     galleryRef.current?.scrollTo({ left: 0, behavior: "smooth" });
   };
 
+  useEffect(() => {
+    if (product?.id) {
+      trackViewContent({
+        id: product.id,
+        name: productName,
+        price: priceBdt,
+        category: product.categorySlug || 'Apparel',
+      });
+    }
+  }, [product?.id, productName, priceBdt, product?.categorySlug]);
+
   const [addedFlash, setAddedFlash] = useState(false);
   const handleAddToCart = () => {
     if (!canAddToCart) return;
+    trackAddToCart({
+      id: product?.id || product?.slug || 'product',
+      name: productName,
+      price: priceBdt,
+      size: selectedSize,
+      quantity,
+    });
     addItemToCart(
       {
         id: `${product?.slug || 'oakwood-long-sleeve'}-${activeColor.name.toLowerCase()}`,

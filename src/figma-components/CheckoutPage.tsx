@@ -56,6 +56,7 @@ const sectionLabel: CSSProperties = {
 
 import { useSession } from "@/lib/auth-client";
 import { getCustomerProfileAction } from "@/app/actions/orders";
+import { trackInitiateCheckout } from "@/lib/analytics";
 import {
   placeOrderAction,
   getCheckoutQuoteAction,
@@ -124,6 +125,22 @@ export function CheckoutPage() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setCartReady(true);
+    if (cartItems.length > 0) {
+      const calculatedTotal = cartItems.reduce((acc, item) => {
+        const raw = parseFloat(String(item.product.price).replace(/[^0-9.]/g, '')) || 0;
+        return acc + raw * item.quantity;
+      }, 0);
+      trackInitiateCheckout({
+        total: calculatedTotal,
+        items: cartItems.map((item) => ({
+          id: item.product.productId || item.product.slug || item.product.id,
+          name: item.product.name,
+          price: item.product.price,
+          quantity: item.quantity,
+          size: item.product.size,
+        })),
+      });
+    }
   }, []);
   const [storeSettingsData, setStoreSettingsData] = useState<{
     bKashMerchantNumber?: string;

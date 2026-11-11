@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { getProductBySlugAction, getProducts } from '@/app/actions/products';
 import ProductDetailClient from './ProductDetailClient';
 import { getSiteContentAction } from '@/app/actions/site-content';
+import { BreadcrumbJsonLd } from '@/components/seo/JsonLd';
 
 const siteUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/+$/, '');
 
@@ -136,6 +137,13 @@ export default async function DynamicProductPage({ params }: { params: Promise<{
 
   return (
     <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', path: '/' },
+          { name: 'Shop All', path: '/all-products' },
+          { name: productData.name, path: `/product/${productData.slug}` },
+        ]}
+      />
       <script
         type="application/ld+json"
         // Escape "<" so product text cannot close the script tag.

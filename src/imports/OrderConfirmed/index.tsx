@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { SiteFooter } from '@/figma-components/SiteFooter';
 import { SiteNav } from '@/figma-components/SiteNav';
 import { getConfirmedOrderDetailsAction } from "@/app/actions/orders";
+import { trackPurchase } from "@/lib/analytics";
 
 interface VerifiedOrderDetails {
   authorized: boolean;
@@ -45,6 +46,23 @@ export default function OrderConfirmed() {
 
     return () => { isCancelled = true; };
   }, [rawOrderParam]);
+
+  useEffect(() => {
+    if (orderData?.authorized && orderData.orderNumber && typeof orderData.totalAmount === 'number') {
+      trackPurchase({
+        orderId: orderData.orderNumber,
+        total: orderData.totalAmount,
+        items: [
+          {
+            id: orderData.orderNumber,
+            name: `Order ${orderData.orderNumber}`,
+            price: orderData.totalAmount,
+            quantity: orderData.itemsCount || 1,
+          },
+        ],
+      });
+    }
+  }, [orderData]);
 
   // The order number comes back in the confirmation link; only show it if it looks like one of ours.
   const displayOrderNumber = orderData?.orderNumber || (/^LIV-\d{4,10}$/i.test(rawOrderParam) ? rawOrderParam.toUpperCase() : "");

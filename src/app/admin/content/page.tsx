@@ -26,13 +26,15 @@ import { RichText } from '@/components/storefront/RichText';
 import {
   getAllAdminSiteContentAction,
   saveSiteContentAction,
+} from '@/app/actions/site-content';
+import {
   type SiteContentKey,
   type FaqItem,
   type NewsletterCtaConfig,
   DEFAULT_FAQS,
   DEFAULT_NEWSLETTER_CTA,
   DEFAULT_CONTENT,
-} from '@/app/actions/site-content';
+} from '@/lib/site-content';
 
 type TabType = 'info' | 'storefront' | 'contact';
 

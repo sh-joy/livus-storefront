@@ -11,8 +11,8 @@ export function InfoPage({ title, intro, newsletter = false, children }: { title
       <main className="flex-1 w-full px-[var(--lv-gutter)] pt-[clamp(20px,3vw,44px)]">
         <div className="mx-auto w-full max-w-[760px]">
           <h1 className="t-h2 m-0">{title}</h1>
-          {intro && <div className="t-lead mt-5 max-w-[620px]">{intro}</div>}
-          <div className="lv-prose mt-[clamp(20px,3vw,32px)] pt-[clamp(20px,2.5vw,28px)] border-t border-[var(--lv-line)]">{children}</div>
+          {intro && <div className="t-lead mt-3 max-w-[620px]">{intro}</div>}
+          <div className="lv-prose mt-[clamp(14px,1.8vw,20px)] pt-[clamp(14px,1.8vw,20px)] border-t border-[var(--lv-line)]">{children}</div>
         </div>
       </main>
       <SiteFooter compact={!newsletter} />

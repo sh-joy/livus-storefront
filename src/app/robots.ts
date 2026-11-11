@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/+$/, '');
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://mylivus.vercel.app').replace(/\/+$/, '');
 
   return {
     rules: [
@@ -10,12 +10,20 @@ export default function robots(): MetadataRoute.Robots {
         allow: '/',
         disallow: [
           '/admin',
-          '/api',
+          '/admin/*',
+          '/api/*',
           '/checkout',
+          '/checkout/*',
           '/profile',
+          '/profile/*',
           '/order-confirmed',
+          '/order-confirmed/*',
+          '/signin',
+          '/signup',
           '/verify-email',
           '/forgot-password',
+          '/search',
+          '/search/*',
           '/variants',
           '/design-system',
         ],

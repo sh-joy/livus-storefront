@@ -254,3 +254,9 @@ Claude added `/cookies` (`src/app/cookies/page.tsx`, currently renders `cookiesP
 **9.4 Keep these small spacing edits Claude made in files Agent C is editing (they are uncommitted in the working tree)**
 - `SiteFooter.tsx`: footer main block top padding is `pt-[clamp(40px,6vw,88px)]` when the newsletter block is shown (same as the gap above the newsletter block), and stays `pt-[clamp(32px,4vw,56px)]` for the slim footer.
 - `InfoPage.tsx`: intro `mt-3`; prose block `mt-[clamp(14px,1.8vw,20px)] pt-[clamp(14px,1.8vw,20px)]` (smaller gap between title and text).
+
+**9.5 Rule: never write offers into page or policy text (owner's decision)**
+Free delivery, discounts and other promotions change at any time, so they must **not** appear in policies, FAQs, default page text or the product-page shipping text. They may only appear in:
+- the cart/checkout free-delivery progress bar (already shown only while the offer is switched on in Admin → Settings),
+- the marquee banner and offer popup, which the owner edits in Admin.
+Claude removed the free-delivery lines from `policy-defaults.ts`, the delivery FAQ and `defaultShippingText()` in `src/content/site-content-defaults.ts` (that file is Agent C's and still uncommitted — keep these removals). Don't add them back.

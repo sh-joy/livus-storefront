@@ -4,7 +4,8 @@
  * blank line = new paragraph, **bold**, "- " bullets, leading "Label:" is bolded automatically.
  *
  * Used as the fallback when nothing has been saved in Admin → Pages & Text.
- * Store details (email, phone, fees) are filled in from Admin settings at render time.
+ * Store details (email, phone, base delivery fee) are filled in from Admin settings at render time.
+ * Promotions such as free delivery are deliberately NOT written here: offers change, policies don't.
  *
  * NOTE for the owner: this is a solid, plain-language starting point based on how
  * Bangladeshi fashion e-commerce brands handle these topics. It is not legal advice;
@@ -19,7 +20,7 @@ export type PolicyContext = {
   supportPhone?: string;
   /** Lowest delivery charge in BDT (Admin → Settings → default delivery fee). */
   deliveryFeeBdt?: number;
-  /** Free-delivery threshold in BDT; 0 or empty = offer switched off. */
+  /** Accepted for compatibility but intentionally unused: offers are not written into policies. */
   freeDeliveryOverBdt?: number;
 };
 
@@ -106,7 +107,6 @@ export function privacyPolicyText(c: PolicyContext = {}): string {
 
 export function termsText(c: PolicyContext = {}): string {
   const name = c.storeName || 'LIVUS';
-  const free = c.freeDeliveryOverBdt && c.freeDeliveryOverBdt > 0 ? c.freeDeliveryOverBdt : 0;
   return [
     `Last updated: ${POLICY_LAST_UPDATED}`,
 
@@ -129,7 +129,6 @@ export function termsText(c: PolicyContext = {}): string {
     [
       '- All prices are in Bangladeshi Taka (BDT).',
       '- VAT and the delivery charge are shown separately at checkout before you confirm, and are included in the order total.',
-      free ? `- Orders of ${taka(free)} or more (after discounts) get free delivery while this offer is running.` : '',
       '- Prices and offers can change at any time, but the price you see when you confirm is the price you pay for that order.',
     ].filter(Boolean).join('\n'),
 
@@ -177,7 +176,6 @@ export function termsText(c: PolicyContext = {}): string {
 
 export function shippingReturnsText(c: PolicyContext = {}): string {
   const fee = c.deliveryFeeBdt && c.deliveryFeeBdt > 0 ? c.deliveryFeeBdt : 0;
-  const free = c.freeDeliveryOverBdt && c.freeDeliveryOverBdt > 0 ? c.freeDeliveryOverBdt : 0;
   return [
     `Last updated: ${POLICY_LAST_UPDATED}`,
 
@@ -190,7 +188,6 @@ export function shippingReturnsText(c: PolicyContext = {}): string {
       fee
         ? `- **Delivery charge:** from ${taka(fee)}, depending on your district. The exact charge is shown at checkout before you confirm.`
         : '- **Delivery charge:** depends on your district and is shown at checkout before you confirm.',
-      free ? `- **Free delivery:** on orders of ${taka(free)} or more (after discounts) while this offer is running.` : '',
       '- **Order confirmation:** our team may call you to confirm your order before dispatch. Please keep your phone reachable.',
       '- **Tracking:** enter your order number (for example LIV-123456) on the My Account page to see your order status. The courier may also contact you on the day of delivery.',
     ].filter(Boolean).join('\n'),

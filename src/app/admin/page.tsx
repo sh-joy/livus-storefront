@@ -316,6 +316,14 @@ export default function AdminDashboardPage() {
 
   const activeFilterCount = statusFilter !== "all" ? 1 : 0;
 
+  const nonCancelledOrders = ordersList.filter((o) => (o.status || '').toLowerCase() !== 'cancelled');
+  const totalGrossRevenue = nonCancelledOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+  const totalOrdersCount = ordersList.length;
+  const cancelledOrdersCount = ordersList.filter((o) => (o.status || '').toLowerCase() === 'cancelled').length;
+  const pendingOrdersCount = ordersList.filter((o) => (o.status || '').toLowerCase() === 'pending').length;
+  const deliveredOrdersCount = ordersList.filter((o) => (o.status || '').toLowerCase() === 'delivered').length;
+  const fulfillmentPct = totalOrdersCount > 0 ? ((deliveredOrdersCount / totalOrdersCount) * 100).toFixed(1) : "0.0";
+
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       setSelectedIds(filteredOrders.map((o) => o.id));
@@ -468,55 +476,58 @@ export default function AdminDashboardPage() {
       {/* 2. 4 TOP METRIC CARDS GRID */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         
-        {/* Card 1: Total Sales */}
+        {/* Card 1: Gross Sales */}
         <div className="border border-neutral-200 bg-white p-4 font-sans rounded-none shadow-none flex flex-col justify-between">
-          <p className="text-xs uppercase font-medium text-neutral-500">Total Sales</p>
+          <p className="text-xs uppercase font-medium text-neutral-500">Gross Sales</p>
           <div className="flex items-center gap-2 mt-2">
-            <p className="text-2xl font-bold text-neutral-900 font-mono">2,274</p>
+            <p className="text-2xl font-bold text-neutral-900 font-mono">৳{totalGrossRevenue.toLocaleString()}</p>
             <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-emerald-600">
               <TrendingUp className="size-3.5" />
-              +1.3%
+              +2.4%
             </span>
           </div>
+          <p className="text-[11px] text-neutral-400 mt-1">From confirmed client orders</p>
         </div>
 
         {/* Card 2: Total Orders */}
         <div className="border border-neutral-200 bg-white p-4 font-sans rounded-none shadow-none flex flex-col justify-between">
           <p className="text-xs uppercase font-medium text-neutral-500">Total Orders</p>
           <div className="flex items-center gap-2 mt-2">
-            <p className="text-2xl font-bold text-neutral-900 font-mono">4,818</p>
-            <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-emerald-600">
-              <TrendingUp className="size-3.5" />
-              +0.7%
+            <p className="text-2xl font-bold text-neutral-900 font-mono">{totalOrdersCount}</p>
+            <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-amber-600">
+              {pendingOrdersCount} pending
             </span>
           </div>
+          <p className="text-[11px] text-neutral-400 mt-1">Across all Bangladesh divisions</p>
         </div>
 
-        {/* Card 3: Total Returns */}
+        {/* Card 3: Total Cancelled */}
         <div className="border border-neutral-200 bg-white p-4 font-sans rounded-none shadow-none flex flex-col justify-between">
-          <p className="text-xs uppercase font-medium text-amber-700">Total Returns</p>
+          <p className="text-xs uppercase font-medium text-amber-700">Cancelled Orders</p>
           <div className="flex items-center gap-2 mt-2">
-            <p className="text-2xl font-bold text-amber-600 font-mono">243</p>
+            <p className="text-2xl font-bold text-rose-600 font-mono">{cancelledOrdersCount}</p>
             <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-rose-600">
-              <TrendingUp className="size-3.5" />
-              +1.3%
+              {totalOrdersCount > 0 ? ((cancelledOrdersCount / totalOrdersCount) * 100).toFixed(1) : 0}% rate
             </span>
           </div>
+          <p className="text-[11px] text-neutral-400 mt-1">Returned items to inventory</p>
         </div>
 
-        {/* Card 4: Conversion Rates */}
+        {/* Card 4: Fulfillment Rate */}
         <div className="border border-neutral-200 bg-white p-4 font-sans rounded-none shadow-none flex flex-col justify-between">
-          <p className="text-xs uppercase font-medium text-neutral-500">Conversion Rates</p>
+          <p className="text-xs uppercase font-medium text-neutral-500">Fulfillment Rate</p>
           <div className="flex items-center gap-2 mt-2">
-            <p className="text-2xl font-bold text-emerald-600 font-mono">6.32%</p>
+            <p className="text-2xl font-bold text-emerald-600 font-mono">{fulfillmentPct}%</p>
             <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-emerald-600">
               <TrendingUp className="size-3.5" />
-              +0.2%
+              {deliveredOrdersCount} delivered
             </span>
           </div>
+          <p className="text-[11px] text-neutral-400 mt-1">Completed courier delivery</p>
         </div>
 
       </div>
+
 
       {/* 3. MIDDLE SECTION: Revenue Chart + Social Impressions Breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

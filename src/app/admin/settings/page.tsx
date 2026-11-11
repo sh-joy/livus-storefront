@@ -12,8 +12,11 @@ import {
   createAdminUserAction,
   deleteAdminUserAction,
   revealAdminPasswordAction,
+  fetchAdminStoreSettingsAction,
+  updateAdminStoreSettingsAction,
+  updateAdminShippingRegionAction,
 } from "@/app/actions/admin-actions";
-import { Save, UserPlus, Trash2, Shield, Eye, EyeOff, Loader2, KeyRound, AlertTriangle } from "lucide-react";
+import { Save, UserPlus, Trash2, Shield, Eye, EyeOff, Loader2, KeyRound, AlertTriangle, Check, Edit2 } from "lucide-react";
 
 interface AdminUserRecord {
   id: string;
@@ -24,19 +27,32 @@ interface AdminUserRecord {
   hasPassword?: boolean;
 }
 
-interface ShippingZone {
+interface ShippingRegionRecord {
   id: string;
-  region: string;
+  regionName: string;
   cities: string;
-  rateBdt: number;
+  deliveryChargeBdt: number;
 }
 
 export default function AdminSettingsPage() {
-  const [storeName, setStoreName] = useState("LIVUS Streetwear Atelier");
+  const [storeName, setStoreName] = useState("LIVUS");
   const [supportEmail, setSupportEmail] = useState("support@livus.com.bd");
-  const [currency, setCurrency] = useState("BDT (৳)");
+  const [supportPhone, setSupportPhone] = useState("+880 1711 000000");
+  const [currency, setCurrency] = useState("BDT");
   const [vatPercent, setVatPercent] = useState("10");
+  const [freeShippingThreshold, setFreeShippingThreshold] = useState("2500");
+  const [defaultDeliveryCharge, setDefaultDeliveryCharge] = useState("150");
+  const [bkashMerchantNumber, setBkashMerchantNumber] = useState("01711000000");
+  const [nagadMerchantNumber, setNagadMerchantNumber] = useState("01811000000");
+  const [savingSettings, setSavingSettings] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [settingsError, setSettingsError] = useState("");
+
+  // Shipping Regions state
+  const [regions, setRegions] = useState<ShippingRegionRecord[]>([]);
+  const [editingRegionId, setEditingRegionId] = useState<string | null>(null);
+  const [editingRate, setEditingRate] = useState<number>(100);
+  const [updatingRegion, setUpdatingRegion] = useState(false);
 
   // Admin users state
   const [adminUsers, setAdminUsers] = useState<AdminUserRecord[]>([]);
@@ -76,26 +92,77 @@ export default function AdminSettingsPage() {
     }
   };
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedVat = localStorage.getItem("my_store_vat_percent");
-      if (storedVat) setVatPercent(storedVat);
+  const loadStoreSettings = async () => {
+    try {
+      const data = await fetchAdminStoreSettingsAction();
+      if (data?.settings) {
+        if (data.settings.storeName) setStoreName(data.settings.storeName);
+        if (data.settings.supportEmail) setSupportEmail(data.settings.supportEmail);
+        if (data.settings.supportPhone) setSupportPhone(data.settings.supportPhone);
+        if (data.settings.currency) setCurrency(data.settings.currency);
+        if (data.settings.vatPercent !== undefined) setVatPercent(data.settings.vatPercent.toString());
+        if (data.settings.freeShippingThresholdBdt !== undefined) setFreeShippingThreshold(data.settings.freeShippingThresholdBdt.toString());
+        if (data.settings.defaultDeliveryChargeBdt !== undefined) setDefaultDeliveryCharge(data.settings.defaultDeliveryChargeBdt.toString());
+        if (data.settings.bKashMerchantNumber) setBkashMerchantNumber(data.settings.bKashMerchantNumber);
+        if (data.settings.nagadMerchantNumber) setNagadMerchantNumber(data.settings.nagadMerchantNumber);
+      }
+      if (data?.regions) {
+        setRegions(data.regions);
+      }
+    } catch (err) {
+      console.error("Failed to load store settings:", err);
     }
+  };
+
+  useEffect(() => {
     loadAdminUsers();
+    loadStoreSettings();
   }, []);
 
-  const [zones] = useState<ShippingZone[]>([
-    { id: "z-1", region: "Dhaka Division", cities: "Dhaka, Gazipur, Narayanganj", rateBdt: 100 },
-    { id: "z-2", region: "Chittagong Division", cities: "Chittagong, Cox's Bazar, Comilla", rateBdt: 150 },
-    { id: "z-3", region: "Sylhet & Rajshahi", cities: "Sylhet, Rajshahi, Bogra", rateBdt: 150 },
-  ]);
-
-  const handleSaveSettings = () => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("my_store_vat_percent", vatPercent);
+  const handleSaveSettings = async () => {
+    setSavingSettings(true);
+    setSettingsError("");
+    try {
+      const res = await updateAdminStoreSettingsAction({
+        storeName,
+        supportEmail,
+        supportPhone,
+        currency,
+        vatPercent: parseInt(vatPercent) || 10,
+        freeShippingThresholdBdt: parseInt(freeShippingThreshold) || 2500,
+        defaultDeliveryChargeBdt: parseInt(defaultDeliveryCharge) || 150,
+        bKashMerchantNumber: bkashMerchantNumber,
+        nagadMerchantNumber: nagadMerchantNumber,
+      });
+      if (res.success) {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("my_store_vat_percent", vatPercent);
+        }
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+      } else {
+        setSettingsError(res.message || "Failed to save settings");
+      }
+    } catch (err: any) {
+      setSettingsError(err?.message || "Failed to save store settings.");
+    } finally {
+      setSavingSettings(false);
     }
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleSaveRegionRate = async (id: string) => {
+    setUpdatingRegion(true);
+    try {
+      const res = await updateAdminShippingRegionAction(id, editingRate);
+      if (res.success) {
+        setRegions((prev) => prev.map((r) => r.id === id ? { ...r, deliveryChargeBdt: editingRate } : r));
+        setEditingRegionId(null);
+      }
+    } catch (err) {
+      console.error("Failed to update shipping region rate:", err);
+    } finally {
+      setUpdatingRegion(false);
+    }
   };
 
   const handleCreateAdminSubmit = async (e: React.FormEvent) => {
@@ -536,9 +603,20 @@ export default function AdminSettingsPage() {
         <Card className="rounded-none shadow-none border-neutral-200 bg-white">
           <CardHeader>
             <CardTitle className="text-base font-semibold tracking-tight">Financial & Store Rules</CardTitle>
-            <CardDescription className="text-xs">VAT rates & business identity</CardDescription>
+            <CardDescription className="text-xs">VAT rates, payment gateways & business identity</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4 font-sans">
+            {saved && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-none">
+                Settings saved successfully to database!
+              </div>
+            )}
+            {settingsError && (
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-none">
+                {settingsError}
+              </div>
+            )}
+
             <div>
               <label className="text-xs font-medium text-foreground uppercase tracking-wider block mb-1">
                 Store Business Name
@@ -546,11 +624,19 @@ export default function AdminSettingsPage() {
               <Input value={storeName} onChange={(e) => setStoreName(e.target.value)} className="rounded-none" />
             </div>
 
-            <div>
-              <label className="text-xs font-medium text-foreground uppercase tracking-wider block mb-1">
-                Support Contact Email
-              </label>
-              <Input type="email" value={supportEmail} onChange={(e) => setSupportEmail(e.target.value)} className="rounded-none" />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-medium text-foreground uppercase tracking-wider block mb-1">
+                  Support Email
+                </label>
+                <Input type="email" value={supportEmail} onChange={(e) => setSupportEmail(e.target.value)} className="rounded-none" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-foreground uppercase tracking-wider block mb-1">
+                  Support Phone
+                </label>
+                <Input value={supportPhone} onChange={(e) => setSupportPhone(e.target.value)} className="rounded-none" />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -560,13 +646,54 @@ export default function AdminSettingsPage() {
                 </label>
                 <Input value={currency} onChange={(e) => setCurrency(e.target.value)} className="rounded-none" />
               </div>
-
               <div>
                 <label className="text-xs font-medium text-foreground uppercase tracking-wider block mb-1">
                   Global VAT Rate (%)
                 </label>
                 <Input type="number" value={vatPercent} onChange={(e) => setVatPercent(e.target.value)} className="rounded-none" />
               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-medium text-foreground uppercase tracking-wider block mb-1">
+                  Free Shipping Threshold (BDT)
+                </label>
+                <Input type="number" value={freeShippingThreshold} onChange={(e) => setFreeShippingThreshold(e.target.value)} className="rounded-none" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-foreground uppercase tracking-wider block mb-1">
+                  Default Delivery Fee (BDT)
+                </label>
+                <Input type="number" value={defaultDeliveryCharge} onChange={(e) => setDefaultDeliveryCharge(e.target.value)} className="rounded-none" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-medium text-foreground uppercase tracking-wider block mb-1">
+                  bKash Merchant / Personal No.
+                </label>
+                <Input value={bkashMerchantNumber} onChange={(e) => setBkashMerchantNumber(e.target.value)} className="rounded-none" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-foreground uppercase tracking-wider block mb-1">
+                  Nagad Merchant / Personal No.
+                </label>
+                <Input value={nagadMerchantNumber} onChange={(e) => setNagadMerchantNumber(e.target.value)} className="rounded-none" />
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <Button
+                type="button"
+                onClick={handleSaveSettings}
+                disabled={savingSettings}
+                className="w-full rounded-none bg-black text-white hover:bg-neutral-800 text-xs font-medium h-9"
+              >
+                {savingSettings ? <Loader2 className="size-3.5 animate-spin mr-1.5" /> : <Save className="size-3.5 mr-1.5" />}
+                <span>{saved ? "Settings Saved ✓" : "Save Store Settings"}</span>
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -575,25 +702,80 @@ export default function AdminSettingsPage() {
         <Card className="rounded-none shadow-none border-neutral-200 bg-white">
           <CardHeader>
             <CardTitle className="text-base font-semibold tracking-tight">Geographic Shipping Zones</CardTitle>
-            <CardDescription className="text-xs">Populates checkout Region & City dropdowns</CardDescription>
+            <CardDescription className="text-xs">Database-driven delivery fees per division across Bangladesh</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader className="bg-neutral-50/50">
                 <TableRow className="border-b border-neutral-200">
-                  <TableHead className="font-semibold text-xs text-foreground">Region / State</TableHead>
-                  <TableHead className="font-semibold text-xs text-foreground">Cities Covered</TableHead>
-                  <TableHead className="font-semibold text-xs text-foreground">Delivery Fee</TableHead>
+                  <TableHead className="font-semibold text-xs text-foreground">Region / Division</TableHead>
+                  <TableHead className="font-semibold text-xs text-foreground">Cities</TableHead>
+                  <TableHead className="font-semibold text-xs text-foreground text-right pr-4">Delivery Rate</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {zones.map((z) => (
-                  <TableRow key={z.id} className="border-b border-neutral-200">
-                    <TableCell className="font-semibold text-foreground text-xs py-3">{z.region}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground py-3">{z.cities}</TableCell>
-                    <TableCell className="font-semibold text-xs text-emerald-600 py-3">৳{z.rateBdt} BDT</TableCell>
+                {regions.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-center py-6 text-xs text-neutral-400">
+                      Loading shipping regions...
+                    </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  regions.map((r) => (
+                    <TableRow key={r.id} className="border-b border-neutral-200">
+                      <TableCell className="font-semibold text-foreground text-xs py-3">{r.regionName}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground py-3 max-w-[200px] truncate" title={r.cities}>
+                        {r.cities}
+                      </TableCell>
+                      <TableCell className="text-right pr-4 py-3">
+                        {editingRegionId === r.id ? (
+                          <div className="flex items-center justify-end gap-1.5">
+                            <Input
+                              type="number"
+                              value={editingRate}
+                              onChange={(e) => setEditingRate(parseInt(e.target.value) || 0)}
+                              className="w-20 h-7 text-xs rounded-none text-right font-mono"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleSaveRegionRate(r.id)}
+                              disabled={updatingRegion}
+                              className="p-1 text-emerald-600 hover:text-emerald-800 cursor-pointer bg-transparent border-none"
+                              title="Save rate"
+                            >
+                              <Check className="size-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingRegionId(null)}
+                              className="p-1 text-neutral-400 hover:text-black cursor-pointer bg-transparent border-none"
+                              title="Cancel"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-end gap-2">
+                            <span className="font-semibold text-xs text-emerald-600 font-mono">
+                              ৳{r.deliveryChargeBdt} BDT
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingRegionId(r.id);
+                                setEditingRate(r.deliveryChargeBdt);
+                              }}
+                              className="p-1 text-neutral-400 hover:text-black transition-colors cursor-pointer bg-transparent border-none"
+                              title="Edit shipping fee"
+                            >
+                              <Edit2 className="size-3.5" />
+                            </button>
+                          </div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </CardContent>
@@ -602,3 +784,4 @@ export default function AdminSettingsPage() {
     </div>
   );
 }
+

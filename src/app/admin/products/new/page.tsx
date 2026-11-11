@@ -597,17 +597,46 @@ function ProductFormContent() {
     if (!files || files.length === 0 || !uploadModalVariantId) return;
 
     setIsUploadingFiles(true);
-    const formData = new FormData();
-    for (let i = 0; i < files.length; i++) {
-      formData.append("files", files[i]);
-    }
+
+    // Shrink large photos in the browser (max 2000px, ~0.85 JPEG quality) so each upload stays
+    // well under Vercel's ~4.5 MB request limit and the storefront loads faster.
+    const shrinkImage = async (file: File): Promise<File> => {
+      if (!file.type.startsWith("image/") || file.type === "image/gif" || file.size < 1.5 * 1024 * 1024) return file;
+      try {
+        const bitmap = await createImageBitmap(file);
+        const scale = Math.min(1, 2000 / Math.max(bitmap.width, bitmap.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(bitmap.width * scale);
+        canvas.height = Math.round(bitmap.height * scale);
+        canvas.getContext("2d")?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        bitmap.close();
+        const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.85));
+        if (!blob || blob.size >= file.size) return file;
+        return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".jpg", { type: "image/jpeg" });
+      } catch {
+        return file;
+      }
+    };
 
     try {
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json();
+      // One request per photo so several phone photos never exceed the request size limit.
+      const uploadedUrls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const formData = new FormData();
+        formData.append("files", await shrinkImage(files[i]));
+        const res = await fetch("/api/upload", { method: "POST", body: formData });
+        const part = await res.json().catch(() => ({ success: false, message: `Upload failed (HTTP ${res.status})` }));
+        if (!part.success) {
+          if (uploadedUrls.length === 0) {
+            alert(part.message || "Failed to upload files");
+            return;
+          }
+          alert(`${part.message || "Upload failed"}. ${uploadedUrls.length} of ${files.length} photos were uploaded.`);
+          break;
+        }
+        uploadedUrls.push(...(part.urls || []));
+      }
+      const data = { success: uploadedUrls.length > 0, urls: uploadedUrls, message: "Failed to upload files" };
 
       if (data.success && data.urls && data.urls.length > 0) {
         setVariants(

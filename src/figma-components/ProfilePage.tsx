@@ -6,7 +6,12 @@ import type { CSSProperties } from "react";
 import { SiteNav } from "./SiteNav";
 import { SiteFooter } from "./SiteFooter";
 import { InputField } from "./InputField";
-import { searchCustomerOrdersAction, getCustomerProfileAction, saveCustomerProfileAction } from "@/app/actions/orders";
+import {
+  searchCustomerOrdersAction,
+  getCustomerProfileAction,
+  saveCustomerProfileAction,
+  cancelCustomerOrderAction,
+} from "@/app/actions/orders";
 import productImg from "@/imports/ProductDetails/71b3cd582dab7174e13346a8d88abe33548d2aa7.png";
 
 const base: CSSProperties = {
@@ -33,6 +38,7 @@ interface OrderItem {
 
 interface Order {
   id: string;
+  rawId?: string;
   date: string;
   total: string;
   status: OrderStatus;
@@ -40,6 +46,10 @@ interface Order {
   vat: string;
   delivery: string;
   items: OrderItem[];
+  customerName?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
 }
 
 const sampleOrders: Order[] = [
@@ -348,7 +358,129 @@ export function ProfilePage() {
 
   const availableCities = region && REGION_CITIES_MAP[region] ? REGION_CITIES_MAP[region] : ALL_CITIES;
 
+  // Order Cancellation State
+  const [cancelConfirmOrder, setCancelConfirmOrder] = useState<Order | null>(null);
+  const [cancellingOrder, setCancellingOrder] = useState(false);
+  const [cancelMessage, setCancelMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const handleCancelOrder = async () => {
+    if (!cancelConfirmOrder) return;
+    setCancellingOrder(true);
+    setCancelMessage(null);
+    try {
+      const guestPhoneArg = cancelConfirmOrder.phone || phone || orderSearchQuery;
+      const res = await cancelCustomerOrderAction(cancelConfirmOrder.rawId || cancelConfirmOrder.id, guestPhoneArg);
+      if (res.success) {
+        setCancelMessage({ type: 'success', text: res.message });
+        setOrdersList((prev) =>
+          prev.map((o) =>
+            o.id === cancelConfirmOrder.id || o.rawId === cancelConfirmOrder.rawId
+              ? { ...o, status: 'Cancelled' as OrderStatus }
+              : o
+          )
+        );
+        setCancelConfirmOrder(null);
+      } else {
+        setCancelMessage({ type: 'error', text: res.message || 'Failed to cancel order.' });
+      }
+    } catch (err: any) {
+      setCancelMessage({ type: 'error', text: err?.message || 'Failed to cancel order.' });
+    } finally {
+      setCancellingOrder(false);
+    }
+  };
+
+  const renderOrderStepper = (status: OrderStatus) => {
+    if (status === 'Cancelled') {
+      return (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          padding: '12px 16px',
+          background: '#fff1f2',
+          border: '1px solid #fecdd3',
+        }}>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#e11d48', flexShrink: 0 }} />
+          <p style={{ ...base, fontSize: '14px', color: '#9f1239', margin: 0 }}>
+            <strong>ORDER CANCELLED</strong> — This order was cancelled and reserved items were restored to stock.
+          </p>
+        </div>
+      );
+    }
+
+    const steps: OrderStatus[] = ['Pending', 'Processing', 'Shipped', 'Delivered'];
+    const currentIdx = steps.indexOf(status);
+
+    return (
+      <div style={{ padding: '12px 0 6px 0', width: '100%' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
+          {/* Connecting line */}
+          <div style={{
+            position: 'absolute',
+            top: '12px',
+            left: '32px',
+            right: '32px',
+            height: '2px',
+            background: '#e5e7eb',
+            zIndex: 0,
+          }}>
+            <div style={{
+              height: '100%',
+              background: '#050505',
+              width: `${Math.max(0, (Math.min(currentIdx, steps.length - 1) / (steps.length - 1)) * 100)}%`,
+              transition: 'width 0.3s ease',
+            }} />
+          </div>
+
+          {steps.map((st, i) => {
+            const isDone = currentIdx > i;
+            const isCurrent = currentIdx === i;
+            return (
+              <div key={st} style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '6px',
+                zIndex: 1,
+                position: 'relative',
+              }}>
+                <div style={{
+                  width: '26px',
+                  height: '26px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                  background: isDone || isCurrent ? '#050505' : '#ffffff',
+                  color: isDone || isCurrent ? '#ffffff' : '#9ca3af',
+                  border: isDone || isCurrent ? '2px solid #050505' : '2px solid #d1d5db',
+                }}>
+                  {isDone ? '✓' : i + 1}
+                </div>
+                <span style={{
+                  fontSize: '12px',
+                  fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  fontWeight: isCurrent ? 600 : 500,
+                  color: isCurrent ? '#050505' : isDone ? '#4b5563' : '#9ca3af',
+                }}>
+                  {st}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   return (
+
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: "#ffffff" }}>
       <SiteNav />
 
@@ -590,6 +722,20 @@ export function ProfilePage() {
               </form>
             </div>
 
+            {/* Cancel feedback toast */}
+            {cancelMessage && (
+              <div style={{
+                padding: '12px 16px',
+                background: cancelMessage.type === 'success' ? '#ecfdf5' : '#fef2f2',
+                border: `1px solid ${cancelMessage.type === 'success' ? '#a7f3d0' : '#fecaca'}`,
+                color: cancelMessage.type === 'success' ? '#065f46' : '#991b1b',
+                fontSize: '14px',
+                fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+              }}>
+                {cancelMessage.text}
+              </div>
+            )}
+
             {loadingOrders ? (
               <div style={{ padding: "40px 0", textTransform: "uppercase", fontSize: "16px", color: "#888888", textAlign: "center" }}>
                 Looking for your order...
@@ -650,6 +796,11 @@ export function ProfilePage() {
                             {order.id.startsWith("#") ? order.id : `#${order.id}`}
                           </p>
                           <p style={{ ...base, fontSize: "15px", color: "#666666", letterSpacing: "-0.085px" }}>{order.date}</p>
+                          {order.address && (
+                            <p style={{ ...base, fontSize: "13px", color: "#888888", marginTop: "2px" }}>
+                              Delivering to: {order.address}
+                            </p>
+                          )}
                         </div>
                         <div style={{ display: "flex", flexDirection: "column", gap: "8px", alignItems: "flex-end", marginLeft: "auto" }}>
                           <p style={{ ...base, fontSize: "18px", fontWeight: 500, letterSpacing: "-0.36px", color: "#000000" }}>
@@ -658,6 +809,9 @@ export function ProfilePage() {
                           <span style={statusStyle[order.status] || statusStyle.Pending}>{order.status}</span>
                         </div>
                       </div>
+
+                      {/* Order Status Progress Stepper */}
+                      {renderOrderStepper(order.status)}
 
                       {/* Items List */}
                       <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -685,12 +839,50 @@ export function ProfilePage() {
                       {/* Thin separator */}
                       <div style={{ width: "100%", height: "1px", background: "#e2e2e2" }} />
 
-                      {/* Pricing summary */}
-                      <div style={{ display: "flex", flexDirection: "column", gap: "6px", alignItems: "flex-end" }}>
-                        <p style={{ ...base, fontSize: "15px", color: "#555555" }}>Subtotal: {order.subtotal}</p>
-                        {(order as any).discount && <p style={{ ...base, fontSize: "15px", color: "#d4183d" }}>Discount: -{(order as any).discount}</p>}
-                        <p style={{ ...base, fontSize: "15px", color: "#555555" }}>VAT: {order.vat}</p>
-                        <p style={{ ...base, fontSize: "15px", color: "#555555" }}>Delivery Charge: {order.delivery}</p>
+                      {/* Pricing summary & Order Actions */}
+                      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "16px" }}>
+                        <div>
+                          {order.status === "Pending" ? (
+                            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                              <button
+                                type="button"
+                                onClick={() => setCancelConfirmOrder(order)}
+                                style={{
+                                  background: "#ffffff",
+                                  color: "#d4183d",
+                                  border: "1px solid #d4183d",
+                                  padding: "8px 18px",
+                                  fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                                  fontSize: "14px",
+                                  letterSpacing: "0.5px",
+                                  textTransform: "uppercase",
+                                  cursor: "pointer",
+                                  fontWeight: 500,
+                                }}
+                              >
+                                CANCEL ORDER
+                              </button>
+                              <span style={{ fontSize: "12px", color: "#888888" }}>
+                                Eligible for instant self-service cancellation
+                              </span>
+                            </div>
+                          ) : order.status === "Cancelled" ? (
+                            <span style={{ fontSize: "13px", color: "#9f1239", fontWeight: 500 }}>
+                              Order Cancelled
+                            </span>
+                          ) : (
+                            <span style={{ fontSize: "13px", color: "#4b5563", fontWeight: 500 }}>
+                              In Progress
+                            </span>
+                          )}
+                        </div>
+
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px", alignItems: "flex-end" }}>
+                          <p style={{ ...base, fontSize: "15px", color: "#555555" }}>Subtotal: {order.subtotal}</p>
+                          {(order as any).discount && <p style={{ ...base, fontSize: "15px", color: "#d4183d" }}>Discount: -{(order as any).discount}</p>}
+                          <p style={{ ...base, fontSize: "15px", color: "#555555" }}>VAT: {order.vat}</p>
+                          <p style={{ ...base, fontSize: "15px", color: "#555555" }}>Delivery Charge: {order.delivery}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -698,6 +890,85 @@ export function ProfilePage() {
               </div>
             )}
           </div>
+
+          {/* Cancellation Confirmation Modal Dialog */}
+          {cancelConfirmOrder && (
+            <div style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0, 0, 0, 0.6)",
+              backdropFilter: "blur(2px)",
+              zIndex: 9999,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "16px",
+            }}>
+              <div style={{
+                background: "#ffffff",
+                maxWidth: "460px",
+                width: "100%",
+                padding: "32px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "20px",
+                boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.2)",
+              }}>
+                <h3 style={{
+                  fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
+                  fontSize: "28px",
+                  fontWeight: 600,
+                  margin: 0,
+                  color: "#050505",
+                }}>
+                  CANCEL ORDER?
+                </h3>
+                <p style={{ ...base, fontSize: "15px", color: "#555555", margin: 0 }}>
+                  Are you sure you want to cancel order <strong>{cancelConfirmOrder.id}</strong>? The reserved apparel items will be restored to store stock. This action cannot be undone.
+                </p>
+                <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", marginTop: "8px" }}>
+                  <button
+                    type="button"
+                    onClick={() => setCancelConfirmOrder(null)}
+                    disabled={cancellingOrder}
+                    style={{
+                      background: "#ffffff",
+                      color: "#050505",
+                      border: "1px solid #d1d5db",
+                      padding: "10px 20px",
+                      fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                      fontSize: "15px",
+                      letterSpacing: "0.5px",
+                      textTransform: "uppercase",
+                      cursor: "pointer",
+                    }}
+                  >
+                    KEEP ORDER
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelOrder}
+                    disabled={cancellingOrder}
+                    style={{
+                      background: "#d4183d",
+                      color: "#ffffff",
+                      border: "none",
+                      padding: "10px 24px",
+                      fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                      fontSize: "15px",
+                      letterSpacing: "0.5px",
+                      textTransform: "uppercase",
+                      cursor: "pointer",
+                      opacity: cancellingOrder ? 0.7 : 1,
+                    }}
+                  >
+                    {cancellingOrder ? "CANCELLING..." : "CONFIRM CANCELLATION"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
 
         </div>
       </div>

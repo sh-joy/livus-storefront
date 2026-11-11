@@ -10,6 +10,7 @@ export default function OrderConfirmed() {
   const orderNumber = searchParams ? searchParams.get("orderNumber") || "LIV-8726" : "LIV-8726";
   const total = searchParams ? searchParams.get("total") || "1423" : "1423";
   const location = searchParams ? searchParams.get("location") || "Dhaka, Bangladesh" : "Dhaka, Bangladesh";
+  const paymentMethod = searchParams ? searchParams.get("paymentMethod") || "Cash on Delivery (COD)" : "Cash on Delivery (COD)";
 
   return (
     <div className="bg-white content-stretch flex flex-col items-center relative size-full min-h-screen" data-name="Order Confirmed">
@@ -22,7 +23,7 @@ export default function OrderConfirmed() {
         </h1>
 
         <p className="font-sans text-[17px] leading-[26px] text-neutral-600 mb-8 max-w-[560px]">
-          Thank you for choosing <span className="font-semibold text-neutral-900">LIVUS</span>. Your Cash on Delivery order has been submitted. Our employee will call you to confirm the order before delivery within 2–3 working days.
+          Thank you for choosing <span className="font-semibold text-neutral-900">LIVUS</span>. Your order has been registered in our system. Our team will verify your details before dispatching within 2–3 working days.
         </p>
 
         {/* Order Details Card with 0 Border Radius */}
@@ -43,7 +44,7 @@ export default function OrderConfirmed() {
           <div className="flex justify-between items-center pb-3 border-b border-neutral-200">
             <span className="text-[#666666] font-normal text-[16px]">Payment Method:</span>
             <span className="font-medium text-[16px] text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-none border border-emerald-200">
-              Cash on Delivery (COD)
+              {paymentMethod}
             </span>
           </div>
 

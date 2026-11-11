@@ -52,7 +52,14 @@ const sectionLabel: CSSProperties = {
   textTransform: "uppercase",
 };
 
-import { placeOrderAction, getCheckoutQuoteAction } from "@/app/actions/checkout";
+import { useSession } from "@/lib/auth-client";
+import { getCustomerProfileAction } from "@/app/actions/orders";
+import {
+  placeOrderAction,
+  getCheckoutQuoteAction,
+  saveAbandonedCheckoutAction,
+  fetchStoreSettingsAction,
+} from "@/app/actions/checkout";
 
 const REGION_CITIES_MAP: Record<string, string[]> = {
   "Dhaka Division": [
@@ -89,6 +96,8 @@ const REGION_CITIES_MAP: Record<string, string[]> = {
 
 export function CheckoutPage() {
   const router = useRouter();
+  const { data: sessionData } = useSession();
+  const user = sessionData?.user;
 
   const [fullName, setFullName] = useState("");
   const [phone, setPhone]       = useState("");
@@ -99,32 +108,74 @@ export function CheckoutPage() {
   const [region, setRegion]     = useState("");
   const [postal, setPostal]     = useState("");
   const [delivery, setDelivery] = useState("");
-  const [payment, setPayment]   = useState<"online" | "cash">("cash"); // Default to Cash on Delivery
+  const [payment, setPayment]   = useState<"cash" | "bkash" | "nagad" | "online">("cash"); // Default to Cash on Delivery
+  const [trxId, setTrxId]       = useState("");
+  const [senderPhone, setSenderPhone] = useState("");
   const [promoCode, setPromoCode] = useState("");
   const [promoError, setPromoError] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState<{ code: string; amount: number; isPercentage?: boolean; description: string } | null>(null);
   const [errors, setErrors]     = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [storeSettingsData, setStoreSettingsData] = useState<{
+    bkashMerchantNumber?: string;
+    nagadMerchantNumber?: string;
+    freeShippingThresholdBdt?: number;
+  } | null>(null);
+
+  const isBkashConfigured = Boolean(
+    storeSettingsData?.bkashMerchantNumber &&
+    /^01[3-9]\d{8}$/.test(storeSettingsData.bkashMerchantNumber.trim())
+  );
+  const isNagadConfigured = Boolean(
+    storeSettingsData?.nagadMerchantNumber &&
+    /^01[3-9]\d{8}$/.test(storeSettingsData.nagadMerchantNumber.trim())
+  );
 
   const cartItems = useCartStore((state) => state.items);
-  const isOnlineSelected = cartItems.length > 0 && payment === "online";
-  const isCashSelected = cartItems.length > 0 && payment === "cash";
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
 
-  // Items in the shape the server expects. productId falls back to the legacy cart id for old saved carts.
+  // Load store settings for merchant numbers and free shipping rules
+  useEffect(() => {
+    fetchStoreSettingsAction().then((s) => {
+      if (s) setStoreSettingsData(s);
+    });
+  }, []);
+
+  // Autofill address and contact info when customer is logged in
+  useEffect(() => {
+    if (user) {
+      if (user.name) setFullName((prev) => prev || user.name);
+      if (user.email) setEmail((prev) => prev || user.email);
+      getCustomerProfileAction().then((profile) => {
+        if (profile) {
+          if (profile.fullName) setFullName(profile.fullName);
+          if (profile.phone) setPhone(profile.phone);
+          if (profile.email) setEmail(profile.email);
+          if (profile.address) setAddress(profile.address);
+          if (profile.apt) setApt(profile.apt);
+          if (profile.city) setCity(profile.city);
+          if (profile.district) setRegion(profile.district);
+          if (profile.postalCode) setPostal(profile.postalCode);
+        }
+      });
+    }
+  }, [user]);
+
+  // Items in the shape the server expects
   const quoteItems = cartItems.map((item) => ({
     productId: item.product.productId || item.product.slug || item.product.id,
     variantName: item.product.color || undefined,
     size: item.product.size || undefined,
     quantity: item.quantity,
   }));
-  const quoteKey = JSON.stringify(quoteItems) + "|" + (appliedDiscount?.code || "");
+  const quoteKey = JSON.stringify(quoteItems) + "|" + (appliedDiscount?.code || "") + "|" + (region || "");
 
-  // Server-calculated summary: identical math to what gets saved with the order.
+  // Server-calculated summary with tiered shipping and free shipping check
   const [quote, setQuote] = useState<{
     subtotalBdt: number; discountBdt: number; vatBdt: number; vatPercent: number;
-    deliveryChargeBdt: number; totalBdt: number;
+    deliveryChargeBdt: number; totalBdt: number; freeShippingEligible?: boolean;
+    freeShippingThresholdBdt?: number; amountNeededForFreeShippingBdt?: number;
   } | null>(null);
   const [quoteError, setQuoteError] = useState("");
 
@@ -135,7 +186,7 @@ export function CheckoutPage() {
       return;
     }
     let cancelled = false;
-    getCheckoutQuoteAction(quoteItems, appliedDiscount?.code).then((res) => {
+    getCheckoutQuoteAction(quoteItems, appliedDiscount?.code, region).then((res) => {
       if (cancelled) return;
       if (res.success) {
         setQuote(res);
@@ -152,6 +203,26 @@ export function CheckoutPage() {
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quoteKey]);
+
+  // Auto-save abandoned checkout drafts for CRM follow-up
+  useEffect(() => {
+    const cleanPhone = phone.trim().replace(/[\s-]/g, '');
+    const cleanEmail = email.trim();
+    if (!cleanPhone && !cleanEmail) return;
+    if (cartItems.length === 0) return;
+
+    const timer = setTimeout(() => {
+      saveAbandonedCheckoutAction({
+        customerName: fullName.trim() || undefined,
+        phone: cleanPhone || undefined,
+        email: cleanEmail || undefined,
+        items: quoteItems,
+        subtotalBdt: quote?.subtotalBdt,
+      });
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [fullName, phone, email, quoteKey]);
 
   // Shown instantly from the cart while the server quote loads
   const localSubtotal = cartItems.reduce((acc, item) => {
@@ -234,6 +305,21 @@ export function CheckoutPage() {
       newErrors.region = "State / Region (District) is required";
     }
 
+    if (payment === "bkash" || payment === "nagad") {
+      const cleanTrx = trxId.trim().toUpperCase();
+      if (!cleanTrx) {
+        newErrors.trxId = `Please enter your ${payment === "bkash" ? "bKash" : "Nagad"} Transaction ID (TrxID)`;
+      } else if (!/^[A-Za-z0-9]{8,16}$/.test(cleanTrx)) {
+        newErrors.trxId = "Transaction ID must be 8-16 alphanumeric characters.";
+      }
+      if (senderPhone.trim()) {
+        const cleanSender = senderPhone.trim().replace(/\D/g, '');
+        if (!/^01[3-9]\d{8}$/.test(cleanSender)) {
+          newErrors.senderPhone = "Please enter a valid 11-digit Bangladeshi mobile number.";
+        }
+      }
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -274,6 +360,8 @@ export function CheckoutPage() {
         zipCode: postal.trim() || undefined,
         deliveryInstructions: delivery.trim() || undefined,
         paymentMethod: payment,
+        trxId: (payment === 'bkash' || payment === 'nagad') ? trxId.trim() : undefined,
+        senderPhone: (payment === 'bkash' || payment === 'nagad') ? senderPhone.trim() : undefined,
         cartItems: orderItemsInput,
         promoCode: appliedDiscount?.code,
       };
@@ -284,7 +372,7 @@ export function CheckoutPage() {
         useCartStore.getState().clearCart();
         const ordNum = res.orderNumber || res.orderId || 'LIV-1042';
         const locStr = [city.trim(), region.trim()].filter(Boolean).join(', ') || 'Dhaka, Bangladesh';
-        router.push(`/order-confirmed?orderNumber=${encodeURIComponent(ordNum)}&total=${res.totalAmount || totalVal}&location=${encodeURIComponent(locStr)}`);
+        router.push(`/order-confirmed?orderNumber=${encodeURIComponent(ordNum)}&total=${res.totalAmount || totalVal}&location=${encodeURIComponent(locStr)}&paymentMethod=${encodeURIComponent(res.paymentMethod || 'Cash on Delivery')}`);
       } else {
         setErrors({ form: res.message || 'Failed to place order. Please try again.' });
       }
@@ -510,34 +598,9 @@ export function CheckoutPage() {
               </div>
 
               {/* Payment method */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                 <p style={sectionLabel}>Payment method</p>
-                <div style={{ display: "flex", gap: "16px", width: "100%", opacity: cartItems.length === 0 ? 0.5 : 1, pointerEvents: cartItems.length === 0 ? "none" : "auto" }}>
-
-                  {/* Online Payment */}
-                  <button
-                    type="button"
-                    disabled={cartItems.length === 0}
-                    onClick={() => setPayment("online")}
-                    style={{
-                      flex: 1,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      padding: "16px 20px",
-                      border: isOnlineSelected ? "1px solid #000000" : "1px solid #e2e8f0",
-                      background: "#ffffff",
-                      cursor: "pointer",
-                      boxSizing: "border-box",
-                      transition: "all 0.2s ease",
-                    }}
-                  >
-                    <span style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <CardIcon />
-                      <span style={{ ...base, fontSize: "16px", fontWeight: isOnlineSelected ? 500 : 400 }}>Online Payment</span>
-                    </span>
-                    {isOnlineSelected && <CheckCircle />}
-                  </button>
+                <div className={`grid grid-cols-1 ${isBkashConfigured && isNagadConfigured ? 'sm:grid-cols-3' : isBkashConfigured || isNagadConfigured ? 'sm:grid-cols-2' : 'sm:grid-cols-1'} gap-3 w-full`} style={{ opacity: cartItems.length === 0 ? 0.5 : 1, pointerEvents: cartItems.length === 0 ? "none" : "auto" }}>
 
                   {/* Cash on delivery */}
                   <button
@@ -545,26 +608,149 @@ export function CheckoutPage() {
                     disabled={cartItems.length === 0}
                     onClick={() => setPayment("cash")}
                     style={{
-                      flex: 1,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",
-                      padding: "16px 20px",
-                      border: isCashSelected ? "1px solid #000000" : "1px solid #e2e8f0",
-                      background: "#ffffff",
+                      padding: "14px 14px",
+                      border: payment === "cash" ? "1.5px solid #000000" : "1px solid #e2e8f0",
+                      background: payment === "cash" ? "#fafafa" : "#ffffff",
                       cursor: "pointer",
                       boxSizing: "border-box",
                       transition: "all 0.2s ease",
                     }}
                   >
-                    <span style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                       <TruckIcon />
-                      <span style={{ ...base, fontSize: "16px", fontWeight: isCashSelected ? 500 : 400, color: isCashSelected ? "var(--ink)" : "var(--ink-muted)" }}>Cash on delivery</span>
+                      <span style={{ ...base, fontSize: "14px", fontWeight: payment === "cash" ? 600 : 400 }}>COD (Cash)</span>
                     </span>
-                    {isCashSelected && <CheckCircle />}
+                    {payment === "cash" && <CheckCircle />}
                   </button>
 
+                  {/* bKash (only if configured in store settings) */}
+                  {isBkashConfigured && (
+                    <button
+                      type="button"
+                      disabled={cartItems.length === 0}
+                      onClick={() => setPayment("bkash")}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "14px 14px",
+                        border: payment === "bkash" ? "1.5px solid #d12053" : "1px solid #e2e8f0",
+                        background: payment === "bkash" ? "#fff5f7" : "#ffffff",
+                        cursor: "pointer",
+                        boxSizing: "border-box",
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <span style={{ fontWeight: 700, color: "#d12053", fontSize: "15px", fontFamily: "sans-serif" }}>bKash</span>
+                      </span>
+                      {payment === "bkash" && <CheckCircle />}
+                    </button>
+                  )}
+
+                  {/* Nagad (only if configured in store settings) */}
+                  {isNagadConfigured && (
+                    <button
+                      type="button"
+                      disabled={cartItems.length === 0}
+                      onClick={() => setPayment("nagad")}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "14px 14px",
+                        border: payment === "nagad" ? "1.5px solid #e65c00" : "1px solid #e2e8f0",
+                        background: payment === "nagad" ? "#fff9f5" : "#ffffff",
+                        cursor: "pointer",
+                        boxSizing: "border-box",
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <span style={{ fontWeight: 700, color: "#e65c00", fontSize: "15px", fontFamily: "sans-serif" }}>Nagad</span>
+                      </span>
+                      {payment === "nagad" && <CheckCircle />}
+                    </button>
+                  )}
+
                 </div>
+
+                {/* Instructions & TrxID inputs for bKash */}
+                {payment === "bkash" && (
+                  <div className="p-4 bg-[#fff5f7] border border-[#f8c5d2] flex flex-col gap-3 font-sans">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-xs text-[#a1113b] uppercase tracking-wider">bKash Manual Payment</span>
+                      <span className="text-xs bg-[#d12053] text-white px-2 py-0.5 font-mono">{storeSettingsData?.bkashMerchantNumber || ''}</span>
+                    </div>
+                    <p className="text-xs text-neutral-700 leading-relaxed">
+                      1. Open your bKash app or dial *247#<br/>
+                      2. Send Money / Make Payment of <strong>৳{totalVal.toFixed(0)} BDT</strong> to <strong>{storeSettingsData?.bkashMerchantNumber || ''}</strong><br/>
+                      3. Enter the <strong>Transaction ID (TrxID)</strong> from your SMS receipt below to verify order.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3 pt-1">
+                      <div className="flex-1">
+                        <InputField
+                          label="bKash Transaction ID (TrxID) *"
+                          value={trxId}
+                          onChange={(v) => { setTrxId(v); if (errors.trxId) setErrors(prev => ({ ...prev, trxId: "" })); }}
+                          error={errors.trxId}
+                          placeholder="e.g. 9J47AB12"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <InputField
+                          label="Sender bKash Number (Optional)"
+                          value={senderPhone}
+                          onChange={setSenderPhone}
+                          placeholder="017XXXXXXXX"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Instructions & TrxID inputs for Nagad */}
+                {payment === "nagad" && (
+                  <div className="p-4 bg-[#fff9f5] border border-[#fed7aa] flex flex-col gap-3 font-sans">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-xs text-[#9a3412] uppercase tracking-wider">Nagad Manual Payment</span>
+                      <span className="text-xs bg-[#ea580c] text-white px-2 py-0.5 font-mono">{storeSettingsData?.nagadMerchantNumber || ''}</span>
+                    </div>
+                    <p className="text-xs text-neutral-700 leading-relaxed">
+                      1. Open your Nagad app or dial *167#<br/>
+                      2. Send Money of <strong>৳{totalVal.toFixed(0)} BDT</strong> to <strong>{storeSettingsData?.nagadMerchantNumber || ''}</strong><br/>
+                      3. Enter the <strong>Transaction ID (TrxID)</strong> from your SMS receipt below to verify order.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3 pt-1">
+                      <div className="flex-1">
+                        <InputField
+                          label="Nagad Transaction ID (TrxID) *"
+                          value={trxId}
+                          onChange={(v) => { setTrxId(v); if (errors.trxId) setErrors(prev => ({ ...prev, trxId: "" })); }}
+                          error={errors.trxId}
+                          placeholder="e.g. 7K29NM84"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <InputField
+                          label="Sender Nagad Number (Optional)"
+                          value={senderPhone}
+                          onChange={setSenderPhone}
+                          placeholder="018XXXXXXXX"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {payment === "cash" && (
+                  <div className="p-3 bg-neutral-50 border border-neutral-200 text-neutral-600 text-xs font-sans">
+                    Pay with cash directly to our delivery courier when your package arrives at your doorstep.
+                  </div>
+                )}
               </div>
             </div>
 
@@ -777,7 +963,13 @@ export function CheckoutPage() {
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <p style={{ ...base, letterSpacing: "-0.34px", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>Delivery Charge</p>
-                    <p style={{ ...base, letterSpacing: "-0.34px", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>৳ {deliveryVal.toFixed(0)} BDT</p>
+                    <p style={{ ...base, letterSpacing: "-0.34px", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>
+                      {deliveryVal === 0 ? (
+                        <span style={{ color: "#10b981", fontWeight: 600 }}>FREE (Over ৳2,500)</span>
+                      ) : (
+                        `৳ ${deliveryVal.toFixed(0)} BDT`
+                      )}
+                    </p>
                   </div>
                 </div>
 
@@ -822,7 +1014,11 @@ export function CheckoutPage() {
                   {isSubmitting
                     ? "PLACING YOUR ORDER..."
                     : payment === "cash"
-                    ? "CONFIRM ORDER"
+                    ? "CONFIRM CASH ON DELIVERY"
+                    : payment === "bkash"
+                    ? "CONFIRM BKASH PAYMENT ORDER"
+                    : payment === "nagad"
+                    ? "CONFIRM NAGAD PAYMENT ORDER"
                     : "PROCEED TO PAYMENT"}
                 </button>
               </div>

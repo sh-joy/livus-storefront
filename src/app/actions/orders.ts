@@ -6,6 +6,8 @@ import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
 import { and, eq, or, desc } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
+import { restoreStockForOrderItems } from '@/lib/order-pricing';
+import { sendOrderStatusNotificationEmail } from '@/lib/email';
 
 // NOTE: the old createOrderAction / getOrderByIdAction were removed. They were public endpoints that
 // trusted browser-supplied totals and exposed any order by number. Orders are placed via
@@ -253,3 +255,101 @@ export async function saveCustomerProfileAction(data: {
     return { success: false, error: 'Failed to save profile changes.' };
   }
 }
+
+/**
+ * Customer Self-Service Order Cancellation.
+ * Allows cancelling an order if status is currently "Pending".
+ * Re-stores inventory in stock_inventory and triggers status email.
+ */
+export async function cancelCustomerOrderAction(orderIdOrNumber: string, guestPhone?: string) {
+  try {
+    if (!db) return { success: false, message: 'Database not initialized.' };
+    const sessionUser = await getSessionUser();
+    const cleanKey = (orderIdOrNumber || '').trim();
+    if (!cleanKey) return { success: false, message: 'Order reference is required.' };
+
+    const ord = await db.query.orders.findFirst({
+      where: or(eq(orders.id, cleanKey), eq(orders.orderNumber, cleanKey.toUpperCase())),
+      with: { items: true },
+    });
+
+    if (!ord) {
+      return { success: false, message: 'Order not found.' };
+    }
+
+    // Security check:
+    // Signed-in caller must match order email or customer profile phone
+    if (sessionUser) {
+      const email = sessionUser.email.toLowerCase();
+      const isOwner =
+        (ord.email && ord.email.toLowerCase() === email) ||
+        (await db.query.customers.findFirst({
+          where: and(eq(customers.email, email), eq(customers.phone, ord.phone)),
+        }));
+      if (!isOwner) {
+        return { success: false, message: 'You are not authorized to cancel this order.' };
+      }
+    } else {
+      // Signed-out guest caller MUST provide matching order phone number
+      const cleanGuestPhone = normPhone(guestPhone || '');
+      if (!cleanGuestPhone || cleanGuestPhone !== normPhone(ord.phone)) {
+        return { success: false, message: 'Phone verification failed. You are not authorized to cancel this order.' };
+      }
+    }
+
+    // Atomic update: only updates if current status is exactly 'Pending'
+    // Prevents double-cancellation and race conditions
+    const updated = await db
+      .update(orders)
+      .set({
+        status: 'Cancelled',
+        paymentStatus: 'Cancelled',
+      })
+      .where(and(eq(orders.id, ord.id), eq(orders.status, 'Pending')))
+      .returning({ id: orders.id });
+
+    if (updated.length === 0) {
+      return {
+        success: false,
+        message: `Order cannot be cancelled because it is no longer pending (current status: ${ord.status}).`,
+      };
+    }
+
+    // Restore stock inventory atomically
+    if (ord.items && ord.items.length > 0) {
+      await restoreStockForOrderItems(
+        ord.items.map((i) => ({
+          productId: i.productId,
+          variantName: i.variantName,
+          size: i.size,
+          quantity: i.quantity,
+        }))
+      );
+    }
+
+    // Await notification email dispatch safely (P0.4)
+    if (ord.email) {
+      try {
+        await sendOrderStatusNotificationEmail({
+          to: ord.email,
+          customerName: ord.customerName,
+          orderNumber: ord.orderNumber,
+          newStatus: 'Cancelled',
+          customMessage: 'Your order has been cancelled per your request. If any payment was made, our support team will process your refund promptly.',
+        });
+      } catch (err) {
+        console.warn('Cancel email dispatch non-fatal warning:', err);
+      }
+    }
+
+    revalidatePath('/profile');
+    revalidatePath('/admin/orders');
+    revalidatePath('/admin');
+    revalidatePath('/admin/analytics');
+    return { success: true, message: 'Your order has been successfully cancelled.' };
+  } catch (err) {
+    console.error('Error cancelling order:', err);
+    return { success: false, message: 'An unexpected error occurred while cancelling your order.' };
+  }
+}
+

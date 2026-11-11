@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { generateOrderInvoiceHtml } from '@/lib/invoiceGenerator';
+import { verifyOrderPaymentAction } from '@/app/actions/admin-actions';
 
 export interface OrderDrawerItem {
   name: string;
@@ -125,6 +126,22 @@ export function OrderDetailsDrawer({
   onDeleteOrder,
 }: OrderDetailsDrawerProps) {
   const [status, setStatus] = useState<string>(order.status || 'Pending');
+  const [paymentStatus, setPaymentStatus] = useState<string>(order.paymentStatus || 'Unpaid');
+  const [verifyingPayment, setVerifyingPayment] = useState(false);
+
+  const handleVerifyPayment = async (action: 'verify' | 'reject') => {
+    setVerifyingPayment(true);
+    try {
+      const res = await verifyOrderPaymentAction(order.id, action);
+      if (res.success) {
+        setPaymentStatus(action === 'verify' ? (order.paymentMethod?.toLowerCase().includes('bkash') ? 'Paid (bKash Verified)' : 'Paid (Nagad Verified)') : 'Payment Failed / Rejected');
+      }
+    } catch (err) {
+      console.error('Failed to verify payment:', err);
+    } finally {
+      setVerifyingPayment(false);
+    }
+  };
   const [isEditing, setIsEditing] = useState(false);
   const [savingEdit, setSavingEdit] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
@@ -937,7 +954,44 @@ export function OrderDetailsDrawer({
                 <span>Total Amount ({order.paymentMethod || 'Cash on Delivery'}):</span>
                 <span className="text-black text-sm font-medium">৳{grandTotal.toLocaleString()} BDT</span>
               </div>
-            </div>
+            
+            {/* P0.3: Manual Wallet Verification (bKash / Nagad) */}
+            <div className="p-3 bg-neutral-50 border border-neutral-200 text-xs space-y-2 mt-2">
+              <div className="flex items-center justify-between">
+                <span className="text-neutral-500 font-medium">Payment Status:</span>
+                <span className={`px-2 py-0.5 font-mono text-[11px] font-semibold ${
+                  paymentStatus.toLowerCase().includes('paid') || paymentStatus.toLowerCase().includes('verified')
+                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                    : paymentStatus.toLowerCase().includes('fail') || paymentStatus.toLowerCase().includes('reject')
+                    ? 'bg-rose-100 text-rose-800 border border-rose-300'
+                    : 'bg-amber-100 text-amber-800 border border-amber-300'
+                }`}>
+                  {paymentStatus}
+                </span>
+              </div>
+              {(order.paymentMethod?.toLowerCase().includes('bkash') || order.paymentMethod?.toLowerCase().includes('nagad')) && (
+                <div className="pt-2 border-t border-neutral-200 flex items-center justify-end gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={verifyingPayment}
+                    onClick={() => handleVerifyPayment('reject')}
+                    className="h-7 text-[11px] rounded-none border-rose-300 text-rose-700 hover:bg-rose-50"
+                  >
+                    Reject Payment
+                  </Button>
+                  <Button
+                    size="sm"
+                    disabled={verifyingPayment}
+                    onClick={() => handleVerifyPayment('verify')}
+                    className="h-7 text-[11px] rounded-none bg-emerald-600 hover:bg-emerald-700 text-white"
+                  >
+                    {verifyingPayment ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Check className="w-3 h-3 mr-1" />}
+                    Verify Payment
+                  </Button>
+                </div>
+              )}
+            </div></div>
 
           </div>
 

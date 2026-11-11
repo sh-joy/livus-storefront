@@ -14,6 +14,7 @@ interface InputFieldProps {
   className?: string;
   style?: CSSProperties;
   autoComplete?: string;
+  placeholder?: string;
   error?: string;
 }
 
@@ -26,6 +27,7 @@ export function InputField({
   className = "",
   style,
   autoComplete,
+  placeholder,
   error,
 }: InputFieldProps) {
   const [focused, setFocused] = useState(false);
@@ -91,6 +93,7 @@ export function InputField({
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           autoComplete={autoComplete}
+          placeholder={placeholder}
           style={{
             display: "block",
             width: "100%",

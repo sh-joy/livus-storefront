@@ -1,3 +1,4 @@
+import { AnalyticsScripts } from '@/components/AnalyticsScripts';
 import type { Metadata } from "next";
 import "./globals.css";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -39,6 +40,7 @@ export default function RootLayout({
         <DrawerProvider>
           <AppShell>
             {children}
+        <AnalyticsScripts />
           </AppShell>
         </DrawerProvider>
       </body>

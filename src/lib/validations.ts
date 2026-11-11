@@ -26,7 +26,9 @@ export const CheckoutFormSchema = z.object({
   city: z.string().optional(),
   zipCode: z.string().optional(),
   deliveryInstructions: z.string().optional(),
-  paymentMethod: z.enum(['online', 'cash']),
+  paymentMethod: z.enum(['online', 'cash', 'bkash', 'nagad']),
+  trxId: z.string().optional(),
+  senderPhone: z.string().optional(),
   cartItems: z
     .array(
       z.object({

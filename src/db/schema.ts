@@ -118,6 +118,9 @@ export const orders = pgTable('orders', {
   deliveryInstructions: text('delivery_instructions'),
   status: text('status').default('Pending').notNull(), // 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'
   paymentStatus: text('payment_status').default('Unpaid (COD)').notNull(),
+  paymentTrxId: text('payment_trx_id'),
+  paymentSenderPhone: text('payment_sender_phone'),
+  promoCode: text('promo_code'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
@@ -150,6 +153,49 @@ export const shippingRegions = pgTable('shipping_regions', {
   deliveryChargeBdt: integer('delivery_charge_bdt').default(100).notNull(),
 });
 
+// 13. Customer Product Reviews
+export const productReviews = pgTable('product_reviews', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  productId: uuid('product_id').references(() => products.id, { onDelete: 'cascade' }).notNull(),
+  customerName: text('customer_name').notNull(),
+  customerEmail: text('customer_email'),
+  rating: integer('rating').notNull(),
+  headline: text('headline'),
+  comment: text('comment').notNull(),
+  status: text('status').default('Pending').notNull(), // 'Pending', 'Approved', 'Rejected'
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// 14. Incomplete / Abandoned Checkouts CRM
+export const abandonedCheckouts = pgTable('abandoned_checkouts', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  customerName: text('customer_name'),
+  phone: text('phone'),
+  email: text('email'),
+  itemsJson: text('items_json').notNull(),
+  subtotalBdt: integer('subtotal_bdt').default(0).notNull(),
+  isRecovered: boolean('is_recovered').default(false).notNull(),
+  recoveredAt: timestamp('recovered_at'),
+  recoveryEmailSentAt: timestamp('recovery_email_sent_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// 15. Store Settings
+export const storeSettings = pgTable('store_settings', {
+  id: text('id').primaryKey(), // 'general'
+  storeName: text('store_name').default('LIVUS').notNull(),
+  supportEmail: text('support_email').default('support@livus.com.bd').notNull(),
+  supportPhone: text('support_phone').default('+880 1711 000000').notNull(),
+  currency: text('currency').default('BDT').notNull(),
+  vatPercent: integer('vat_percent').default(10).notNull(),
+  freeShippingThresholdBdt: integer('free_shipping_threshold_bdt').default(2500).notNull(),
+  defaultDeliveryChargeBdt: integer('default_delivery_charge_bdt').default(150).notNull(),
+  bKashMerchantNumber: text('bkash_merchant_number').default('').notNull(),
+  nagadMerchantNumber: text('nagad_merchant_number').default('').notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // Drizzle Relational Mappings
 export const categoriesRelations = relations(categories, ({ many }) => ({
   products: many(products),
@@ -158,6 +204,11 @@ export const categoriesRelations = relations(categories, ({ many }) => ({
 export const productsRelations = relations(products, ({ one, many }) => ({
   category: one(categories, { fields: [products.categoryId], references: [categories.id] }),
   colorVariants: many(colorVariants),
+  reviews: many(productReviews),
+}));
+
+export const productReviewsRelations = relations(productReviews, ({ one }) => ({
+  product: one(products, { fields: [productReviews.productId], references: [products.id] }),
 }));
 
 export const colorVariantsRelations = relations(colorVariants, ({ one, many }) => ({

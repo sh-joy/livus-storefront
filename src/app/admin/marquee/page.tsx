@@ -1,32 +1,27 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Megaphone, Plus, Trash2, CheckCircle, XCircle } from "lucide-react";
+import { Megaphone, Plus, Trash2, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { marqueeFormSchema } from "@/lib/validations";
-
-interface MarqueeItem {
-  id: string;
-  message: string;
-  linkUrl?: string;
-  bgColor: string;
-  textColor: string;
-  isActive: boolean;
-}
-
-const sampleMarquees: MarqueeItem[] = [
-  { id: "mar-1", message: "FREE SHIPPING ON ALL ORDERS OVER 2000 BDT · NEW DROP LIVE NOW", linkUrl: "/for-him", bgColor: "#050505", textColor: "#ffffff", isActive: true },
-  { id: "mar-2", message: "GET 10% OFF YOUR FIRST PURCHASE WITH CODE LIVUS10", linkUrl: "/signup", bgColor: "#111827", textColor: "#f3f4f6", isActive: false },
-];
+import {
+  fetchAdminMarqueesAction,
+  createAdminMarqueeAction,
+  toggleAdminMarqueeAction,
+  deleteAdminMarqueeAction,
+  type MarqueeItem,
+} from "@/app/actions/marquee";
 
 export default function AdminMarqueePage() {
-  const [list, setList] = useState<MarqueeItem[]>(sampleMarquees);
+  const [list, setList] = useState<MarqueeItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const [message, setMessage] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
@@ -34,7 +29,23 @@ export default function AdminMarqueePage() {
   const [textColor, setTextColor] = useState("#ffffff");
   const [formError, setFormError] = useState("");
 
-  const handleAdd = (e: React.FormEvent) => {
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const data = await fetchAdminMarqueesAction();
+      setList(data);
+    } catch (err) {
+      console.error("Failed to load marquees:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError("");
 
@@ -44,27 +55,50 @@ export default function AdminMarqueePage() {
       return;
     }
 
-    const newItem: MarqueeItem = {
-      id: `mar-${Date.now()}`,
-      message,
-      linkUrl,
-      bgColor,
-      textColor,
-      isActive: true,
-    };
+    setSaving(true);
+    try {
+      const res = await createAdminMarqueeAction({
+        message,
+        linkUrl,
+        bgColor,
+        textColor,
+        isActive: true,
+      });
 
-    setList([newItem, ...list]);
-    setMessage("");
-    setLinkUrl("");
-    setIsOpen(false);
+      if (res.success) {
+        setMessage("");
+        setLinkUrl("");
+        setIsOpen(false);
+        await loadData();
+      } else {
+        setFormError(res.message || "Failed to save announcement.");
+      }
+    } catch (err: any) {
+      setFormError(err?.message || "Failed to save announcement.");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const toggleActive = (id: string) => {
-    setList(list.map(item => item.id === id ? { ...item, isActive: !item.isActive } : item));
+  const toggleActive = async (id: string, current: boolean) => {
+    try {
+      setList(list.map(item => item.id === id ? { ...item, isActive: !current } : item));
+      await toggleAdminMarqueeAction(id, !current);
+    } catch (err) {
+      console.error("Failed to toggle:", err);
+      loadData();
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setList(list.filter(item => item.id !== id));
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this announcement?")) return;
+    try {
+      setList(list.filter(item => item.id !== id));
+      await deleteAdminMarqueeAction(id);
+    } catch (err) {
+      console.error("Failed to delete:", err);
+      loadData();
+    }
   };
 
   const activeBanner = list.find(item => item.isActive) || list[0];
@@ -91,7 +125,7 @@ export default function AdminMarqueePage() {
             <DialogHeader>
               <DialogTitle>Add Marquee Announcement</DialogTitle>
               <DialogDescription>
-                Validated with Zod to guarantee valid hex colors and message text.
+                Live announcements display immediately on the storefront scrolling marquee.
               </DialogDescription>
             </DialogHeader>
 
@@ -108,7 +142,7 @@ export default function AdminMarqueePage() {
                 </label>
                 <Input
                   required
-                  placeholder="e.g. FREE SHIPPING ON ORDERS OVER 2000 BDT"
+                  placeholder="e.g. FREE SHIPPING ON ORDERS OVER 2500 BDT"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                 />
@@ -119,7 +153,7 @@ export default function AdminMarqueePage() {
                   Click Link URL (Optional)
                 </label>
                 <Input
-                  placeholder="https://livus.com.bd/for-him"
+                  placeholder="/for-him or /all-products"
                   value={linkUrl}
                   onChange={(e) => setLinkUrl(e.target.value)}
                 />
@@ -158,10 +192,13 @@ export default function AdminMarqueePage() {
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
-                <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+                <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={saving}>
                   Cancel
                 </Button>
-                <Button type="submit">Save Announcement</Button>
+                <Button type="submit" disabled={saving}>
+                  {saving && <Loader2 className="mr-2 size-4 animate-spin" />}
+                  Save Announcement
+                </Button>
               </div>
             </form>
           </DialogContent>
@@ -194,62 +231,74 @@ export default function AdminMarqueePage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base font-semibold tracking-tight">Announcements Registry ({list.length})</CardTitle>
-          <CardDescription className="text-xs">Live status toggle switches & styling</CardDescription>
+          <CardDescription className="text-xs">Live status toggle switches & styling from database</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Message Text</TableHead>
-                <TableHead>Link URL</TableHead>
-                <TableHead>Theme Colors</TableHead>
-                <TableHead>Live Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {list.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium text-foreground text-xs">{item.message}</TableCell>
-                  <TableCell className="text-xs font-mono text-muted-foreground">{item.linkUrl || "None"}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <span className="size-4 rounded-full border shadow-sm" style={{ backgroundColor: item.bgColor }} />
-                      <span className="text-xs font-mono">{item.bgColor}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <button
-                      onClick={() => toggleActive(item.id)}
-                      className="flex items-center gap-1.5 cursor-pointer"
-                    >
-                      {item.isActive ? (
-                        <Badge variant="outline" className="text-emerald-600 border-emerald-300 bg-emerald-50 flex items-center gap-1">
-                          <CheckCircle className="size-3" />
-                          <span>Active Live</span>
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary" className="flex items-center gap-1">
-                          <XCircle className="size-3 text-muted-foreground" />
-                          <span>Disabled</span>
-                        </Badge>
-                      )}
-                    </button>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(item.id)}
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </TableCell>
+          {loading ? (
+            <div className="flex items-center justify-center py-12 text-muted-foreground text-sm">
+              <Loader2 className="mr-2 size-4 animate-spin" />
+              Loading announcements from database...
+            </div>
+          ) : list.length === 0 ? (
+            <div className="text-center py-12 text-sm text-muted-foreground">
+              No marquee announcements found. Click &quot;New Announcement&quot; to create one.
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Message Text</TableHead>
+                  <TableHead>Link URL</TableHead>
+                  <TableHead>Theme Colors</TableHead>
+                  <TableHead>Live Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {list.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="font-medium text-foreground text-xs">{item.message}</TableCell>
+                    <TableCell className="text-xs font-mono text-muted-foreground">{item.linkUrl || "None"}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <span className="size-4 rounded-full border shadow-sm" style={{ backgroundColor: item.bgColor }} />
+                        <span className="text-xs font-mono">{item.bgColor}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <button
+                        onClick={() => toggleActive(item.id, item.isActive)}
+                        className="flex items-center gap-1.5 cursor-pointer"
+                        title="Click to toggle active status"
+                      >
+                        {item.isActive ? (
+                          <Badge variant="outline" className="text-emerald-600 border-emerald-300 bg-emerald-50 flex items-center gap-1">
+                            <CheckCircle className="size-3" />
+                            <span>Active Live</span>
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="flex items-center gap-1">
+                            <XCircle className="size-3 text-muted-foreground" />
+                            <span>Disabled</span>
+                          </Badge>
+                        )}
+                      </button>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(item.id)}
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

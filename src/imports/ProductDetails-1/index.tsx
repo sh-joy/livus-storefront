@@ -9,6 +9,7 @@ import { SiteFooter } from '@/figma-components/SiteFooter';
 import { SizingGuideModal } from '@/figma-components/SizingGuideModal';
 import { useDrawer } from '@/figma-components/DrawerContext';
 import { useCartStore } from '@/lib/store/cart-store';
+import { ProductReviewsSection } from '@/components/ProductReviewsSection';
 import type { ProductItem } from '@/app/actions/products';
 import { generateCleanSku } from '@/lib/utils';
 import imgImage115 from "./147bb3d7a50a487cfcb2163c878fc1a5c25e19e6.png";
@@ -116,6 +117,7 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
   const [quantity, setQuantity] = useState(1);
   const [showGuide, setShowGuide] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [isShippingExpanded, setIsShippingExpanded] = useState(false);
 
   // User Telemetry Tracking in localStorage
   useEffect(() => {
@@ -585,9 +587,48 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
                 )}
               </AnimatePresence>
             </div>
+
+            {/* Collapsible Shipping, Delivery & Returns Accordion */}
+            <div className="w-full border-b border-neutral-200 py-2">
+              <button
+                type="button"
+                onClick={() => setIsShippingExpanded((prev) => !prev)}
+                className="w-full flex items-center justify-between py-2 text-left cursor-pointer group"
+              >
+                <span className="font-sans text-[15px] font-medium uppercase tracking-[0.5px] text-[#1c1c1c]">
+                  Shipping, Delivery &amp; Returns
+                </span>
+                <span className="font-sans text-[20px] font-normal text-neutral-600 group-hover:text-black transition-colors">
+                  {isShippingExpanded ? "−" : "+"}
+                </span>
+              </button>
+
+              <AnimatePresence>
+                {isShippingExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                  >
+                    <div className="font-sans text-xs text-neutral-800 leading-relaxed space-y-2 pt-3 pb-2 border-t border-neutral-100 mt-1">
+                      <p><strong>Nationwide Delivery in Bangladesh:</strong> Standard delivery within 2–3 business days inside Dhaka Division (৳100) and 3–5 days across all other divisions (৳150).</p>
+                      <p><strong>Free Delivery:</strong> All orders of ৳2,500 BDT or more qualify for 100% free nationwide delivery.</p>
+                      <p><strong>Easy 7-Day Exchange:</strong> Size or fit issues? We offer a hassle-free 7-day exchange window on all unworn items with original tags attached.</p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Customer Reviews & Star Ratings Section */}
+      {product?.id && (
+        <ProductReviewsSection productId={product.id} productName={productName} />
+      )}
 
       {/* "You might also like" Section Heading & Smart Recommendation Grid */}
       {recommendedProducts.length > 0 && (

@@ -2,14 +2,16 @@
 
 import { requireAdmin } from '@/lib/admin-guard';
 import { db } from '@/db';
-import { products, categories, promoCodes, orders, orderItems, colorVariants, variantImages, stockInventory, customers, user, account, session } from '@/db/schema';
+import { products, categories, promoCodes, orders, orderItems, colorVariants, variantImages, stockInventory, customers, user, account, session, storeSettings, shippingRegions } from '@/db/schema';
 import { auth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, sql, and, ne } from 'drizzle-orm';
 import fs from 'fs';
 import { cookies } from 'next/headers';
 import { ADMIN_COOKIE, ADMIN_SESSION_MAX_AGE, createAdminToken, safeEqual } from '@/lib/admin-session';
 import path from 'path';
+import { restoreStockForOrderItems, quoteOrder, reserveStock } from '@/lib/order-pricing';
+import { sendOrderStatusNotificationEmail } from '@/lib/email';
 
 // ----------------------------------------------------
 // 1. PRODUCTS SERVER ACTIONS
@@ -383,20 +385,136 @@ export async function fetchAdminOrders() {
 export async function updateOrderStatusAction(orderId: string, newStatus: string) {
   await requireAdmin();
   try {
-    if (db) {
-      await db.update(orders).set({
-        status: newStatus,
-        paymentStatus: newStatus === 'Delivered' ? 'Paid (COD Collected)' : 'Unpaid (COD)',
-      }).where(eq(orders.id, orderId));
+    if (!db) return { success: false, message: 'Database not initialized' };
 
-      revalidatePath('/admin/orders');
-      return { success: true, message: `Order status updated to ${newStatus}` };
+    const existing = await db.query.orders.findFirst({
+      where: eq(orders.id, orderId),
+      with: { items: true },
+    });
+
+    if (!existing) {
+      return { success: false, message: 'Order not found' };
     }
+
+    const prevStatus = existing.status;
+    let newPaymentStatus = existing.paymentStatus;
+
+    // P0.3: Never auto-verify bKash or Nagad on Delivered. Only COD collected cash at doorstep
+    if (newStatus === 'Delivered') {
+      const method = (existing.paymentMethod || '').toLowerCase();
+      if (method.includes('cash')) {
+        newPaymentStatus = 'Paid (COD Collected)';
+      }
+    } else if (newStatus === 'Cancelled') {
+      newPaymentStatus = 'Cancelled';
+    }
+
+    // P0.6: Re-opening a cancelled order must safely re-reserve stock first
+    if (prevStatus === 'Cancelled' && newStatus !== 'Cancelled' && existing.items && existing.items.length > 0) {
+      const quote = await quoteOrder(
+        existing.items.map((i) => ({
+          productId: i.productId,
+          variantName: i.variantName || undefined,
+          size: i.size || undefined,
+          quantity: i.quantity,
+        }))
+      );
+      if (!quote.ok) {
+        return { success: false, message: `Cannot re-open order: ${quote.message}` };
+      }
+      const reserved = await reserveStock(quote.quote.lines);
+      if (!reserved.ok) {
+        return { success: false, message: `Cannot re-open order: ${reserved.message}` };
+      }
+    }
+
+    // If cancelling, make the update atomic so stock is restored exactly once
+    if (newStatus === 'Cancelled') {
+      const updated = await db
+        .update(orders)
+        .set({ status: 'Cancelled', paymentStatus: newPaymentStatus })
+        .where(and(eq(orders.id, orderId), ne(orders.status, 'Cancelled')))
+        .returning({ id: orders.id });
+
+      if (updated.length > 0 && existing.items && existing.items.length > 0) {
+        await restoreStockForOrderItems(
+          existing.items.map((i) => ({
+            productId: i.productId,
+            variantName: i.variantName,
+            size: i.size,
+            quantity: i.quantity,
+          }))
+        );
+      }
+    } else {
+      await db
+        .update(orders)
+        .set({ status: newStatus, paymentStatus: newPaymentStatus })
+        .where(eq(orders.id, orderId));
+    }
+
+    // P0.4: Safe email notification
+    if (existing.email && newStatus !== prevStatus) {
+      try {
+        await sendOrderStatusNotificationEmail({
+          to: existing.email,
+          customerName: existing.customerName,
+          orderNumber: existing.orderNumber,
+          newStatus: newStatus,
+        });
+      } catch (e) {
+        console.warn('Order status email warning:', e);
+      }
+    }
+
+    revalidatePath('/admin/orders');
+    revalidatePath('/admin');
+    revalidatePath('/admin/analytics');
+    revalidatePath('/profile');
+    return { success: true, message: `Order status updated to ${newStatus}` };
   } catch (error) {
     console.error('Failed to update order status:', error);
+    return { success: false, message: 'Failed to update order status' };
   }
-  return { success: true, message: `Order status updated to ${newStatus}` };
 }
+
+/**
+ * P0.3: Explicit admin verification for manual mobile wallet payments (bKash / Nagad)
+ */
+export async function verifyOrderPaymentAction(orderId: string, action: 'verify' | 'reject') {
+  await requireAdmin();
+  try {
+    if (!db) return { success: false, message: 'Database not initialized' };
+
+    const ord = await db.query.orders.findFirst({ where: eq(orders.id, orderId) });
+    if (!ord) return { success: false, message: 'Order not found' };
+
+    const method = (ord.paymentMethod || '').toLowerCase();
+    let newPaymentStatus: string;
+
+    if (action === 'verify') {
+      if (method.includes('bkash')) {
+        newPaymentStatus = 'Paid (bKash Verified)';
+      } else if (method.includes('nagad')) {
+        newPaymentStatus = 'Paid (Nagad Verified)';
+      } else {
+        newPaymentStatus = 'Paid (Verified)';
+      }
+    } else {
+      newPaymentStatus = 'Payment Failed / Rejected';
+    }
+
+    await db.update(orders).set({ paymentStatus: newPaymentStatus }).where(eq(orders.id, orderId));
+
+    revalidatePath('/admin/orders');
+    revalidatePath('/admin');
+    return { success: true, message: `Payment status marked as ${newPaymentStatus}` };
+  } catch (err) {
+    console.error('Failed to verify order payment:', err);
+    return { success: false, message: 'Failed to update payment status' };
+  }
+}
+
 
 export async function deleteAdminOrderAction(orderId: string) {
   await requireAdmin();
@@ -1148,3 +1266,203 @@ export async function createAdminCustomerAction(data: {
     return { success: false, message: err?.message || 'Failed to create customer record.' };
   }
 }
+
+// ----------------------------------------------------
+// 9. ANALYTICS SERVER ACTIONS
+// ----------------------------------------------------
+export async function fetchAdminAnalyticsAction() {
+  await requireAdmin();
+  try {
+    if (!db) {
+      return {
+        grossRevenueBdt: 0,
+        verifiedPaidRevenueBdt: 0,
+        totalOrders: 0,
+        deliveredOrders: 0,
+        cancelledOrders: 0,
+        averageOrderValueBdt: 0,
+        topProducts: [] as Array<{ name: string; units: number; revenue: number }>,
+        statusBreakdown: { Pending: 0, Processing: 0, Shipped: 0, Delivered: 0, Cancelled: 0 },
+        paymentBreakdown: { cod: 0, bkash: 0, nagad: 0, online: 0 },
+      };
+    }
+
+    const allOrders = await db.query.orders.findMany({
+      with: { items: true },
+    });
+
+    const nonCancelled = allOrders.filter((o) => (o.status || '').toLowerCase() !== 'cancelled');
+    const grossRevenueBdt = nonCancelled.reduce((sum, o) => sum + (parseFloat(o.totalAmount) || 0), 0);
+    const verifiedPaidRevenueBdt = allOrders
+      .filter((o) => (o.paymentStatus || '').toLowerCase().includes('paid') || (o.paymentStatus || '').toLowerCase().includes('verified'))
+      .reduce((sum, o) => sum + (parseFloat(o.totalAmount) || 0), 0);
+    const totalOrders = allOrders.length;
+    const deliveredOrders = allOrders.filter((o) => (o.status || '').toLowerCase() === 'delivered').length;
+    const cancelledOrders = allOrders.filter((o) => (o.status || '').toLowerCase() === 'cancelled').length;
+    const averageOrderValueBdt = nonCancelled.length > 0 ? Math.round(grossRevenueBdt / nonCancelled.length) : 0;
+
+    const statusBreakdown = {
+      Pending: allOrders.filter((o) => (o.status || '').toLowerCase() === 'pending').length,
+      Processing: allOrders.filter((o) => (o.status || '').toLowerCase() === 'processing').length,
+      Shipped: allOrders.filter((o) => (o.status || '').toLowerCase() === 'shipped').length,
+      Delivered: deliveredOrders,
+      Cancelled: cancelledOrders,
+    };
+
+    const paymentBreakdown = {
+      cod: allOrders.filter((o) => (o.paymentMethod || '').toLowerCase().includes('cash')).length,
+      bkash: allOrders.filter((o) => (o.paymentMethod || '').toLowerCase().includes('bkash')).length,
+      nagad: allOrders.filter((o) => (o.paymentMethod || '').toLowerCase().includes('nagad')).length,
+      online: allOrders.filter((o) => (o.paymentMethod || '').toLowerCase().includes('online')).length,
+    };
+
+    // Calculate product sales from non-cancelled order items
+    const productSalesMap = new Map<string, { name: string; units: number; revenue: number }>();
+    for (const o of nonCancelled) {
+      for (const item of o.items || []) {
+        const name = item.productName || 'Apparel Item';
+        const existing = productSalesMap.get(name) || { name, units: 0, revenue: 0 };
+        existing.units += item.quantity || 1;
+        existing.revenue += (item.priceBdt || 0) * (item.quantity || 1);
+        productSalesMap.set(name, existing);
+      }
+    }
+
+    const topProducts = Array.from(productSalesMap.values())
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
+
+    return {
+      grossRevenueBdt,
+      verifiedPaidRevenueBdt,
+      totalOrders,
+      deliveredOrders,
+      cancelledOrders,
+      averageOrderValueBdt,
+      topProducts,
+      statusBreakdown,
+      paymentBreakdown,
+    };
+  } catch (err) {
+    console.error('Failed to calculate admin analytics:', err);
+    return {
+      grossRevenueBdt: 0,
+      totalOrders: 0,
+      deliveredOrders: 0,
+      cancelledOrders: 0,
+      averageOrderValueBdt: 0,
+      topProducts: [] as Array<{ name: string; units: number; revenue: number }>,
+      statusBreakdown: { Pending: 0, Processing: 0, Shipped: 0, Delivered: 0, Cancelled: 0 },
+      paymentBreakdown: { cod: 0, bkash: 0, nagad: 0, online: 0 },
+    };
+  }
+}
+
+// ----------------------------------------------------
+// 10. STORE SETTINGS & SHIPPING REGIONS ACTIONS
+// ----------------------------------------------------
+export async function fetchAdminStoreSettingsAction() {
+  await requireAdmin();
+  try {
+    if (!db) return null;
+    let settings = await db.query.storeSettings.findFirst({ where: eq(storeSettings.id, 'general') });
+    if (!settings) {
+      const [created] = await db.insert(storeSettings).values({
+        id: 'general',
+        storeName: 'LIVUS',
+        supportEmail: 'support@livus.com.bd',
+        supportPhone: '+880 1711 000000',
+        currency: 'BDT',
+        vatPercent: 10,
+        freeShippingThresholdBdt: 2500,
+        defaultDeliveryChargeBdt: 150,
+        bKashMerchantNumber: '01711000000',
+        nagadMerchantNumber: '01811000000',
+      }).returning();
+      settings = created;
+    }
+
+    const regions = await db.select().from(shippingRegions).orderBy(shippingRegions.regionName);
+    return { settings, regions };
+  } catch (err) {
+    console.error('Failed to fetch admin store settings:', err);
+    return null;
+  }
+}
+
+export async function updateAdminStoreSettingsAction(data: {
+  storeName?: string;
+  supportEmail?: string;
+  supportPhone?: string;
+  currency?: string;
+  vatPercent?: number;
+  freeShippingThresholdBdt?: number;
+  defaultDeliveryChargeBdt?: number;
+  bKashMerchantNumber?: string;
+  nagadMerchantNumber?: string;
+}) {
+  await requireAdmin();
+  try {
+    if (!db) return { success: false, message: 'Database not initialized' };
+
+    if (data.bKashMerchantNumber && data.bKashMerchantNumber.trim() && !/^01[3-9]\d{8}$/.test(data.bKashMerchantNumber.trim())) {
+      return { success: false, message: 'Please enter a valid 11-digit Bangladeshi mobile number for bKash (e.g. 01712345678).' };
+    }
+    if (data.nagadMerchantNumber && data.nagadMerchantNumber.trim() && !/^01[3-9]\d{8}$/.test(data.nagadMerchantNumber.trim())) {
+      return { success: false, message: 'Please enter a valid 11-digit Bangladeshi mobile number for Nagad (e.g. 01812345678).' };
+    }
+    await db.insert(storeSettings).values({
+      id: 'general',
+      storeName: data.storeName || 'LIVUS',
+      supportEmail: data.supportEmail || 'support@livus.com.bd',
+      supportPhone: data.supportPhone || '+880 1711 000000',
+      currency: data.currency || 'BDT',
+      vatPercent: data.vatPercent ?? 10,
+      freeShippingThresholdBdt: data.freeShippingThresholdBdt ?? 2500,
+      defaultDeliveryChargeBdt: data.defaultDeliveryChargeBdt ?? 150,
+      bKashMerchantNumber: data.bKashMerchantNumber || '',
+      nagadMerchantNumber: data.nagadMerchantNumber || '',
+      updatedAt: new Date(),
+    }).onConflictDoUpdate({
+      target: storeSettings.id,
+      set: {
+        ...(data.storeName !== undefined ? { storeName: data.storeName } : {}),
+        ...(data.supportEmail !== undefined ? { supportEmail: data.supportEmail } : {}),
+        ...(data.supportPhone !== undefined ? { supportPhone: data.supportPhone } : {}),
+        ...(data.currency !== undefined ? { currency: data.currency } : {}),
+        ...(data.vatPercent !== undefined ? { vatPercent: data.vatPercent } : {}),
+        ...(data.freeShippingThresholdBdt !== undefined ? { freeShippingThresholdBdt: data.freeShippingThresholdBdt } : {}),
+        ...(data.defaultDeliveryChargeBdt !== undefined ? { defaultDeliveryChargeBdt: data.defaultDeliveryChargeBdt } : {}),
+        ...(data.bKashMerchantNumber !== undefined ? { bKashMerchantNumber: data.bKashMerchantNumber } : {}),
+        ...(data.nagadMerchantNumber !== undefined ? { nagadMerchantNumber: data.nagadMerchantNumber } : {}),
+        updatedAt: new Date(),
+      },
+    });
+
+    revalidatePath('/admin/settings');
+    revalidatePath('/checkout');
+    revalidatePath('/', 'layout');
+    return { success: true, message: 'Store settings saved successfully' };
+  } catch (err) {
+    console.error('Failed to update store settings:', err);
+    return { success: false, message: 'Failed to update store settings' };
+  }
+}
+
+export async function updateAdminShippingRegionAction(id: string, deliveryChargeBdt: number) {
+  await requireAdmin();
+  try {
+    if (!db) return { success: false, message: 'Database not initialized' };
+    await db.update(shippingRegions).set({
+      deliveryChargeBdt,
+    }).where(eq(shippingRegions.id, id));
+
+    revalidatePath('/admin/settings');
+    revalidatePath('/checkout');
+    return { success: true, message: 'Shipping zone updated' };
+  } catch (err) {
+    console.error('Failed to update shipping zone:', err);
+    return { success: false, message: 'Failed to update shipping zone' };
+  }
+}
+

@@ -1,9 +1,18 @@
 'use server';
 
+import { checkRateLimit } from '@/lib/rate-limit';
 import { db } from '@/db';
 import { newsletterSubscribers } from '@/db/schema';
+import { requireAdmin } from '@/lib/admin-guard';
 import { revalidatePath } from 'next/cache';
-import { eq } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
+
+export interface SubscriberItem {
+  id: string;
+  email: string;
+  subscribedAt: string;
+  source: string;
+}
 
 export async function addNewsletterSubscriberAction(email: string) {
   const cleanEmail = (email || '').trim().toLowerCase();
@@ -28,5 +37,38 @@ export async function addNewsletterSubscriberAction(email: string) {
   } catch (err: any) {
     console.error('Failed to add newsletter subscriber:', err);
     return { success: false, message: 'Could not subscribe right now. Please try again later.' };
+  }
+}
+
+export async function fetchAdminSubscribersAction(): Promise<SubscriberItem[]> {
+  await requireAdmin();
+  if (!db) return [];
+  try {
+    const rows = await db.query.newsletterSubscribers.findMany({
+      orderBy: [desc(newsletterSubscribers.subscribedAt)],
+    });
+    return rows.map((r) => ({
+      id: r.id,
+      email: r.email,
+      subscribedAt: r.subscribedAt ? new Date(r.subscribedAt).toISOString().split('T')[0] : 'Recently',
+      source: 'Storefront Footer',
+    }));
+  } catch (err) {
+    console.error('Failed to fetch admin subscribers:', err);
+    return [];
+  }
+}
+
+export async function deleteAdminSubscriberAction(id: string) {
+  await requireAdmin();
+  try {
+    if (db) {
+      await db.delete(newsletterSubscribers).where(eq(newsletterSubscribers.id, id));
+    }
+    revalidatePath('/admin/subscribers');
+    return { success: true };
+  } catch (err: any) {
+    console.error('Failed to delete subscriber:', err);
+    return { success: false, message: 'Failed to delete subscriber' };
   }
 }

@@ -1,5 +1,5 @@
 import { db } from '@/db';
-import { products, promoCodes, stockInventory } from '@/db/schema';
+import { products, promoCodes, stockInventory, storeSettings, shippingRegions, orders } from '@/db/schema';
 import { and, eq, gte, sql } from 'drizzle-orm';
 
 /**
@@ -38,6 +38,9 @@ export interface OrderQuote {
   vatBdt: number;
   vatPercent: number;
   deliveryChargeBdt: number;
+  freeShippingThresholdBdt: number;
+  freeShippingEligible: boolean;
+  amountNeededForFreeShippingBdt: number;
   totalBdt: number;
   promo: { code: string; description: string } | null;
   promoError?: string;
@@ -99,6 +102,22 @@ export async function validatePromoCode(rawCode: string, subtotalBdt: number) {
   } catch {
     // column not migrated yet — no minimum applies
   }
+  // P2.15: Check usageLimit if configured on promo
+  try {
+    const promoWithLimit = await db.query.promoCodes.findFirst({
+      columns: { usageLimit: true },
+      where: eq(promoCodes.code, code),
+    });
+    if (promoWithLimit?.usageLimit && promoWithLimit.usageLimit > 0) {
+      const usedOrders = await db.select({ id: orders.id }).from(orders).where(eq(orders.promoCode, code));
+      if (usedOrders.length >= promoWithLimit.usageLimit) {
+        return { ok: false as const, message: 'This promo code has reached its maximum usage limit.' };
+      }
+    }
+  } catch (limitErr) {
+    // Non-fatal if table doesn't have promoCode column yet
+  }
+
   if (minCartValue && subtotalBdt > 0 && subtotalBdt < minCartValue) {
     return { ok: false as const, message: `This code needs a minimum order of ৳${minCartValue} BDT.` };
   }
@@ -117,7 +136,11 @@ export async function validatePromoCode(rawCode: string, subtotalBdt: number) {
   };
 }
 
-export async function quoteOrder(items: QuoteItemInput[], promoCode?: string): Promise<QuoteResult> {
+export async function quoteOrder(
+  items: QuoteItemInput[],
+  promoCode?: string,
+  divisionOrRegion?: string
+): Promise<QuoteResult> {
   if (!items || items.length === 0) return { ok: false, message: 'Your cart is empty.' };
   if (items.length > 50) return { ok: false, message: 'Too many items in one order.' };
 
@@ -196,14 +219,75 @@ export async function quoteOrder(items: QuoteItemInput[], promoCode?: string): P
     }
   }
 
-  // VAT is charged on the subtotal (matches what the checkout page has always displayed).
-  const vatBdt = Math.round((subtotalBdt * VAT_PERCENT) / 100);
-  const deliveryChargeBdt = DELIVERY_CHARGE_BDT;
+  let freeShippingThreshold = 2500;
+  let deliveryChargeBdt = 150;
+  let effectiveVatPercent = VAT_PERCENT;
+
+  try {
+    if (db) {
+      const settings = await db.query.storeSettings.findFirst({ where: eq(storeSettings.id, 'general') });
+      if (settings) {
+        freeShippingThreshold = settings.freeShippingThresholdBdt ?? 2500;
+        effectiveVatPercent = settings.vatPercent ?? 10;
+      }
+    }
+  } catch (err) {
+    // fallback to defaults
+  }
+
+  const freeShippingEligible = subtotalBdt >= freeShippingThreshold;
+  const amountNeededForFreeShippingBdt = freeShippingEligible ? 0 : Math.max(0, freeShippingThreshold - subtotalBdt);
+
+  // P1.7: Delivery charge lookup from database (shipping_regions table)
+  // Free shipping is evaluated on subtotalBdt (prior to coupon discounts).
+  if (freeShippingEligible) {
+    deliveryChargeBdt = 0;
+  } else {
+    deliveryChargeBdt = 150; // default fallback
+    try {
+      if (db && divisionOrRegion && divisionOrRegion.trim()) {
+        const rawTarget = divisionOrRegion.trim().toLowerCase().replace('division', '').replace('divisions', '').trim();
+        // Handle alternative spelling Barisal <-> Barishal
+        const searchKey = rawTarget.replace('barishal', 'barisal');
+        const allRegions = await db.select().from(shippingRegions);
+        const match = allRegions.find((r) => {
+          const regClean = r.regionName.toLowerCase().replace('division', '').trim().replace('barishal', 'barisal');
+          return regClean.includes(searchKey) || searchKey.includes(regClean);
+        });
+        if (match) {
+          deliveryChargeBdt = match.deliveryChargeBdt;
+        } else {
+          const settings = await db.query.storeSettings.findFirst({ where: eq(storeSettings.id, 'general') });
+          if (settings?.defaultDeliveryChargeBdt) {
+            deliveryChargeBdt = settings.defaultDeliveryChargeBdt;
+          }
+        }
+      }
+    } catch (regErr) {
+      deliveryChargeBdt = 150;
+    }
+  }
+
+  // VAT is charged on the subtotal
+  const vatBdt = Math.round((subtotalBdt * effectiveVatPercent) / 100);
   const totalBdt = Math.max(0, subtotalBdt - discountBdt + vatBdt + deliveryChargeBdt);
 
   return {
     ok: true,
-    quote: { lines, subtotalBdt, discountBdt, vatBdt, vatPercent: VAT_PERCENT, deliveryChargeBdt, totalBdt, promo, promoError },
+    quote: {
+      lines,
+      subtotalBdt,
+      discountBdt,
+      vatBdt,
+      vatPercent: effectiveVatPercent,
+      deliveryChargeBdt,
+      freeShippingThresholdBdt: freeShippingThreshold,
+      freeShippingEligible,
+      amountNeededForFreeShippingBdt,
+      totalBdt,
+      promo,
+      promoError,
+    },
   };
 }
 
@@ -241,3 +325,37 @@ export async function releaseStock(rows: { id: string; qty: number }[]) {
       .where(eq(stockInventory.id, r.id));
   }
 }
+
+export async function restoreStockForOrderItems(
+  items: Array<{ productId: string; variantName?: string | null; size?: string | null; quantity: number }>
+) {
+  for (const item of items) {
+    if (!item.quantity || item.quantity <= 0) continue;
+    try {
+      const prod = await resolveProduct(item.productId);
+      if (!prod) continue;
+      const variants = prod.colorVariants || [];
+      const wantedColor = (item.variantName || '').trim().toLowerCase();
+      const variant =
+        variants.find((v) => v.name.trim().toLowerCase() === wantedColor) ||
+        (variants.length === 1 ? variants[0] : undefined);
+      if (!variant) continue;
+      const wantedSize = (item.size || '').trim().toUpperCase();
+      const stockRow = (variant.stockInventory || []).find(
+        (s) => s.size.trim().toUpperCase() === wantedSize
+      );
+      if (stockRow) {
+        await db
+          .update(stockInventory)
+          .set({
+            quantity: sql`${stockInventory.quantity} + ${item.quantity}`,
+            isStockOut: false,
+          })
+          .where(eq(stockInventory.id, stockRow.id));
+      }
+    } catch (err) {
+      console.warn('Could not restore stock for item:', item, err);
+    }
+  }
+}
+

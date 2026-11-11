@@ -91,6 +91,34 @@ export function CartDrawer() {
                   </div>
                 </div>
 
+                {/* Free Shipping Progress Indicator */}
+                {items.length > 0 && (
+                  <div className="w-full bg-[#f8f8f8] border border-[#e5e5e5] p-3 flex flex-col gap-1.5 shrink-0">
+                    <div className="flex items-center justify-between text-xs font-sans tracking-wide">
+                      <span className="font-semibold text-neutral-900 uppercase">
+                        {subtotal >= 2500 ? (
+                          <span className="text-emerald-700 flex items-center gap-1 font-bold">
+                            ✓ You unlocked FREE Delivery!
+                          </span>
+                        ) : (
+                          <span>
+                            Add <strong className="text-black">৳{(2500 - subtotal).toFixed(0)} BDT</strong> more for <span className="underline font-bold">FREE Delivery</span>
+                          </span>
+                        )}
+                      </span>
+                      <span className="text-neutral-500 font-mono text-[11px]">
+                        {Math.min(100, Math.round((subtotal / 2500) * 100))}%
+                      </span>
+                    </div>
+                    <div className="w-full h-1.5 bg-neutral-200 overflow-hidden rounded-none">
+                      <div
+                        className="h-full bg-black transition-all duration-300 ease-out"
+                        style={{ width: `${Math.min(100, Math.round((subtotal / 2500) * 100))}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {/* Items List / Empty State */}
                 {items.length === 0 ? (
                   <div className="flex flex-col items-center justify-center text-center gap-[4px] p-[48px_24px] border border-dashed border-[#d0d0d0] w-full bg-[#fafafa] my-[20px]">

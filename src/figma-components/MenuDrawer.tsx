@@ -43,6 +43,15 @@ export function MenuDrawer() {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeMenu();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [menuOpen, closeMenu]);
+
   const handleNav = (path: string) => {
     closeMenu();
     router.push(path);
@@ -63,6 +72,9 @@ export function MenuDrawer() {
           onClick={closeMenu}
         >
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Navigation menu"
             className="bg-black h-full shrink-0 w-[300px] max-w-[85vw] overflow-y-auto"
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}

@@ -1,7 +1,7 @@
 'use client';
 
 import { Minus, Plus } from 'lucide-react';
-
+import { useEffect } from 'react';
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -47,6 +47,15 @@ export function CartDrawer() {
     storeCloseCart();
   };
 
+  useEffect(() => {
+    if (!isVisible) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isVisible]);
+
   const handleCheckout = () => {
     handleClose();
     router.push("/checkout");
@@ -71,6 +80,9 @@ export function CartDrawer() {
           onClick={handleClose}
         >
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Shopping Cart"
             className="bg-white h-full shrink-0 w-[560px] max-w-full overflow-hidden flex flex-col justify-between"
             initial={{ x: "100%" }}
             animate={{ x: 0 }}

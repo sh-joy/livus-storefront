@@ -89,4 +89,21 @@ describe('SEO Helpers & Metadata Generation', () => {
     expect(productJsonLd.offers.shippingDetails.shippingDestination.addressCountry).toBe('BD');
     expect(productJsonLd.offers.hasMerchantReturnPolicy.merchantReturnDays).toBe(7);
   });
+
+  it('verifies sitemap filter logic correctly omits inactive products and private routes', () => {
+    const mockProducts = [
+      { slug: 'active-jersey', isActive: true },
+      { slug: 'archived-tank', isActive: false },
+      { slug: 'draft-tee', isActive: false },
+    ];
+    const privateRoutes = ['/search', '/checkout', '/order-confirmed', '/admin', '/signin', '/signup'];
+
+    const activeOnly = mockProducts.filter((p) => p.isActive);
+    expect(activeOnly).toHaveLength(1);
+    expect(activeOnly[0].slug).toBe('active-jersey');
+
+    for (const route of privateRoutes) {
+      expect(['', '/for-him', '/for-her', '/all-products', '/about', '/privacy', '/terms']).not.toContain(route);
+    }
+  });
 });

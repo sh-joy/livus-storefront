@@ -126,7 +126,7 @@ const REGIONS_LIST = [
   "Sylhet Division",
   "Rajshahi Division",
   "Khulna Division",
-  "Barisal Division",
+  "Barishal Division",
   "Rangpur Division",
   "Mymensingh Division",
 ];
@@ -137,7 +137,8 @@ const REGION_CITIES_MAP: Record<string, string[]> = {
   "Sylhet Division": ["Sylhet", "Moulvibazar", "Habiganj", "Sunamganj"],
   "Rajshahi Division": ["Rajshahi", "Bogra", "Pabna", "Naogaon", "Natore", "Nawabganj"],
   "Khulna Division": ["Khulna", "Jessore", "Kushtia", "Satkhira", "Bagerhat"],
-  "Barisal Division": ["Barisal", "Bhola", "Patuakhali", "Barguna"],
+  "Barishal Division": ["Barishal", "Barisal", "Bhola", "Patuakhali", "Barguna", "Jhalokati", "Pirojpur"],
+  "Barisal Division": ["Barishal", "Barisal", "Bhola", "Patuakhali", "Barguna", "Jhalokati", "Pirojpur"],
   "Rangpur Division": ["Rangpur", "Dinajpur", "Saidpur", "Kurigram"],
   "Mymensingh Division": ["Mymensingh", "Jamalpur", "Netrokona", "Sherpur"],
 };

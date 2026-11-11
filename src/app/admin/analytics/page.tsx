@@ -93,7 +93,7 @@ export default function AdminAnalyticsPage() {
         <Card className="rounded-none shadow-none border-neutral-200 bg-white">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardDescription className="text-xs font-medium text-neutral-500 uppercase tracking-wider">Gross Order Value</CardDescription>
+              <CardDescription className="text-xs font-medium text-neutral-500 uppercase tracking-wider">Order Value</CardDescription>
               <TrendingUp className="size-4 text-emerald-600" />
             </div>
             <CardTitle className="text-2xl font-bold font-mono tracking-tight mt-1 text-neutral-900">
@@ -101,7 +101,7 @@ export default function AdminAnalyticsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-neutral-500">Paid/Verified: ৳{(data?.verifiedPaidRevenueBdt || 0).toLocaleString()} BDT</p>
+            <p className="text-xs text-neutral-500">All non-cancelled orders · Paid/Verified: ৳{(data?.verifiedPaidRevenueBdt || 0).toLocaleString()} BDT</p>
           </CardContent>
         </Card>
 

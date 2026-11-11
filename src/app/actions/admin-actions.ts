@@ -1096,11 +1096,64 @@ export async function fetchAdminCustomersAction() {
 
   try {
     if (db) {
-      // 1. Fetch records from customers table
+      // 1. Fetch non-cancelled orders to calculate dynamic customer LTV directly from orders table
+      const allOrders = await db.select().from(orders);
+      const orderStatsByCustId = new Map<string, { count: number; spend: number; lastDate: Date | null }>();
+      const orderStatsByPhone = new Map<string, { count: number; spend: number; lastDate: Date | null }>();
+      const orderStatsByEmail = new Map<string, { count: number; spend: number; lastDate: Date | null }>();
+
+      for (const o of allOrders) {
+        if ((o.status || '').toLowerCase() === 'cancelled') continue;
+        const spend = Number(o.totalAmount) || 0;
+        const d = o.createdAt ? new Date(o.createdAt) : null;
+
+        if (o.customerId) {
+          const s = orderStatsByCustId.get(o.customerId) || { count: 0, spend: 0, lastDate: null };
+          s.count += 1;
+          s.spend += spend;
+          if (d && (!s.lastDate || d > s.lastDate)) s.lastDate = d;
+          orderStatsByCustId.set(o.customerId, s);
+        }
+
+        const p = (o.phone || '').trim().replace(/\D/g, '');
+        if (p) {
+          const s = orderStatsByPhone.get(p) || { count: 0, spend: 0, lastDate: null };
+          s.count += 1;
+          s.spend += spend;
+          if (d && (!s.lastDate || d > s.lastDate)) s.lastDate = d;
+          orderStatsByPhone.set(p, s);
+        }
+
+        const em = (o.email || '').trim().toLowerCase();
+        if (em) {
+          const s = orderStatsByEmail.get(em) || { count: 0, spend: 0, lastDate: null };
+          s.count += 1;
+          s.spend += spend;
+          if (d && (!s.lastDate || d > s.lastDate)) s.lastDate = d;
+          orderStatsByEmail.set(em, s);
+        }
+      }
+
+      // 2. Fetch records from customers table
       const dbCusts = await db.select().from(customers);
       if (dbCusts.length > 0) {
-        dbCusts.forEach((c, idx) => {
+        dbCusts.forEach((c) => {
           const cleanEmail = c.email || 'N/A';
+          const cleanPhone = (c.phone || '').trim().replace(/\D/g, '');
+          const lowerEmail = (c.email || '').trim().toLowerCase();
+
+          const stats = (c.id && orderStatsByCustId.get(c.id))
+            || (cleanPhone && orderStatsByPhone.get(cleanPhone))
+            || (lowerEmail && orderStatsByEmail.get(lowerEmail))
+            || { count: 0, spend: 0, lastDate: null };
+
+          const calculatedOrdersCount = stats.count;
+          const calculatedSpentBdt = stats.spend;
+          const lastDateObj = stats.lastDate ?? (c.createdAt ? new Date(c.createdAt) : null);
+          const lastOrderDateStr = lastDateObj
+            ? lastDateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            : 'Recent';
+
           const exists = mergedList.some(m => (m.phone !== 'N/A' && m.phone === c.phone) || (c.email && m.email.toLowerCase() === c.email.toLowerCase()));
           if (!exists) {
             mergedList.unshift({
@@ -1111,38 +1164,46 @@ export async function fetchAdminCustomersAction() {
               address: c.address || 'Standard Address',
               apt: c.apt || '',
               type: c.email ? 'Registered' : 'Guest',
-              ordersCount: c.totalOrdersCount || 0,
-              totalSpentBdt: Number(c.totalSpentBdt) || 0,
+              ordersCount: calculatedOrdersCount,
+              totalSpentBdt: calculatedSpentBdt,
               city: c.city || 'Dhaka',
               district: c.district || 'Dhaka Division',
-              lastOrderDate: c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent',
-              status: c.totalOrdersCount && c.totalOrdersCount > 3 ? 'VIP Member' : 'Active',
+              lastOrderDate: lastOrderDateStr,
+              status: calculatedOrdersCount > 3 ? 'VIP Member' : 'Active',
             });
           }
         });
       }
 
-      // 2. Fetch records from user auth table to ensure newly registered accounts always appear
+      // 3. Fetch records from user auth table to ensure newly registered accounts always appear
       const allUsers = await db.select().from(user);
-      allUsers.forEach((u, idx) => {
+      allUsers.forEach((u) => {
         const uEmail = (u.email || '').trim().toLowerCase();
         if (uEmail) {
           const exists = mergedList.some(m => m.email.toLowerCase() === uEmail);
           if (!exists) {
+            const rawPhone = formatValidPhone((u as any).phoneNumber || '');
+            const cleanPhone = rawPhone.replace(/\D/g, '');
+            const stats = (uEmail && orderStatsByEmail.get(uEmail))
+              || (cleanPhone && orderStatsByPhone.get(cleanPhone))
+              || { count: 0, spend: 0, lastDate: null };
+
             mergedList.unshift({
               id: u.id,
               name: formatHumanName(u.name || '', uEmail),
               email: uEmail,
-              phone: formatValidPhone((u as any).phoneNumber || ''),
+              phone: rawPhone,
               address: 'N/A',
               apt: '',
               type: 'Registered',
-              ordersCount: 0,
-              totalSpentBdt: 0,
+              ordersCount: stats.count,
+              totalSpentBdt: stats.spend,
               city: 'Dhaka',
               district: 'Dhaka Division',
-              lastOrderDate: u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'New Account',
-              status: 'Active',
+              lastOrderDate: stats.lastDate
+                ? stats.lastDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                : (u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'New Account'),
+              status: stats.count > 3 ? 'VIP Member' : 'Active',
             });
           }
         }

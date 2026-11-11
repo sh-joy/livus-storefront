@@ -286,13 +286,13 @@ export default function AdminDashboardPage() {
       {/* 2. 4 TOP METRIC CARDS GRID */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         
-        {/* Card 1: Gross Sales */}
+        {/* Card 1: Order Value */}
         <div className="border border-neutral-200 bg-white p-4 font-sans rounded-none shadow-none flex flex-col justify-between">
-          <p className="text-xs uppercase font-medium text-neutral-500">Gross Sales</p>
+          <p className="text-xs uppercase font-medium text-neutral-500">Order Value</p>
           <div className="flex items-center gap-2 mt-2">
             <p className="text-2xl font-bold text-neutral-900 font-mono">৳{totalGrossRevenue.toLocaleString()}</p>
           </div>
-          <p className="text-[11px] text-neutral-400 mt-1">From confirmed client orders</p>
+          <p className="text-[11px] text-neutral-400 mt-1">All non-cancelled orders</p>
         </div>
 
         {/* Card 2: Total Orders */}

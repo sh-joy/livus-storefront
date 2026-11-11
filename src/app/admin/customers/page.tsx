@@ -326,7 +326,7 @@ export default function AdminCustomersPage() {
                     <option value="Sylhet Division">Sylhet Division</option>
                     <option value="Rajshahi Division">Rajshahi Division</option>
                     <option value="Khulna Division">Khulna Division</option>
-                    <option value="Barisal Division">Barisal Division</option>
+                    <option value="Barishal Division">Barishal Division</option>
                     <option value="Rangpur Division">Rangpur Division</option>
                     <option value="Mymensingh Division">Mymensingh Division</option>
                   </select>

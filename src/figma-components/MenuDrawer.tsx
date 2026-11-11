@@ -1,8 +1,10 @@
 'use client';
 
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useDrawer } from "./DrawerContext";
+import { getPublicSiteProfileAction } from "@/app/actions/site-settings";
 
 const NAV_LINKS = [
   { label: "All Products", path: "/all-products" },
@@ -21,11 +23,32 @@ const NAV_LINKS = [
 export function MenuDrawer() {
   const { menuOpen, closeMenu } = useDrawer();
   const router = useRouter();
+  const [brand, setBrand] = useState<{ name: string; logoUrl: string; logoDarkUrl: string }>({
+    name: "LIVUS",
+    logoUrl: "",
+    logoDarkUrl: "",
+  });
+
+  useEffect(() => {
+    getPublicSiteProfileAction()
+      .then((p) => {
+        if (p?.brand) {
+          setBrand({
+            name: p.brand.name || "LIVUS",
+            logoUrl: p.brand.logoUrl || "",
+            logoDarkUrl: p.brand.logoDarkUrl || "",
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handleNav = (path: string) => {
     closeMenu();
     router.push(path);
   };
+
+  const darkLogo = brand.logoDarkUrl || brand.logoUrl;
 
   return (
     <AnimatePresence>
@@ -53,11 +76,16 @@ export function MenuDrawer() {
                 <button
                   type="button"
                   onClick={() => handleNav("/")}
-                  aria-label="LIVUS home"
-                  className="livus-logo bg-transparent border-none p-0 cursor-pointer text-white leading-none text-[24px] tracking-[0.28em]"
+                  aria-label={`${brand.name} home`}
+                  className="livus-logo bg-transparent border-none p-0 cursor-pointer text-white leading-none text-[24px] tracking-[0.28em] flex items-center"
                   style={{ fontFamily: "'Big Shoulders', 'Big Shoulders Display', sans-serif", fontWeight: 600 }}
                 >
-                  LIVUS
+                  {darkLogo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={darkLogo} alt={brand.name} className="h-7 w-auto object-contain" />
+                  ) : (
+                    brand.name
+                  )}
                 </button>
                 <button
                   onClick={closeMenu}

@@ -15,6 +15,8 @@ import {
   Megaphone,
   PanelTop,
   Inbox,
+  Globe,
+  FileText,
   Settings,
   MoreVertical,
   ArrowUpRight,
@@ -42,6 +44,8 @@ const allNavItems = [
   { title: "Discounts & Promos", url: "/admin/promos", icon: Ticket },
   { title: "Marquee Banners", url: "/admin/marquee", icon: Megaphone },
   { title: "Offer Popup", url: "/admin/popup", icon: PanelTop },
+  { title: "Site & Brand", url: "/admin/site", icon: Globe },
+  { title: "Pages & Text", url: "/admin/content", icon: FileText },
   { title: "Store Settings", url: "/admin/settings", icon: Settings },
 ];
 

@@ -8,6 +8,7 @@ import { useCartStore } from '@/lib/store/cart-store';
 import { useSession } from '@/lib/auth-client';
 import { useDrawer } from "./DrawerContext";
 import { AnnouncementMarquee } from "./AnnouncementMarquee";
+import { getPublicSiteProfileAction } from "@/app/actions/site-settings";
 
 interface SiteNavProps {
   /** "standard" = full store header. "auth" = minimal header for sign-in pages. */
@@ -41,8 +42,25 @@ export function SiteNav({ variant = "standard", logoColor = "#0d0d0d" }: SiteNav
   // The cart lives in localStorage, so only show the count after mounting (avoids hydration mismatch).
   const [mounted, setMounted] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [brand, setBrand] = useState<{ name: string; logoUrl: string; logoDarkUrl: string }>({
+    name: "LIVUS",
+    logoUrl: "",
+    logoDarkUrl: "",
+  });
+
   useEffect(() => {
     setMounted(true);
+    getPublicSiteProfileAction()
+      .then((p) => {
+        if (p?.brand) {
+          setBrand({
+            name: p.brand.name || "LIVUS",
+            logoUrl: p.brand.logoUrl || "",
+            logoDarkUrl: p.brand.logoDarkUrl || "",
+          });
+        }
+      })
+      .catch(() => {});
     const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -54,14 +72,21 @@ export function SiteNav({ variant = "standard", logoColor = "#0d0d0d" }: SiteNav
   const isAdmin = ["admin", "superadmin"].includes(((user as { role?: string } | undefined)?.role) || "");
 
   if (variant === "auth") {
+    const authLogo = brand.logoDarkUrl || brand.logoUrl;
     return (
       <nav className="fixed inset-x-0 top-0 z-[9999] flex items-center justify-between px-[var(--lv-gutter)] h-16 md:h-[72px] pointer-events-none">
         <Link
           href="/"
-          className={`${logoClass} pointer-events-auto max-md:!text-white`}
+          className={`${logoClass} pointer-events-auto max-md:!text-white flex items-center`}
           style={{ ...logoStyle, color: logoColor }}
+          aria-label={`${brand.name} home`}
         >
-          LIVUS
+          {authLogo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={authLogo} alt={brand.name} className="h-7 md:h-8 w-auto object-contain" />
+          ) : (
+            brand.name
+          )}
         </Link>
         <Link href="/" className="t-nav lv-link pointer-events-auto flex items-center h-10" style={{ color: "#fff" }}>
           Visit shop
@@ -120,8 +145,13 @@ export function SiteNav({ variant = "standard", logoColor = "#0d0d0d" }: SiteNav
           </div>
 
           {/* Center: logo */}
-          <Link href="/" aria-label="LIVUS home" className={logoClass} style={logoStyle}>
-            LIVUS
+          <Link href="/" aria-label={`${brand.name} home`} className={`${logoClass} flex items-center justify-center`} style={logoStyle}>
+            {brand.logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={brand.logoUrl} alt={brand.name} className="h-7 md:h-8 w-auto object-contain" />
+            ) : (
+              brand.name
+            )}
           </Link>
 
           {/* Right: search, account, cart */}

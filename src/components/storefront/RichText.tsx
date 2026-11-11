@@ -1,0 +1,50 @@
+import type { ReactNode } from 'react';
+
+/** Render **bold** spans inside one line of text. */
+function inline(line: string): ReactNode[] {
+  return line.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+    part.startsWith('**') && part.endsWith('**') && part.length > 4 ? (
+      <strong key={i} className="font-semibold text-[#0d0d0d]">
+        {part.slice(2, -2)}
+      </strong>
+    ) : (
+      part
+    )
+  );
+}
+
+/**
+ * Text written in the admin editors (product description, shipping text).
+ * Supports **bold**, "- " bullet lines and blank lines between paragraphs.
+ * Product description and shipping text share this, so they always look the same.
+ */
+export function RichText({ text }: { text: string }) {
+  if (!text?.trim()) return null;
+  const blocks = text.replace(/\r\n/g, '\n').split(/\n{2,}/);
+  return (
+    <div className="flex flex-col gap-3 text-[15px] leading-[1.6] text-[#3a3a3a]">
+      {blocks.map((block, bi) => {
+        const lines = block.split('\n').filter((l) => l.trim());
+        if (lines.length > 0 && lines.every((l) => /^\s*[-•]\s+/.test(l))) {
+          return (
+            <ul key={bi} className="m-0 pl-5 list-disc flex flex-col gap-1">
+              {lines.map((l, li) => (
+                <li key={li}>{inline(l.replace(/^\s*[-•]\s+/, ''))}</li>
+              ))}
+            </ul>
+          );
+        }
+        return (
+          <p key={bi} className="m-0">
+            {lines.map((l, li) => (
+              <span key={li}>
+                {li > 0 && <br />}
+                {inline(l)}
+              </span>
+            ))}
+          </p>
+        );
+      })}
+    </div>
+  );
+}

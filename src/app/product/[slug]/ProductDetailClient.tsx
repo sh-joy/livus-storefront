@@ -28,8 +28,9 @@ interface ProductDetailProps {
     colorVariants: VariantDetail[];
   };
   allProducts?: ProductItem[];
+  shippingText?: string;
 }
 
-export default function ProductDetailClient({ product, allProducts = [] }: ProductDetailProps) {
-  return <ProductDetails product={product} allProducts={allProducts} />;
+export default function ProductDetailClient({ product, allProducts = [], shippingText = '' }: ProductDetailProps) {
+  return <ProductDetails product={product} allProducts={allProducts} shippingText={shippingText} />;
 }

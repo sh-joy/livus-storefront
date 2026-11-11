@@ -1,4 +1,4 @@
--- 0006: Offer popup (Admin → Offer Popup) and Contact page messages (Admin → Messages).
+-- 0006: Offer popup, Contact page messages, and editable storefront text (site_content).
 -- Additive and safe to run more than once.
 CREATE TABLE IF NOT EXISTS promo_popup (
   id                text PRIMARY KEY,
@@ -36,3 +36,10 @@ CREATE TABLE IF NOT EXISTS contact_messages (
   created_at    timestamp NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS contact_messages_created_at_idx ON contact_messages (created_at DESC);
+
+-- Editable storefront text blocks, e.g. the product page "Shipping, Delivery & Returns" section.
+CREATE TABLE IF NOT EXISTS site_content (
+  key         text      PRIMARY KEY,
+  value       text      NOT NULL,
+  updated_at  timestamp NOT NULL DEFAULT now()
+);

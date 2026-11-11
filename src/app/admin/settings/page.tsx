@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { ProductPageTextEditor } from "@/components/admin/ProductPageTextEditor";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -901,6 +902,8 @@ export default function AdminSettingsPage() {
           </CardContent>
         </Card>
       </div>
+
+      <ProductPageTextEditor />
     </div>
   );
 }

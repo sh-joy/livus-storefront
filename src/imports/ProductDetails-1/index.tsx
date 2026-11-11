@@ -1,7 +1,7 @@
 'use client';
 
 import { Minus, Plus } from 'lucide-react';
-import { useStoreSettings, freeDeliveryThreshold } from '@/lib/hooks/use-store-settings';
+import { RichText } from '@/components/storefront/RichText';
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -76,6 +76,8 @@ export interface ProductDetailsProps {
     }[];
   };
   allProducts?: ProductItem[];
+  /** Editable in Admin → Settings → Product page text. */
+  shippingText?: string;
 }
 
 function parseSpecificationsText(raw?: string, defaultDesc?: string): string {
@@ -89,36 +91,12 @@ function parseSpecificationsText(raw?: string, defaultDesc?: string): string {
   return raw;
 }
 
-function renderFormattedMarkdown(text: string) {
-  if (!text) return null;
-  const paragraphs = text.split("\n");
-  return paragraphs.map((para, idx) => {
-    if (!para.trim()) return <div key={idx} className="h-1.5" />;
-    
-    const parts = para.split(/(\*\*.*?\*\*)/g);
-    return (
-      <p key={idx} className="mb-1.5 leading-[20px] text-[14px] text-[#1c1c1c]">
-        {parts.map((part, pIdx) => {
-          if (part.startsWith("**") && part.endsWith("**")) {
-            return (
-              <strong key={pIdx} className="font-medium text-black">
-                {part.slice(2, -2)}
-              </strong>
-            );
-          }
-          return part;
-        })}
-      </p>
-    );
-  });
-}
 
-export default function ProductDetails({ product, allProducts = [] }: ProductDetailsProps) {
+export default function ProductDetails({ product, allProducts = [], shippingText = '' }: ProductDetailsProps) {
   const [selectedColorIdx, setSelectedColorIdx] = useState(0);
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
-  const freeOver = freeDeliveryThreshold(useStoreSettings());
   const [showGuide, setShowGuide] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isShippingExpanded, setIsShippingExpanded] = useState(false);
@@ -208,7 +186,8 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
   // Determine active dynamic or default product data
   const productName = product?.name || 'Oakwood Long sleeve';
   const priceBdt = product ? `৳${product.priceBdt} BDT` : '৳899 BDT';
-  const compareAtPriceBdt = product?.compareAtPriceBdt ? `৳${product.compareAtPriceBdt}` : (product ? undefined : '৳1199');
+  // Only show a struck-through "was" price when it is actually higher than the selling price.
+  const compareAtPriceBdt = product?.compareAtPriceBdt && product.compareAtPriceBdt > product.priceBdt ? `৳${product.compareAtPriceBdt}` : (product ? undefined : '৳1199');
 
   // Format Color Variants
   const activeColorVariants = (product?.colorVariants && product.colorVariants.length > 0)
@@ -401,16 +380,7 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
             {/* Header Title & Price */}
             <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full">
               <div className="[word-break:break-word] content-stretch flex flex-col gap-[16px] max-md:gap-[10px] items-start relative shrink-0 w-full">
-                <h1
-                  className="font-serif font-semibold relative shrink-0 text-[#1c1c1c]"
-                  style={{
-                    fontFamily: "'Overused Grotesk', sans-serif",
-                    fontSize: "28px",
-                    lineHeight: "32px",
-                    fontWeight: 600,
-                    letterSpacing: "-0.03em",
-                  }}
-                >
+                <h1 className="t-h2 m-0" style={{ fontSize: "clamp(26px, 2.4vw, 34px)", lineHeight: 1.1, letterSpacing: "-0.035em" }}>
                   {productName}
                 </h1>
                 <div className="content-stretch flex flex-wrap font-sans gap-[8px] items-start leading-[24px] relative shrink-0 whitespace-nowrap">
@@ -584,8 +554,8 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                     className="overflow-hidden"
                   >
-                    <div className="font-sans text-[15px] text-[#3a3a3a] leading-relaxed space-y-3 pb-5">
-                      {renderFormattedMarkdown(formattedDescriptionText)}
+                    <div className="font-sans pb-5">
+                      <RichText text={formattedDescriptionText} />
                     </div>
                   </motion.div>
                 )}
@@ -616,12 +586,8 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                     className="overflow-hidden"
                   >
-                    <div className="font-sans text-[15px] text-[#3a3a3a] leading-relaxed space-y-3 pb-5">
-                      <p><strong>Nationwide Delivery in Bangladesh:</strong> Standard delivery within 2–3 business days inside Dhaka Division (৳100) and 3–5 days across all other divisions (৳150).</p>
-                      {freeOver > 0 && (
-                        <p><strong>Free Delivery:</strong> All orders of ৳{freeOver.toLocaleString()} BDT or more qualify for free nationwide delivery.</p>
-                      )}
-                      <p><strong>Easy 7-Day Exchange:</strong> Size or fit issues? We offer a hassle-free 7-day exchange window on all unworn items with original tags attached.</p>
+                    <div className="font-sans pb-5">
+                      <RichText text={shippingText} />
                     </div>
                   </motion.div>
                 )}

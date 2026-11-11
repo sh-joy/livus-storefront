@@ -3,6 +3,7 @@ import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import { getProductBySlugAction, getProducts } from '@/app/actions/products';
 import ProductDetailClient from './ProductDetailClient';
+import { getSiteContentAction } from '@/app/actions/site-content';
 
 const siteUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/+$/, '');
 
@@ -121,9 +122,10 @@ function buildProductJsonLd(product: Product) {
 export default async function DynamicProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
 
-  const [productData, allProducts] = await Promise.all([
+  const [productData, allProducts, shippingText] = await Promise.all([
     getProduct(resolvedParams.slug),
     getProducts(),
+    getSiteContentAction('shipping_returns'),
   ]);
 
   if (!productData) {
@@ -139,7 +141,7 @@ export default async function DynamicProductPage({ params }: { params: Promise<{
         // Escape "<" so product text cannot close the script tag.
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
       />
-      <ProductDetailClient product={productData} allProducts={allProducts} />
+      <ProductDetailClient product={productData} allProducts={allProducts} shippingText={shippingText} />
     </>
   );
 }

@@ -70,7 +70,19 @@ body {
   overscroll-behavior-y: none !important;
   overscroll-behavior-x: none !important;
   font-family: 'Overused Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  /* Crisper, more even text rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-kerning: normal;
+  font-optical-sizing: auto;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
+
+/* Headings: balanced line breaks; long body text: avoid single-word last lines */
+h1, h2, h3 { text-wrap: balance; }
+p, li { text-wrap: pretty; }
 
 /* EXPLICIT FONT WEIGHT UTILITIES OVERRIDE (Fixes Tailwind v4 font-normal variable bug) */
 .font-normal {

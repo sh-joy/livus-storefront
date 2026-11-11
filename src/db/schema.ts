@@ -96,6 +96,13 @@ export const contactMessages = pgTable('contact_messages', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// Editable storefront text blocks (Admin → Settings → Product page text). key → markdown-ish text.
+export const siteContent = pgTable('site_content', {
+  key: text('key').primaryKey(),
+  value: text('value').notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // 7. Marquee Text & Top Banner Announcements
 export const marqueeAnnouncements = pgTable('marquee_announcements', {
   id: uuid('id').defaultRandom().primaryKey(),

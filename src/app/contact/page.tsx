@@ -5,7 +5,7 @@ import { SiteFooter } from '@/figma-components/SiteFooter';
 import { ContactForm } from '@/components/storefront/ContactForm';
 import { getSiteProfile } from '@/lib/site-profile';
 import { getSiteContentAction } from '@/app/actions/site-content';
-import { type FaqItem, DEFAULT_FAQS } from '@/lib/site-content';
+import { type FaqItem, DEFAULT_FAQS } from '@/content/site-content-defaults';
 
 export const metadata: Metadata = {
   title: "Contact Us",

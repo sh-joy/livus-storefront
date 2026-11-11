@@ -92,13 +92,14 @@ Exit code: 0 (Clean, 0 errors)
 ```text
  RUN  v4.1.12 /Users/shamimhossen/.gemini/antigravity/my-store
 
- ✓ tests/site-profile.test.ts (6 tests) 3ms
- ✓ tests/order-pricing.test.ts (11 tests) 4ms
- ✓ tests/seo.test.ts (3 tests) 89ms
+ ✓ tests/site-profile.test.ts (6 tests) 4ms
+ ✓ tests/order-pricing.test.ts (11 tests) 3ms
+ ✓ tests/seo.test.ts (3 tests) 88ms
+ ✓ tests/site-content.test.ts (3 tests) 119ms
 
- Test Files  3 passed (3)
-      Tests  20 passed (20)
-   Duration  313ms
+ Test Files  4 passed (4)
+      Tests  23 passed (23)
+   Duration  315ms
 ```
 
 ### 2.3 Next.js Turbopack Production Build (`npm run build`)
@@ -230,7 +231,8 @@ Tested against the local production server:
 
 ### New Files
 - `src/lib/site-profile.ts`: Zod schema and request-cached site profile reader.
-- `src/lib/site-content.ts`: Non-action content keys, types, and dynamic policy context builders.
+- `src/lib/site-content.ts`: Non-action re-export wrapper.
+- `src/content/site-content-defaults.ts`: Non-action constants, types, and dynamic policy context builders.
 - `src/lib/seo.ts`: Metadata helpers, canonicals, robots, and JSON-LD escaping.
 - `src/lib/analytics.ts`: Meta Pixel and GA4 client e-commerce tracking.
 - `src/components/seo/JsonLd.tsx`: Organization, WebSite, BreadcrumbList JSON-LD components.
@@ -240,6 +242,7 @@ Tested against the local production server:
 - `drizzle/manual/0007_site_profile.sql`: Site profile database migration.
 - `tests/site-profile.test.ts`: Site profile unit tests.
 - `tests/seo.test.ts`: SEO unit tests.
+- `tests/site-content.test.ts`: Site content and policy defaults unit tests.
 - `docs/ROUND5_REPORT.md`: This completion report.
 
 ### Modified Files

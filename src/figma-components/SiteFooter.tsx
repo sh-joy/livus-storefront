@@ -7,7 +7,7 @@ import { ChevronDown } from "lucide-react";
 import { addNewsletterSubscriberAction } from "@/app/actions/subscribers";
 import { getPublicSiteProfileAction } from "@/app/actions/site-settings";
 import { getSiteContentAction } from "@/app/actions/site-content";
-import { type NewsletterCtaConfig, DEFAULT_NEWSLETTER_CTA } from "@/lib/site-content";
+import { type NewsletterCtaConfig, DEFAULT_NEWSLETTER_CTA } from "@/content/site-content-defaults";
 import { RichText } from "@/components/storefront/RichText";
 import { trackLead } from "@/lib/analytics";
 

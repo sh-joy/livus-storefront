@@ -10,7 +10,7 @@ import {
   SITE_CONTENT_KEYS,
   type SiteContentKey,
   getDefaultSiteContent,
-} from '@/lib/site-content';
+} from '@/content/site-content-defaults';
 
 /** Public: the text to show. Falls back to default when nothing is saved (or table not created yet). */
 export async function getSiteContentAction(key: SiteContentKey): Promise<string> {

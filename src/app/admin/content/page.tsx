@@ -34,7 +34,7 @@ import {
   DEFAULT_FAQS,
   DEFAULT_NEWSLETTER_CTA,
   DEFAULT_CONTENT,
-} from '@/lib/site-content';
+} from '@/content/site-content-defaults';
 
 type TabType = 'info' | 'storefront' | 'contact';
 

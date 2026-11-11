@@ -398,6 +398,13 @@ export default function ProductDetails({ product, allProducts = [], shippingText
             {/* Header Title & Price */}
             <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full">
               <div className="[word-break:break-word] content-stretch flex flex-col gap-[16px] max-md:gap-[10px] items-start relative shrink-0 w-full">
+                <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[14px] text-[#666666]">
+                  <Link href="/" className="hover:text-black transition-colors">Home</Link>
+                  <span>/</span>
+                  <Link href="/all-products" className="hover:text-black transition-colors">Shop All</Link>
+                  <span>/</span>
+                  <span className="text-black font-medium truncate max-w-[200px]">{productName}</span>
+                </nav>
                 <h1 className="t-h2 m-0" style={{ fontSize: "clamp(26px, 2.4vw, 34px)", lineHeight: 1.1, letterSpacing: "-0.035em" }}>
                   {productName}
                 </h1>

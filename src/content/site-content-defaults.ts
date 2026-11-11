@@ -18,6 +18,10 @@ export const SITE_CONTENT_KEYS = [
   'contact_faqs',
   'home_collection_text',
   'newsletter_cta',
+  'category_for_him_intro',
+  'category_for_her_intro',
+  'category_unisex_intro',
+  'category_accessories_intro',
 ] as const;
 
 export type SiteContentKey = (typeof SITE_CONTENT_KEYS)[number];
@@ -90,6 +94,18 @@ export const DEFAULT_CONTENT: Record<SiteContentKey, string> = {
   newsletter_cta: JSON.stringify(DEFAULT_NEWSLETTER_CTA),
 
   shipping_returns: '', // Built dynamically with storeSettings
+
+  category_for_him_intro:
+    'Engineered athletic wear, training jerseys and relaxed streetwear tees for men. Designed in Dhaka and delivered across Bangladesh.',
+
+  category_for_her_intro:
+    'Comfort-first athletic streetwear, versatile oversized tops and performance jerseys for women. Designed in Dhaka and delivered across Bangladesh.',
+
+  category_unisex_intro:
+    'Contemporary unisex athletic streetwear and casual jerseys designed for an effortless fit. Delivered nationwide across Bangladesh.',
+
+  category_accessories_intro:
+    'Athletic lifestyle essentials, sports caps and gear to complete your streetwear look. Delivered nationwide across Bangladesh.',
 };
 
 /** Build policy context dynamically from site profile with fallback to storeSettings */

@@ -123,6 +123,18 @@ export async function saveSiteContentAction(input: z.input<typeof SaveSchema>) {
       case 'home_collection_text':
         revalidatePath('/');
         break;
+      case 'category_for_him_intro':
+        revalidatePath('/for-him');
+        break;
+      case 'category_for_her_intro':
+        revalidatePath('/for-her');
+        break;
+      case 'category_unisex_intro':
+        revalidatePath('/unisex');
+        break;
+      case 'category_accessories_intro':
+        revalidatePath('/accessories');
+        break;
       case 'newsletter_cta':
         revalidatePath('/', 'layout');
         break;

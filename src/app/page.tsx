@@ -4,15 +4,32 @@ import { getSiteContentAction } from '@/app/actions/site-content';
 import Homepage from '@/imports/Homepage';
 import { NavigationWrapper } from '@/components/NavigationWrapper';
 
-const siteUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/+$/, '');
+const siteUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://mylivus.vercel.app').replace(/\/+$/, '');
 
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: { absolute: 'LIVUS — Athletic Streetwear & Jerseys | Bangladesh' },
+  title: { absolute: 'LIVUS — Premium Athletic Streetwear & Jerseys BD Shop' },
   description:
-    'Shop LIVUS athletic streetwear, jerseys and accessories for him and her. Nationwide delivery across Bangladesh with Cash on Delivery, bKash and Nagad.',
+    'Shop LIVUS athletic streetwear, authentic jerseys and lifestyle apparel in Bangladesh. Fast nationwide delivery with Cash on Delivery, bKash and Nagad.',
   alternates: { canonical: '/' },
+  openGraph: {
+    title: 'LIVUS — Premium Athletic Streetwear & Jerseys BD Shop',
+    description:
+      'Shop LIVUS athletic streetwear, authentic jerseys and lifestyle apparel in Bangladesh. Fast nationwide delivery with Cash on Delivery, bKash and Nagad.',
+    url: siteUrl,
+    siteName: 'LIVUS',
+    locale: 'en_BD',
+    type: 'website',
+    images: [{ url: `${siteUrl}/opengraph-image`, width: 1200, height: 630, alt: 'LIVUS Athletic Streetwear' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'LIVUS — Premium Athletic Streetwear & Jerseys BD',
+    description:
+      'Shop LIVUS athletic streetwear, authentic jerseys and lifestyle apparel in Bangladesh. Fast nationwide delivery with Cash on Delivery, bKash and Nagad.',
+    images: [`${siteUrl}/opengraph-image`],
+  },
 };
 
 const organizationJsonLd = {

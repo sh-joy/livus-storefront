@@ -50,4 +50,43 @@ describe('SEO Helpers & Metadata Generation', () => {
     expect(escaped).not.toContain('<script>');
     expect(escaped).toContain('\\u003cscript>');
   });
+
+  it('validates product JSON-LD schema with shipping and merchant return policies', () => {
+    const productJsonLd = {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: 'Grey Textured Crepe Two-Piece',
+      description: 'Athletic streetwear set by LIVUS.',
+      offers: {
+        '@type': 'Offer',
+        priceCurrency: 'BDT',
+        price: '3200',
+        availability: 'https://schema.org/InStock',
+        itemCondition: 'https://schema.org/NewCondition',
+        shippingDetails: {
+          '@type': 'OfferShippingDetails',
+          shippingRate: {
+            '@type': 'MonetaryAmount',
+            value: '120',
+            currency: 'BDT',
+          },
+          shippingDestination: {
+            '@type': 'DefinedRegion',
+            addressCountry: 'BD',
+          },
+        },
+        hasMerchantReturnPolicy: {
+          '@type': 'MerchantReturnPolicy',
+          applicableCountry: 'BD',
+          returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+          merchantReturnDays: 7,
+        },
+      },
+    };
+
+    expect(productJsonLd['@type']).toBe('Product');
+    expect(productJsonLd.offers.priceCurrency).toBe('BDT');
+    expect(productJsonLd.offers.shippingDetails.shippingDestination.addressCountry).toBe('BD');
+    expect(productJsonLd.offers.hasMerchantReturnPolicy.merchantReturnDays).toBe(7);
+  });
 });

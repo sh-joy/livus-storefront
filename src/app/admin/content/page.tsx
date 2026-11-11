@@ -439,6 +439,59 @@ export default function AdminContentPage() {
             viewUrl="/"
           />
 
+          {/* Category Intros (Search & Category Header copy) */}
+          <ContentBlockCard
+            title="For Him Category Intro (/for-him)"
+            description="Introductory sentence for search and category header describing LIVUS men's collection."
+            contentKey="category_for_him_intro"
+            value={contents.category_for_him_intro?.value || ''}
+            isCustom={contents.category_for_him_intro?.isCustom || false}
+            saving={savingKey === 'category_for_him_intro'}
+            onChange={(val) => updateText('category_for_him_intro', val)}
+            onSave={() => saveText('category_for_him_intro')}
+            onRestore={() => restoreDefault('category_for_him_intro')}
+            viewUrl="/for-him"
+          />
+
+          <ContentBlockCard
+            title="For Her Category Intro (/for-her)"
+            description="Introductory sentence for search and category header describing LIVUS women's collection."
+            contentKey="category_for_her_intro"
+            value={contents.category_for_her_intro?.value || ''}
+            isCustom={contents.category_for_her_intro?.isCustom || false}
+            saving={savingKey === 'category_for_her_intro'}
+            onChange={(val) => updateText('category_for_her_intro', val)}
+            onSave={() => saveText('category_for_her_intro')}
+            onRestore={() => restoreDefault('category_for_her_intro')}
+            viewUrl="/for-her"
+          />
+
+          <ContentBlockCard
+            title="Unisex Category Intro (/unisex)"
+            description="Introductory sentence for search and category header describing LIVUS unisex collection."
+            contentKey="category_unisex_intro"
+            value={contents.category_unisex_intro?.value || ''}
+            isCustom={contents.category_unisex_intro?.isCustom || false}
+            saving={savingKey === 'category_unisex_intro'}
+            onChange={(val) => updateText('category_unisex_intro', val)}
+            onSave={() => saveText('category_unisex_intro')}
+            onRestore={() => restoreDefault('category_unisex_intro')}
+            viewUrl="/unisex"
+          />
+
+          <ContentBlockCard
+            title="Accessories Category Intro (/accessories)"
+            description="Introductory sentence for search and category header describing LIVUS accessories collection."
+            contentKey="category_accessories_intro"
+            value={contents.category_accessories_intro?.value || ''}
+            isCustom={contents.category_accessories_intro?.isCustom || false}
+            saving={savingKey === 'category_accessories_intro'}
+            onChange={(val) => updateText('category_accessories_intro', val)}
+            onSave={() => saveText('category_accessories_intro')}
+            onRestore={() => restoreDefault('category_accessories_intro')}
+            viewUrl="/accessories"
+          />
+
           {/* Footer Newsletter CTA */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-3">

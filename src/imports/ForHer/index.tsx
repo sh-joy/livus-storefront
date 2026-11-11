@@ -13,29 +13,29 @@ import svgPaths from "./svg-uck01nnure";
 import imgFrame1597881192 from "./21edf1b8dee7cef23ed2ec91e1a1b0550b6c38c9.png";
 import imgImage114 from "./71b3cd582dab7174e13346a8d88abe33548d2aa7.png";
 
-function Frame7() {
+function Frame7({ subtitle }: { subtitle?: string }) {
   return (
     <div className="flex flex-col items-start md:items-end justify-center pb-2 w-full md:max-w-[420px]">
-      <p className="t-lead m-0 text-left md:text-right w-full">{`Exclusive Women's Jersey Collection. Designed with premium fabrics and exceptional style for the modern lady.`}</p>
+      <p className="t-lead m-0 text-left md:text-right w-full">{subtitle || `Exclusive Women's Jersey Collection. Designed with premium fabrics and exceptional style for the modern lady.`}</p>
     </div>
   );
 }
 
-function Frame5() {
+function Frame5({ subtitle }: { subtitle?: string }) {
   return (
     <div className="flex flex-1 min-w-0 flex-col md:flex-row md:items-end md:justify-between gap-4 md:gap-10">
       <h1 className="t-display m-0 whitespace-nowrap">For Her.</h1>
-      <Frame7 />
+      <Frame7 subtitle={subtitle} />
     </div>
   );
 }
 
-function Frame4() {
+function Frame4({ subtitle }: { subtitle?: string }) {
   return (
     <div className="relative shrink-0 w-full">
       <div className="flex flex-row items-center justify-center size-full">
         <div className="content-stretch flex items-center justify-center pt-[clamp(24px,3.5vw,48px)] px-[var(--lv-gutter)] relative size-full">
-          <Frame5 />
+          <Frame5 subtitle={subtitle} />
         </div>
       </div>
     </div>
@@ -508,7 +508,7 @@ function Frame14({ products, onResetFilter }: { products?: ProductItem[]; onRese
   );
 }
 
-export default function ForHer({ products }: { products?: ProductItem[] }) {
+export default function ForHer({ products, subtitle }: { products?: ProductItem[]; subtitle?: string }) {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedGender, setSelectedGender] = useState("for-her");
   const [selectedSize, setSelectedSize] = useState("all");
@@ -597,7 +597,7 @@ export default function ForHer({ products }: { products?: ProductItem[] }) {
       <SiteNav />
       <CollectionHeader
         title="For Her."
-        subtitle="Exclusive Women's Jersey Collection. Designed with premium fabrics and exceptional style for the modern lady."
+        subtitle={subtitle || "Exclusive Women's Jersey Collection. Designed with premium fabrics and exceptional style for the modern lady."}
       />
 
       {/* Category Filter Sub-Bar with Rectangular Dropdown Buttons & Product Count */}

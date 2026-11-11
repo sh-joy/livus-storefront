@@ -7,10 +7,30 @@ import { getSiteProfile } from '@/lib/site-profile';
 import { getSiteContentAction } from '@/app/actions/site-content';
 import { type FaqItem, DEFAULT_FAQS } from '@/content/site-content-defaults';
 
+const siteUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://mylivus.vercel.app').replace(/\/+$/, '');
+
 export const metadata: Metadata = {
-  title: "Contact Us",
-  description: "Get in touch with LIVUS customer support for help with orders, sizing, delivery and returns in Bangladesh.",
+  title: { absolute: "Contact Customer Support & Help Desk | LIVUS Online" },
+  description:
+    "Have questions about orders, sizing, delivery, or exchanges? Contact the LIVUS Bangladesh customer support team via phone, email, or message today.",
   alternates: { canonical: '/contact' },
+  openGraph: {
+    title: "Contact Customer Support & Help Desk | LIVUS Online",
+    description:
+      "Have questions about orders, sizing, delivery, or exchanges? Contact the LIVUS Bangladesh customer support team via phone, email, or message today.",
+    url: `${siteUrl}/contact`,
+    siteName: 'LIVUS',
+    locale: 'en_BD',
+    type: 'website',
+    images: [{ url: `${siteUrl}/opengraph-image`, width: 1200, height: 630, alt: "Contact LIVUS" }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "Contact Customer Support & Help Desk | LIVUS Online",
+    description:
+      "Have questions about orders, sizing, delivery, or exchanges? Contact the LIVUS Bangladesh customer support team via phone, email, or message today.",
+    images: [`${siteUrl}/opengraph-image`],
+  },
 };
 
 export const revalidate = 60;

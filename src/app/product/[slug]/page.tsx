@@ -39,14 +39,31 @@ function isInStock(product: Product) {
   );
 }
 
+function getProductTitle(product: Product): { absolute: string } {
+  const base = `${product.name} | LIVUS Athletic Wear BD`;
+  if (base.length >= 50 && base.length <= 60) return { absolute: base };
+  if (base.length < 50) {
+    const padded = `${product.name} — LIVUS Athletic Streetwear BD`;
+    if (padded.length >= 50 && padded.length <= 60) return { absolute: padded.slice(0, 60) };
+    const longPadded = `${product.name} — LIVUS Premium Athletic Streetwear BD`;
+    return { absolute: longPadded.slice(0, 60) };
+  }
+  return { absolute: `${base.slice(0, 57)}...` };
+}
+
 function getDescription(product: Product) {
   const raw = (product.description || '').replace(/\s+/g, ' ').trim();
   const base = raw && raw !== product.name
     ? raw
-    : `${product.name} — athletic streetwear by LIVUS.`;
-  const suffix = ` ৳${product.priceBdt.toLocaleString('en-US')} · Cash on Delivery across Bangladesh.`;
-  const max = 160 - suffix.length;
-  return (base.length > max ? `${base.slice(0, max - 1).trimEnd()}…` : base) + suffix;
+    : `${product.name} by LIVUS. Crafted for athletic performance and street culture.`;
+  const suffix = ' Delivered nationwide in Bangladesh with Cash on Delivery.';
+  const max = 155 - suffix.length;
+  const truncated = base.length > max ? `${base.slice(0, max - 1).trimEnd()}…` : base;
+  let result = `${truncated}${suffix}`;
+  if (result.length < 140) {
+    result = `${result.replace(/\.$/, '')} and verified dispatch.`;
+  }
+  return result.length > 160 ? `${result.slice(0, 157)}…` : result;
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -63,13 +80,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const path = `/product/${product.slug}`;
   const description = getDescription(product);
   const firstImage = getProductImages(product)[0];
+  const titleObj = getProductTitle(product);
 
   return {
-    title: product.name,
+    title: titleObj,
     description,
     alternates: { canonical: path },
     openGraph: {
-      title: `${product.name} | LIVUS`,
+      title: titleObj.absolute,
       description,
       url: path,
       siteName: 'LIVUS',
@@ -81,6 +99,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     },
     twitter: {
       card: 'summary_large_image',
+      title: titleObj.absolute,
+      description,
+      images: firstImage ? [toAbsoluteUrl(firstImage)] : [`${siteUrl}/opengraph-image`],
     },
     other: {
       'product:price:amount': String(product.priceBdt),
@@ -93,7 +114,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 function buildProductJsonLd(product: Product) {
   const url = `${siteUrl}/product/${product.slug}`;
   const images = getProductImages(product).map(toAbsoluteUrl);
-  const sku = product.colorVariants?.[0]?.sizes?.[0]?.sku;
+  const sku = product.colorVariants?.[0]?.sizes?.[0]?.sku || product.slug;
 
   return {
     '@context': 'https://schema.org',
@@ -101,8 +122,8 @@ function buildProductJsonLd(product: Product) {
     name: product.name,
     description: (product.description || product.name).replace(/\s+/g, ' ').trim(),
     url,
-    ...(images.length ? { image: images } : {}),
-    ...(sku ? { sku } : {}),
+    image: images.length ? images : [`${siteUrl}/opengraph-image`],
+    sku,
     productID: product.id,
     brand: { '@type': 'Brand', name: 'LIVUS' },
     ...(product.colorVariants?.length
@@ -118,6 +139,41 @@ function buildProductJsonLd(product: Product) {
         : 'https://schema.org/OutOfStock',
       itemCondition: 'https://schema.org/NewCondition',
       seller: { '@type': 'Organization', name: 'LIVUS' },
+      shippingDetails: {
+        '@type': 'OfferShippingDetails',
+        shippingRate: {
+          '@type': 'MonetaryAmount',
+          value: '120',
+          currency: 'BDT',
+        },
+        shippingDestination: {
+          '@type': 'DefinedRegion',
+          addressCountry: 'BD',
+        },
+        deliveryTime: {
+          '@type': 'ShippingDeliveryTime',
+          handlingTime: {
+            '@type': 'QuantitativeValue',
+            minValue: 1,
+            maxValue: 2,
+            unitCode: 'd',
+          },
+          transitTime: {
+            '@type': 'QuantitativeValue',
+            minValue: 2,
+            maxValue: 5,
+            unitCode: 'd',
+          },
+        },
+      },
+      hasMerchantReturnPolicy: {
+        '@type': 'MerchantReturnPolicy',
+        applicableCountry: 'BD',
+        returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+        merchantReturnDays: 7,
+        returnMethod: 'https://schema.org/ReturnByMail',
+        returnFees: 'https://schema.org/ReturnFeesCustomerResponsibility',
+      },
     },
   };
 }

@@ -1,10 +1,10 @@
 # LIVUS — Go-Live Checklist (non-code)
 
-Tick these before running paid marketing. Code fixes are in `FIX_PLAN_FOR_ANTIGRAVITY.md`; bugs in `SQA_REPORT.md`.
+Tick these before running paid marketing. **Step-by-step setup (hosting, env vars, database, domain, OAuth, email) is in [`DEPLOYMENT.md`](./DEPLOYMENT.md)** — follow it first. Code fixes are in `FIX_PLAN_FOR_ANTIGRAVITY.md`; bugs in `SQA_REPORT.md`.
 
 ## 1. Security & accounts (do first)
 - [ ] **Rotate the Neon database password** (the old one is in git history). Update `DATABASE_URL` locally and in Vercel.
-- [ ] **Change all admin passwords** (superadmin, manager, test6, admin@livus.com). Delete accounts you don't use (e.g. test6).
+- [ ] **Change all admin passwords** (superadmin, manager, test6, admin@livus.com) with `npm run admin:set-password` (see DEPLOYMENT.md §d). Delete accounts you don't use (e.g. test6).
 - [ ] Set a strong random `BETTER_AUTH_SECRET` in Vercel (e.g. `openssl rand -base64 32`). Don't reuse the local one.
 - [ ] Turn on 2-factor login for your Vercel, Neon, GitHub, Brevo and domain-registrar accounts.
 
@@ -16,15 +16,11 @@ Tick these before running paid marketing. Code fixes are in `FIX_PLAN_FOR_ANTIGR
 - [ ] Verify your sending domain in Brevo (SPF, DKIM, DMARC records) so order emails don't land in spam.
 
 ## 3. Environment variables in Vercel (Production)
-- [ ] `DATABASE_URL` (new password)
-- [ ] `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` and `NEXT_PUBLIC_APP_URL` = your real domain (https://…)
-- [ ] `BREVO_*` keys and sender email/name
-- [ ] `BLOB_READ_WRITE_TOKEN` (added automatically when you connect Blob)
-- [ ] `GOOGLE_CLIENT_ID/SECRET`, `FACEBOOK_CLIENT_ID/SECRET` — and add the real domain to each provider's allowed redirect URLs
-- [ ] `NEXT_PUBLIC_META_PIXEL_ID`, `NEXT_PUBLIC_GA_ID` (once tracking is added)
+- [ ] All variables set as listed in **DEPLOYMENT.md §b**. The site now checks them at startup and refuses to start (with a clear message in the Vercel logs) if `DATABASE_URL`, `BETTER_AUTH_SECRET` or the https site URL are missing.
+- [ ] Real domain added to each Google/Facebook OAuth app's redirect URLs (DEPLOYMENT.md §f).
 
 ## 4. Domain
-- [ ] Connect your domain to Vercel (Cloudflare DNS optional, free).
+- [ ] Connect your domain to Vercel (Cloudflare DNS optional, free) — DEPLOYMENT.md §f.
 - [ ] HTTPS working on `https://yourdomain` and `www` redirects to one version.
 - [ ] Update the hard-coded `livus.com.bd` links in emails if that isn't your domain.
 
@@ -35,7 +31,7 @@ Tick these before running paid marketing. Code fixes are in `FIX_PLAN_FOR_ANTIGR
 - [ ] Delivery fees per division and the free-delivery threshold.
 - [ ] Review promo codes: GIFT2000 (৳2,000 off, no minimum, unlimited uses) and SAVE500 are live — disable or add limits.
 - [ ] Replace the product photos hot-linked from `cdn.gentlepark.com` with your own photos.
-- [ ] Fix categories: create **Accessories**, check each product is in the right For Him / For Her / Unisex section.
+- [ ] Fix categories: the Accessories category is created by `drizzle/manual/0005_accessories_category.sql` (run it if `/accessories` is empty — DEPLOYMENT.md §c); check each product is in the right For Him / For Her / Unisex section.
 - [ ] Delete test orders (LIV-33333, LIV-63185, LIV-53039) and test customers before launch so reports start clean.
 
 ## 6. Legal & trust pages

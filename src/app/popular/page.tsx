@@ -1,6 +1,13 @@
+import type { Metadata } from 'next';
 import { getProducts } from '@/app/actions/products';
 import ForHim from '@/imports/ForHim-2';
 import { NavigationWrapper } from '@/components/NavigationWrapper';
+
+export const metadata: Metadata = {
+  title: "Best Sellers",
+  description: "Top-rated and trending LIVUS athletic streetwear and jerseys loved by customers across Bangladesh.",
+  alternates: { canonical: '/popular' },
+};
 
 export default async function PopularPage() {
   const products = await getProducts('popular');

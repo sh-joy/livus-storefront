@@ -7,6 +7,11 @@ import type { ProductItem } from '@/app/actions/products';
 
 import imgFrame1597881192 from "@/imports/ForHim-2/cd8123b8a9ab8a34443daf47f95966a2cb8719ce.png";
 import imgImage114 from "@/imports/ForHim-2/71b3cd582dab7174e13346a8d88abe33548d2aa7.png";
+import { SmartImage } from '@/components/storefront/SmartImage';
+
+// Matches .product-grid-4col (globals.css): 2 cols < 1024px, 3 cols >= 1024px, 4 cols >= 1600px (max 1920px wide).
+const PRODUCT_CARD_SIZES = '(min-width: 1600px) min(25vw, 480px), (min-width: 1024px) 33vw, 50vw';
+const FALLBACK_IMAGE = '/images/for_him.jpg';
 
 export function ProductCard({ product }: { product: any }) {
   const primaryImage =
@@ -111,23 +116,35 @@ export function ProductCard({ product }: { product: any }) {
       <div className="relative w-full aspect-[3/4] overflow-hidden bg-[#f0f0f0]">
         {/* Underneath Previous Image (Z-0) */}
         {prevImageSrc && prevImageSrc !== currentImageSrc && (
-          <img
-            alt={product.name}
-            className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none z-0"
+          <SmartImage
+            alt=""
+            aria-hidden="true"
+            fill
+            sizes={PRODUCT_CARD_SIZES}
+            className="object-cover object-center pointer-events-none z-0"
             src={prevImageSrc}
+            fallbackSrc={FALLBACK_IMAGE}
           />
         )}
 
         {/* Incoming Revealed Image with Slower Symmetrical Ease-In-Out Right-to-Left Mask Wipe (Z-10) */}
-        <motion.img
+        {/* The clip-path wipe runs on a wrapper so the image itself can be an optimised next/image */}
+        <motion.div
           key={currentImageSrc}
-          alt={product.name}
-          className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none z-10"
-          src={currentImageSrc}
+          className="absolute inset-0 pointer-events-none z-10"
           initial={{ clipPath: isHovered ? "polygon(100% 0, 100% 0, 100% 100%, 100% 100%)" : "polygon(0 0, 100% 0, 100% 100%, 0 100%)" }}
           animate={{ clipPath: "polygon(0% 0, 100% 0, 100% 100%, 0% 100%)" }}
           transition={{ duration: 1.05, ease: "easeInOut" }}
-        />
+        >
+          <SmartImage
+            alt={product.name || ''}
+            fill
+            sizes={PRODUCT_CARD_SIZES}
+            className="object-cover object-center"
+            src={currentImageSrc}
+            fallbackSrc={FALLBACK_IMAGE}
+          />
+        </motion.div>
 
         {/* DISCOUNT BADGE STRICTLY 15PX FONT SIZE & REGULAR 400 WEIGHT */}
         {hasDiscount && (

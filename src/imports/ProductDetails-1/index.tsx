@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { ProductCard } from '@/figma-components/ProductCard';
+import { SmartImage } from '@/components/storefront/SmartImage';
 import { SiteNav } from '@/figma-components/SiteNav';
 import { SiteFooter } from '@/figma-components/SiteFooter';
 import { SizingGuideModal } from '@/figma-components/SizingGuideModal';
@@ -359,13 +360,15 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
               key={`${selectedColorIdx}-${idx}`}
               className="w-full aspect-[3/4] max-lg:min-w-full max-lg:snap-center bg-[#f0f0f0] relative overflow-hidden shrink-0"
             >
-              <img
+              <SmartImage
                 alt={`${productName} - View ${idx + 1}`}
-                className="absolute inset-0 size-full object-cover z-10"
+                fill
+                // Gallery column is 1.5fr of 2.5fr (60vw) at lg+, full width below
+                sizes="(min-width: 1024px) 60vw, 100vw"
+                className="object-cover z-10"
                 src={imgUrl}
-                onError={(e) => {
-                  e.currentTarget.src = "/images/for_him.jpg";
-                }}
+                fallbackSrc="/images/for_him.jpg"
+                {...(idx === 0 ? { preload: true } : { loading: 'lazy' as const })}
               />
             </div>
           ))}

@@ -825,8 +825,16 @@ export async function editAdminOrderAction(data: {
 // ----------------------------------------------------
 // 5. ADMIN USER MANAGEMENT SERVER ACTIONS
 // ----------------------------------------------------
+//
+// Admins are rows in the Better Auth `user` table with role 'admin' | 'superadmin'. Their
+// password lives (hashed, via Better Auth's hasher) on the `account` row with
+// providerId 'credential'. The optional `.admin-credentials.json` file is a LOCAL
+// DEVELOPMENT convenience only and is ignored entirely in production.
 
 const CREDENTIALS_FILE = path.join(process.cwd(), '.admin-credentials.json');
+type AdminRole = 'admin' | 'superadmin';
+const ADMIN_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const isAdminRole = (r: unknown): r is AdminRole => r === 'admin' || r === 'superadmin';
 
 interface AdminCredentialRecord {
   id: string;
@@ -852,67 +860,146 @@ function getStoredAdminUsers(): AdminCredentialRecord[] {
   return [];
 }
 
-function saveStoredAdminUser(newUserRecord: AdminCredentialRecord) {
+/**
+ * Dev only: drop an email from the local credentials file so a stale plaintext entry can't
+ * shadow (or outlive) the database account. New passwords are never written to the file.
+ */
+function deleteStoredAdminUser(emailToDelete: string) {
+  if (process.env.NODE_ENV === 'production') return;
   try {
+    if (!fs.existsSync(CREDENTIALS_FILE)) return;
     const list = getStoredAdminUsers();
-    const cleanEmail = newUserRecord.email.trim().toLowerCase();
-    const filtered = list.filter(u => u.email.toLowerCase() !== cleanEmail);
-    filtered.push(newUserRecord);
-    fs.writeFileSync(CREDENTIALS_FILE, JSON.stringify(filtered, null, 2), 'utf-8');
+    const cleanEmail = emailToDelete.trim().toLowerCase();
+    const filtered = list.filter(u => (u.email || '').toLowerCase() !== cleanEmail);
+    if (filtered.length !== list.length) {
+      fs.writeFileSync(CREDENTIALS_FILE, JSON.stringify(filtered, null, 2), 'utf-8');
+    }
   } catch (err) {
-    console.error("Error saving to .admin-credentials.json:", err);
+    console.error("Error updating .admin-credentials.json:", err);
   }
 }
 
-function deleteStoredAdminUser(emailToDelete: string) {
-  try {
-    const list = getStoredAdminUsers();
-    const cleanEmail = emailToDelete.trim().toLowerCase();
-    const filtered = list.filter(u => u.email.toLowerCase() !== cleanEmail);
-    fs.writeFileSync(CREDENTIALS_FILE, JSON.stringify(filtered, null, 2), 'utf-8');
-  } catch (err) {
-    console.error("Error deleting from .admin-credentials.json:", err);
+/** Returns an error message, or null when the password is acceptable. */
+async function validateAdminPassword(password: string): Promise<string | null> {
+  const ctx = await auth.$context;
+  const min = Math.max(8, ctx.password.config.minPasswordLength || 8);
+  const max = ctx.password.config.maxPasswordLength || 128;
+  if (typeof password !== 'string' || password.length < min) {
+    return `Password must be at least ${min} characters.`;
   }
+  if (password.length > max) return `Password must be at most ${max} characters.`;
+  return null;
+}
+
+/** Hash with Better Auth and set (or create) the user's credential account password. */
+async function setCredentialPassword(userId: string, plainPassword: string) {
+  const ctx = await auth.$context;
+  const hash = await ctx.password.hash(plainPassword);
+  const accounts = await ctx.internalAdapter.findAccounts(userId);
+  if (accounts.some((a) => a.providerId === 'credential')) {
+    await ctx.internalAdapter.updatePassword(userId, hash);
+  } else {
+    await ctx.internalAdapter.createAccount({
+      userId,
+      providerId: 'credential',
+      accountId: userId,
+      password: hash,
+    });
+  }
+}
+
+async function getCredentialHash(userId: string): Promise<string | null> {
+  const [cred] = await db
+    .select({ password: account.password })
+    .from(account)
+    .where(and(eq(account.userId, userId), eq(account.providerId, 'credential')));
+  return cred?.password || null;
+}
+
+async function findUserByEmail(email: string) {
+  const [u] = await db.select().from(user).where(eq(user.email, email.trim().toLowerCase()));
+  return u || null;
+}
+
+async function countSuperadmins(): Promise<number> {
+  const [{ count }] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(user)
+    .where(eq(user.role, 'superadmin'));
+  return Number(count) || 0;
 }
 
 export async function fetchAdminUsersAction() {
-  await requireAdmin();
-  const localList = getStoredAdminUsers();
-  const mapByEmail = new Map<string, AdminCredentialRecord>();
-  localList.forEach(u => mapByEmail.set(u.email.toLowerCase(), u));
+  const me = await requireAdmin();
+  const myEmail = me.email.toLowerCase();
+  const result: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    createdAt: string;
+    hasPassword: boolean;
+    isSelf: boolean;
+  }[] = [];
+  const seen = new Set<string>();
 
   try {
-    if (db) {
-      const list = await db.select().from(user);
-      const adminUsers = list.filter((u) => u.role === 'admin' || u.role === 'superadmin');
-      
-      if (adminUsers.length > 0) {
-        adminUsers.forEach(u => {
-          const clean = u.email.toLowerCase();
-          if (!mapByEmail.has(clean)) {
-            mapByEmail.set(clean, {
-              id: u.id,
-              name: u.name,
-              email: u.email,
-              role: u.role || 'admin',
-              createdAt: u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'Active',
-            });
-          }
-        });
-      }
+    const rows = await db
+      .select({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt,
+      })
+      .from(user)
+      .where(sql`${user.role} in ('admin', 'superadmin')`)
+      .orderBy(desc(user.role), user.createdAt);
+
+    // Which admins have a password (never read the hash itself into the response).
+    const withPassword = new Set(
+      (
+        await db
+          .select({ userId: account.userId })
+          .from(account)
+          .where(and(eq(account.providerId, 'credential'), sql`${account.password} is not null`))
+      ).map((a) => a.userId)
+    );
+
+    for (const u of rows) {
+      const clean = u.email.toLowerCase();
+      seen.add(clean);
+      result.push({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        createdAt: u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '',
+        hasPassword: withPassword.has(u.id),
+        isSelf: clean === myEmail,
+      });
     }
   } catch (error) {
     console.error('Error fetching admin users from DB:', error);
   }
 
-  return Array.from(mapByEmail.values()).map(u => ({
-    id: u.id,
-    name: u.name,
-    email: u.email,
-    role: u.role,
-    createdAt: u.createdAt,
-    hasPassword: !!u.password,
-  }));
+  // Dev only: show admins that exist solely in the local credentials file.
+  for (const u of getStoredAdminUsers()) {
+    const clean = (u.email || '').toLowerCase();
+    if (!clean || seen.has(clean)) continue;
+    seen.add(clean);
+    result.push({
+      id: u.id,
+      name: `${u.name} (local dev file)`,
+      email: u.email,
+      role: u.role,
+      createdAt: u.createdAt,
+      hasPassword: !!u.password,
+      isSelf: clean === myEmail,
+    });
+  }
+
+  return result;
 }
 
 export async function createAdminUserAction(data: {
@@ -921,68 +1008,66 @@ export async function createAdminUserAction(data: {
   password: string;
   role?: string;
 }) {
-  await requireAdmin({ superadmin: true });
+  const me = await requireAdmin({ superadmin: true });
   try {
-    const cleanEmail = data.email.trim().toLowerCase();
-    const cleanName = data.name.trim();
+    const cleanName = (data?.name || '').trim();
+    const cleanEmail = (data?.email || '').trim().toLowerCase();
+    const role = data?.role || 'admin';
 
-    if (!cleanName || !cleanEmail || !data.password) {
-      return { success: false, message: 'Name, email, and password are required.' };
+    if (cleanName.length < 2) return { success: false, message: 'Name must be at least 2 characters.' };
+    if (!ADMIN_EMAIL_RE.test(cleanEmail)) return { success: false, message: 'Please enter a valid email address.' };
+    if (!isAdminRole(role)) return { success: false, message: 'Role must be admin or superadmin.' };
+    const pwError = await validateAdminPassword(data?.password);
+    if (pwError) return { success: false, message: pwError };
+
+    if (cleanEmail === me.email.toLowerCase()) {
+      return { success: false, message: 'You cannot modify your own account here. Use "Set new password" instead.' };
     }
 
-    const newUserId = `usr-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-    const userRole = data.role || 'admin';
-    const createdAtStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const ctx = await auth.$context;
+    const existing = await findUserByEmail(cleanEmail);
+    let userId: string;
 
-    const newRecord: AdminCredentialRecord = {
-      id: newUserId,
-      name: cleanName,
-      email: cleanEmail,
-      password: data.password,
-      role: userRole,
-      createdAt: createdAtStr,
-    };
-
-    // Save to persistent JSON store
-    saveStoredAdminUser(newRecord);
-
-    // Sync to database if DB connected
-    if (db) {
-      const existing = await db.select().from(user).where(eq(user.email, cleanEmail));
-      if (existing.length > 0) {
-        await db.update(user).set({
-          name: cleanName,
-          role: userRole,
-          emailVerified: true,
-        }).where(eq(user.email, cleanEmail));
-      } else {
-        await db.insert(user).values({
-          id: newUserId,
-          name: cleanName,
-          email: cleanEmail,
-          emailVerified: true,
-          role: userRole,
-        });
+    if (existing) {
+      if (existing.role === 'superadmin' && role !== 'superadmin' && (await countSuperadmins()) <= 1) {
+        return { success: false, message: 'Cannot demote the last remaining superadmin.' };
       }
-
-      try {
-        await auth.api.signUpEmail({
-          body: {
-            email: cleanEmail,
-            password: data.password,
-            name: cleanName,
-          },
-        });
-      } catch (authErr: any) {
-        console.warn("Better Auth sign up note (non-fatal):", authErr?.message);
-      }
+      await db.update(user).set({
+        name: cleanName,
+        role,
+        emailVerified: true,
+        updatedAt: new Date(),
+      }).where(eq(user.id, existing.id));
+      userId = existing.id;
+    } else {
+      const created = await ctx.internalAdapter.createUser({
+        name: cleanName,
+        email: cleanEmail,
+        emailVerified: true,
+        role,
+      });
+      userId = created.id;
+      // Make sure the role is persisted even if the adapter drops unknown input fields.
+      await db.update(user).set({ role }).where(eq(user.id, userId));
     }
+
+    await setCredentialPassword(userId, data.password);
+    if (existing) {
+      // An upgraded account gets a new password, so sign it out everywhere.
+      await ctx.internalAdapter.deleteUserSessions(userId);
+    }
+    deleteStoredAdminUser(cleanEmail);
 
     revalidatePath('/admin/settings');
-    return { success: true, message: `Admin account created for ${cleanEmail}` };
-  } catch (error: any) {
+    return {
+      success: true,
+      message: existing
+        ? `${cleanEmail} is now an ${role} and their password has been set.`
+        : `Admin account created for ${cleanEmail}.`,
+    };
+  } catch (error) {
     console.error('Failed to create admin user:', error);
-    return { success: false, message: error?.message || 'Failed to create admin user.' };
+    return { success: false, message: 'Failed to create admin user.' };
   }
 }
 
@@ -994,21 +1079,21 @@ export async function verifyAdminLoginAction(email: string, pass: string) {
 
   let matchedUser: { id: string; name: string; email: string; role: string } | null = null;
 
-  // 1. Local admin credentials store (.admin-credentials.json, or the built-in defaults)
-  const stored = getStoredAdminUsers().find((u) => u.email.toLowerCase() === cleanEmail);
+  // 1. Local admin credentials file (development only — always empty in production)
+  const stored = getStoredAdminUsers().find((u) => (u.email || '').toLowerCase() === cleanEmail);
   if (stored?.password && safeEqual(stored.password, password)) {
     matchedUser = { id: stored.id, name: stored.name, email: stored.email, role: stored.role };
   }
 
-  // 2. Database admin accounts: verify against the Better Auth password hash
+  // 2. Database admin accounts: verify against the Better Auth credential password hash
   if (!matchedUser && db) {
     try {
-      const [u] = await db.select().from(user).where(eq(user.email, cleanEmail));
-      if (u && (u.role === 'admin' || u.role === 'superadmin')) {
-        const [cred] = await db.select().from(account).where(eq(account.userId, u.id));
-        if (cred?.password) {
+      const u = await findUserByEmail(cleanEmail);
+      if (u && isAdminRole(u.role)) {
+        const hash = await getCredentialHash(u.id);
+        if (hash) {
           const ctx = await auth.$context;
-          const ok = await ctx.password.verify({ hash: cred.password, password });
+          const ok = await ctx.password.verify({ hash, password });
           if (ok) matchedUser = { id: u.id, name: u.name, email: u.email, role: u.role };
         }
       }
@@ -1017,7 +1102,7 @@ export async function verifyAdminLoginAction(email: string, pass: string) {
     }
   }
 
-  if (!matchedUser || (matchedUser.role !== 'admin' && matchedUser.role !== 'superadmin')) {
+  if (!matchedUser || !isAdminRole(matchedUser.role)) {
     return fail;
   }
 
@@ -1050,39 +1135,100 @@ export async function adminSignOutAction() {
   return { success: true };
 }
 
-export async function revealAdminPasswordAction(targetEmail: string, superAdminPasswordInput: string) {
+/**
+ * Superadmin only. Sets a new password on another (or their own) admin account.
+ * The caller must re-enter their OWN current password as identity confirmation.
+ * Never returns or logs any password.
+ */
+export async function setAdminPasswordAction(
+  targetEmail: string,
+  newPassword: string,
+  currentSuperAdminPassword: string,
+) {
   const me = await requireAdmin({ superadmin: true });
-  const list = getStoredAdminUsers();
-  const self = list.find((u) => u.email.toLowerCase() === me.email.toLowerCase());
-  if (!self?.password || !safeEqual(self.password, superAdminPasswordInput || '')) {
-    return { success: false, message: 'Incorrect SuperAdmin password. Access denied.' };
-  }
+  try {
+    if (!currentSuperAdminPassword) {
+      return { success: false, message: 'Enter your current password to confirm your identity.' };
+    }
 
-  const cleanEmail = (targetEmail || '').trim().toLowerCase();
-  const matched = list.find((u) => u.email.toLowerCase() === cleanEmail);
-  if (matched?.password) {
-    return { success: true, password: matched.password };
+    // 1. Confirm the caller's identity against their own database password hash.
+    const self = await findUserByEmail(me.email);
+    const selfHash = self && self.role === 'superadmin' ? await getCredentialHash(self.id) : null;
+    if (!self || !selfHash) {
+      return {
+        success: false,
+        message: 'Your superadmin account has no database password yet. Set one with "npm run admin:set-password" first.',
+      };
+    }
+    const ctx = await auth.$context;
+    const ok = await ctx.password.verify({ hash: selfHash, password: currentSuperAdminPassword });
+    if (!ok) return { success: false, message: 'Your current password is incorrect.' };
+
+    // 2. Validate the new password and the target.
+    const pwError = await validateAdminPassword(newPassword);
+    if (pwError) return { success: false, message: pwError };
+
+    const cleanTarget = (targetEmail || '').trim().toLowerCase();
+    const target = cleanTarget ? await findUserByEmail(cleanTarget) : null;
+    if (!target || !isAdminRole(target.role)) {
+      return { success: false, message: 'No admin account found for that email.' };
+    }
+
+    // 3. Hash + set (creates the credential account if missing), then revoke sessions.
+    await setCredentialPassword(target.id, newPassword);
+    await ctx.internalAdapter.deleteUserSessions(target.id);
+    deleteStoredAdminUser(cleanTarget);
+
+    revalidatePath('/admin/settings');
+    return { success: true, message: `New password set for ${target.email}.` };
+  } catch (error) {
+    console.error('Failed to set admin password:', error);
+    return { success: false, message: 'Failed to set the new password.' };
   }
-  return { success: false, message: 'No stored password for this account (it signs in with its database password).' };
 }
 
 export async function deleteAdminUserAction(id: string, email?: string) {
-  await requireAdmin({ superadmin: true });
+  const me = await requireAdmin({ superadmin: true });
   try {
-    if (email) {
-      deleteStoredAdminUser(email);
+    const myEmail = me.email.toLowerCase();
+    const [target] = id ? await db.select().from(user).where(eq(user.id, id)) : [];
+
+    if (!target) {
+      // Dev only: an admin that exists solely in the local credentials file.
+      const cleanEmail = (email || '').trim().toLowerCase();
+      if (process.env.NODE_ENV !== 'production' && cleanEmail && cleanEmail !== myEmail &&
+          getStoredAdminUsers().some((u) => (u.email || '').toLowerCase() === cleanEmail)) {
+        deleteStoredAdminUser(cleanEmail);
+        revalidatePath('/admin/settings');
+        return { success: true, message: 'Admin account deleted.' };
+      }
+      return { success: false, message: 'Admin account not found.' };
     }
-    if (db) {
-      await db.delete(user).where(eq(user.id, id));
+
+    if (target.email.toLowerCase() === myEmail) {
+      return { success: false, message: 'You cannot delete your own account.' };
     }
+    if (!isAdminRole(target.role)) {
+      return { success: false, message: 'That account is not an admin.' };
+    }
+    if (target.role === 'superadmin' && (await countSuperadmins()) <= 1) {
+      return { success: false, message: 'Cannot delete the last remaining superadmin.' };
+    }
+
+    // session/account rows also cascade on user delete; removed explicitly for clarity.
+    const ctx = await auth.$context;
+    await ctx.internalAdapter.deleteUserSessions(target.id);
+    await db.delete(account).where(eq(account.userId, target.id));
+    await db.delete(user).where(eq(user.id, target.id));
+    deleteStoredAdminUser(target.email);
+
     revalidatePath('/admin/settings');
     return { success: true, message: 'Admin account deleted.' };
   } catch (error) {
     console.error('Failed to delete admin user:', error);
+    return { success: false, message: 'Failed to delete admin account.' };
   }
-  return { success: true, message: 'Admin account deleted.' };
 }
-
 
 
 function formatHumanName(rawName: string, email: string): string {

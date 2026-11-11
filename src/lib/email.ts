@@ -8,7 +8,21 @@ export function escapeHtml(str?: string | null): string {
     .replace(/'/g, '&#39;');
 }
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '${APP_URL}';
+const APP_URL = (process.env.NEXT_PUBLIC_APP_URL || process.env.BETTER_AUTH_URL || 'http://localhost:3000').replace(/\/$/, '');
+
+/** Support email shown in customer emails: Admin → Settings value, falling back to the sender address. */
+async function getSupportEmail(): Promise<string> {
+  try {
+    const { db } = await import('@/db');
+    const { storeSettings } = await import('@/db/schema');
+    const { eq } = await import('drizzle-orm');
+    const s = await db.query.storeSettings.findFirst({ where: eq(storeSettings.id, 'general'), columns: { supportEmail: true } });
+    if (s?.supportEmail) return s.supportEmail;
+  } catch {
+    // fall through
+  }
+  return process.env.BREVO_SENDER_EMAIL || 'support@livus.com.bd';
+}
 
 import nodemailer from 'nodemailer';
 
@@ -176,6 +190,7 @@ export async function sendOrderConfirmationEmail({
   shippingAddress: string;
   paymentMethod: string;
 }) {
+  const supportEmail = escapeHtml(await getSupportEmail());
   const itemsHtml = items.map((i) => `
     <tr style="border-bottom: 1px solid #2a2a2a;">
       <td style="padding: 12px 0; text-align: left; color: #ffffff;">
@@ -252,7 +267,7 @@ export async function sendOrderConfirmationEmail({
           </div>
 
           <div class="footer">
-            Questions about your order? Email us at support@livus.com.bd<br/>
+            Questions about your order? Email us at ${supportEmail}<br/>
             &copy; ${new Date().getFullYear()} LIVUS Atelier. All rights reserved.
           </div>
         </div>

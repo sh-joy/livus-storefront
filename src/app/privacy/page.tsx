@@ -1,9 +1,11 @@
+import type { Metadata } from 'next';
 import { SiteNav } from '@/figma-components/SiteNav';
 import { SiteFooter } from '@/figma-components/SiteFooter';
 
-export const metadata = {
-  title: 'Privacy Policy | LIVUS',
-  description: 'How LIVUS handles customer privacy, data collection, and order security.',
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description: "How LIVUS collects, uses and protects your personal data when you shop with us.",
+  alternates: { canonical: '/privacy' },
 };
 
 export default function PrivacyPage() {

@@ -1,9 +1,11 @@
+import type { Metadata } from 'next';
 import { SiteNav } from '@/figma-components/SiteNav';
 import { SiteFooter } from '@/figma-components/SiteFooter';
 
-export const metadata = {
-  title: 'Terms & Conditions | LIVUS',
-  description: 'Terms of sale, purchase agreements, and legal notices for LIVUS customers.',
+export const metadata: Metadata = {
+  title: "Terms & Conditions",
+  description: "Terms of sale, ordering, payment and legal notices for LIVUS customers in Bangladesh.",
+  alternates: { canonical: '/terms' },
 };
 
 export default function TermsPage() {

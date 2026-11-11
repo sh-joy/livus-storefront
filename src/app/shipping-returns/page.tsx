@@ -1,9 +1,11 @@
+import type { Metadata } from 'next';
 import { SiteNav } from '@/figma-components/SiteNav';
 import { SiteFooter } from '@/figma-components/SiteFooter';
 
-export const metadata = {
-  title: 'Shipping & Returns Policy | LIVUS',
-  description: 'Nationwide delivery rates, shipping timeframes, and exchange policies across Bangladesh.',
+export const metadata: Metadata = {
+  title: "Shipping & Returns",
+  description: "LIVUS delivery charges, shipping times across Bangladesh, Cash on Delivery details and our exchange and returns policy.",
+  alternates: { canonical: '/shipping-returns' },
 };
 
 export default function ShippingReturnsPage() {

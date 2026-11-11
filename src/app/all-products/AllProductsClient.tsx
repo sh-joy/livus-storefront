@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
+import Image from "next/image";
 import type { ProductItem } from '@/app/actions/products';
 import { ProductCard } from '@/figma-components/ProductCard';
 import { SiteNav } from '@/figma-components/SiteNav';
@@ -108,7 +109,7 @@ function MaskGroup() {
   return (
     <div className="-translate-x-1/2 absolute aspect-[949.88671875/1161.09765625] bottom-[-4.47%] contents left-[calc(50%-16.93px)] top-[-27.03%]" data-name="Mask group">
       <div className="-translate-x-1/2 absolute aspect-[949.88671875/1161.09765625] bottom-[-4.47%] max-md:bottom-0 max-md:top-0 left-[calc(50%-16.93px)] max-md:left-1/2 mask-alpha mask-intersect mask-no-clip mask-no-repeat mask-size-[816.499px_998.051px] top-[-27.03%]" style={{ maskImage: `url("${imgImage115}")` }} data-name="image 115">
-        <img alt="" className="absolute inset-0 max-w-none object-contain pointer-events-none size-full" src={typeof imgImage116 === 'string' ? imgImage116 : imgImage116?.src} />
+        <Image alt="" aria-hidden="true" className="absolute inset-0 max-w-none object-contain pointer-events-none size-full" src={imgImage116} sizes="(max-width: 767px) 100vw, 860px" preload />
       </div>
     </div>
   );

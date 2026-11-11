@@ -1,9 +1,11 @@
+import type { Metadata } from 'next';
 import { SiteNav } from '@/figma-components/SiteNav';
 import { SiteFooter } from '@/figma-components/SiteFooter';
 
-export const metadata = {
-  title: 'About Us | LIVUS',
-  description: 'The story and aesthetic ethos behind LIVUS Atelier.',
+export const metadata: Metadata = {
+  title: "About Us",
+  description: "The story behind LIVUS, a Bangladeshi athletic streetwear brand making jerseys and everyday performance wear.",
+  alternates: { canonical: '/about' },
 };
 
 export default function AboutPage() {

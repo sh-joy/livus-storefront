@@ -11,7 +11,7 @@ function ProductImage({ src }: { src?: string | null }) {
   const imgSrc = src || (typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src);
   return (
     <div className="bg-[#f0f0f0] relative w-[120px] max-md:w-[88px] aspect-[3/4] overflow-hidden shrink-0">
-      <img alt="product" className="w-full h-full object-cover object-center" src={imgSrc} />
+      <img alt="" aria-hidden="true" width={120} height={160} loading="lazy" decoding="async" className="w-full h-full object-cover object-center" src={imgSrc} />
     </div>
   );
 }

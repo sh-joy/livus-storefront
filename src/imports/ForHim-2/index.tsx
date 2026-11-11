@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ProductItem } from '@/app/actions/products';
 import { SiteNav } from '@/figma-components/SiteNav';
@@ -142,7 +143,7 @@ function MaskGroup() {
   return (
     <div className="-translate-x-1/2 absolute aspect-[949.88671875/1161.09765625] bottom-[-4.47%] contents left-[calc(50%-16.93px)] top-[-27.03%]" data-name="Mask group">
       <div className="-translate-x-1/2 absolute aspect-[949.88671875/1161.09765625] bottom-[-4.47%] max-md:bottom-0 max-md:top-0 left-[calc(50%-16.93px)] max-md:left-1/2 mask-alpha mask-intersect mask-no-clip mask-no-repeat mask-size-[816.499px_998.051px] top-[-27.03%]" style={{ maskImage: `url("${imgImage115}")` }} data-name="image 115">
-        <img alt="" className="absolute inset-0 max-w-none object-contain pointer-events-none size-full" src={typeof imgImage116 === 'string' ? imgImage116 : imgImage116?.src} />
+        <Image alt="" aria-hidden="true" className="absolute inset-0 max-w-none object-contain pointer-events-none size-full" src={imgImage116} sizes="(max-width: 767px) 100vw, 860px" preload />
       </div>
     </div>
   );
@@ -349,7 +350,7 @@ function Frame189Status6() {
 function Frame49() {
   return (
     <div className="aspect-[3/4] relative shrink-0 w-full">
-      <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={typeof imgFrame1597881192 === 'string' ? imgFrame1597881192 : imgFrame1597881192?.src} />
+      <Image alt="" aria-hidden="true" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgFrame1597881192} sizes="(max-width: 1023px) 50vw, 33vw" />
       <div className="content-stretch flex items-start p-[16px] relative size-full">
         <Frame189Status6 />
       </div>
@@ -408,7 +409,7 @@ function Frame33() {
   return (
     <div data-product-card="true" className="content-stretch flex flex-col gap-[16px] items-start justify-self-stretch relative self-start shrink-0 cursor-pointer hover:opacity-95 transition-all">
       <div className="aspect-[1000/1334] relative shrink-0 w-full" data-name="image 120">
-        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={typeof imgFrame1597881192 === 'string' ? imgFrame1597881192 : imgFrame1597881192?.src} />
+        <Image alt="" aria-hidden="true" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgFrame1597881192} sizes="(max-width: 1023px) 50vw, 33vw" />
       </div>
       <Frame22 />
     </div>
@@ -435,7 +436,7 @@ function Frame34() {
   return (
     <div data-product-card="true" className="content-stretch flex flex-col gap-[16px] items-start justify-self-stretch relative self-start shrink-0 cursor-pointer hover:opacity-95 transition-all">
       <div className="aspect-[1000/1334] relative shrink-0 w-full" data-name="image 120">
-        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={typeof imgFrame1597881192 === 'string' ? imgFrame1597881192 : imgFrame1597881192?.src} />
+        <Image alt="" aria-hidden="true" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgFrame1597881192} sizes="(max-width: 1023px) 50vw, 33vw" />
       </div>
       <Frame23 />
     </div>
@@ -447,7 +448,7 @@ function Frame17() {
     <div className="aspect-[4/4] content-stretch flex flex-[1_0_0] items-center justify-center min-w-px relative">
       <div className="aspect-[748.66796875/869.708984375] h-full relative shrink-0" data-name="image 114">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <img alt="" className="absolute h-full left-[-8.01%] max-w-none top-0 w-[116.17%]" src={typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src} />
+          <Image alt="" aria-hidden="true" className="absolute h-full left-[-8.01%] max-w-none top-0 w-[116.17%]" src={imgImage114} sizes="(max-width: 1023px) 50vw, 33vw" />
         </div>
       </div>
     </div>
@@ -492,7 +493,7 @@ function Frame18() {
     <div className="aspect-[4/4] content-stretch flex flex-[1_0_0] items-center justify-center min-w-px relative">
       <div className="aspect-[748.66796875/869.708984375] h-full relative shrink-0" data-name="image 114">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <img alt="" className="absolute h-full left-[-8.01%] max-w-none top-0 w-[116.17%]" src={typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src} />
+          <Image alt="" aria-hidden="true" className="absolute h-full left-[-8.01%] max-w-none top-0 w-[116.17%]" src={imgImage114} sizes="(max-width: 1023px) 50vw, 33vw" />
         </div>
       </div>
     </div>
@@ -537,7 +538,7 @@ function Frame20() {
     <div className="aspect-[4/4] content-stretch flex flex-[1_0_0] items-center justify-center min-w-px relative">
       <div className="aspect-[748.66796875/869.708984375] h-full relative shrink-0" data-name="image 114">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <img alt="" className="absolute h-full left-[-8.01%] max-w-none top-0 w-[116.17%]" src={typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src} />
+          <Image alt="" aria-hidden="true" className="absolute h-full left-[-8.01%] max-w-none top-0 w-[116.17%]" src={imgImage114} sizes="(max-width: 1023px) 50vw, 33vw" />
         </div>
       </div>
     </div>
@@ -729,7 +730,7 @@ function Frame38() {
     <div className="aspect-[698/698] bg-[#f0f0f0] content-stretch flex flex-[1_0_0] items-center justify-center min-w-px overflow-clip py-[60px] max-md:py-[32px] relative max-md:w-full max-md:flex-none">
       <div className="h-[558px] relative shrink-0 w-[480.341px] max-md:h-full max-md:w-auto max-md:aspect-[480/558]" data-name="image 114">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <img alt="" className="absolute h-full left-[-8.01%] max-w-none top-0 w-[116.17%]" src={typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src} />
+          <Image alt="" aria-hidden="true" className="absolute h-full left-[-8.01%] max-w-none top-0 w-[116.17%]" src={imgImage114} sizes="(max-width: 767px) 90vw, 560px" />
         </div>
       </div>
     </div>

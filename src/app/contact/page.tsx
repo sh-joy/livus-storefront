@@ -1,9 +1,11 @@
+import type { Metadata } from 'next';
 import { SiteNav } from '@/figma-components/SiteNav';
 import { SiteFooter } from '@/figma-components/SiteFooter';
 
-export const metadata = {
-  title: 'Contact Customer Concierge | LIVUS',
-  description: 'Get in touch with the LIVUS support concierge for orders, sizing, and styling advice.',
+export const metadata: Metadata = {
+  title: "Contact Us",
+  description: "Get in touch with LIVUS customer support for help with orders, sizing, delivery and returns in Bangladesh.",
+  alternates: { canonical: '/contact' },
 };
 
 export default function ContactPage() {

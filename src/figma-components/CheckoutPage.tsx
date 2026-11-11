@@ -833,6 +833,10 @@ export function CheckoutPage() {
                           <div className="bg-[#f0f0f0] flex h-[140px] w-[105px] max-md:h-[117px] max-md:w-[88px] aspect-[3/4] items-center justify-center overflow-hidden shrink-0">
                             <img
                               alt={item.product.name}
+                              width={105}
+                              height={140}
+                              loading="lazy"
+                              decoding="async"
                               className="w-full h-full object-cover aspect-[3/4]"
                               src={item.product.imageUrl || (typeof productImg === 'string' ? productImg : productImg?.src) || "/images/for_him.jpg"}
                             />

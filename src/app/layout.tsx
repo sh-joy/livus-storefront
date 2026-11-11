@@ -1,5 +1,5 @@
 import { AnalyticsScripts } from '@/components/AnalyticsScripts';
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Geist, Geist_Mono } from "next/font/google";
 import { DrawerProvider } from "@/figma-components/DrawerContext";
@@ -16,9 +16,52 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+const defaultTitle = "LIVUS — Athletic Streetwear & Jerseys | Bangladesh";
+const defaultDescription =
+  "Shop LIVUS athletic streetwear, jerseys and accessories for him and her. Nationwide delivery across Bangladesh with Cash on Delivery, bKash and Nagad.";
+
 export const metadata: Metadata = {
-  title: "LIVUS — Custom Athletic Streetwear & Teamwear Atelier",
-  description: "Bangladesh's premier athletic streetwear brand. Design and print your own custom kit built for high performance.",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: defaultTitle,
+    template: "%s | LIVUS",
+  },
+  description: defaultDescription,
+  applicationName: "LIVUS",
+  keywords: [
+    "LIVUS",
+    "athletic streetwear",
+    "jerseys Bangladesh",
+    "sportswear Bangladesh",
+    "streetwear Dhaka",
+    "activewear",
+    "t-shirts",
+    "Cash on Delivery",
+    "bKash",
+    "Nagad",
+  ],
+  // og:title / og:description inherit from each route's title and description;
+  // the default og:image comes from src/app/opengraph-image.tsx.
+  openGraph: {
+    siteName: "LIVUS",
+    locale: "en_BD",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({

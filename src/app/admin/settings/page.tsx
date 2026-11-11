@@ -11,7 +11,8 @@ import {
   fetchAdminUsersAction,
   createAdminUserAction,
   deleteAdminUserAction,
-  revealAdminPasswordAction,
+  setAdminPasswordAction,
+  getAdminIdentityAction,
   fetchAdminStoreSettingsAction,
   updateAdminStoreSettingsAction,
   updateAdminShippingRegionAction,
@@ -25,6 +26,7 @@ interface AdminUserRecord {
   role: string;
   createdAt?: string;
   hasPassword?: boolean;
+  isSelf?: boolean;
 }
 
 interface ShippingRegionRecord {
@@ -67,14 +69,23 @@ export default function AdminSettingsPage() {
   const [creatingAdmin, setCreatingAdmin] = useState(false);
   const [adminFormError, setAdminFormError] = useState("");
 
-  // Password revealing identity confirmation state
-  const [revealedPasswords, setRevealedPasswords] = useState<Record<string, string>>({});
-  const [confirmIdentityOpen, setConfirmIdentityOpen] = useState(false);
+  // Set-password dialog state (superadmin only)
+  const [setPasswordOpen, setSetPasswordOpen] = useState(false);
   const [targetUserForPassword, setTargetUserForPassword] = useState<AdminUserRecord | null>(null);
-  const [superAdminPasswordInput, setSuperAdminPasswordInput] = useState("");
-  const [showSuperAdminInputPassword, setShowSuperAdminInputPassword] = useState(false);
-  const [verifyingSuperAdmin, setVerifyingSuperAdmin] = useState(false);
-  const [superAdminError, setSuperAdminError] = useState("");
+  const [currentPasswordInput, setCurrentPasswordInput] = useState("");
+  const [newPasswordInput, setNewPasswordInput] = useState("");
+  const [confirmPasswordInput, setConfirmPasswordInput] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [settingPassword, setSettingPassword] = useState(false);
+  const [setPasswordError, setSetPasswordError] = useState("");
+  const [adminNotice, setAdminNotice] = useState("");
+  const [adminListError, setAdminListError] = useState("");
+
+  // Role of the signed-in admin, from the signed admin session (controls admin-management UI)
+  const [myAdminRole, setMyAdminRole] = useState<string | null>(null);
+  const isSuperAdmin = myAdminRole === "superadmin";
 
   // Delete user confirmation state
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -121,6 +132,9 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     loadAdminUsers();
     loadStoreSettings();
+    getAdminIdentityAction()
+      .then((me) => setMyAdminRole(me?.role || "admin"))
+      .catch(() => setMyAdminRole("admin"));
   }, []);
 
   const handleSaveSettings = async () => {
@@ -189,6 +203,7 @@ export default function AdminSettingsPage() {
 
       if (res.success) {
         setIsAddAdminOpen(false);
+        setAdminNotice(res.message || "Admin account saved.");
         setNewAdminName("");
         setNewAdminEmail("");
         setNewAdminPassword("");
@@ -204,51 +219,56 @@ export default function AdminSettingsPage() {
     }
   };
 
-  const openRevealPasswordModal = (usr: AdminUserRecord) => {
-    if (revealedPasswords[usr.email]) {
-      // Toggle off
-      setRevealedPasswords((prev) => {
-        const next = { ...prev };
-        delete next[usr.email];
-        return next;
-      });
-      return;
-    }
+  const openSetPasswordModal = (usr: AdminUserRecord) => {
     setTargetUserForPassword(usr);
-    setSuperAdminPasswordInput("");
-    setSuperAdminError("");
-    setConfirmIdentityOpen(true);
+    setCurrentPasswordInput("");
+    setNewPasswordInput("");
+    setConfirmPasswordInput("");
+    setShowCurrentPassword(false);
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
+    setSetPasswordError("");
+    setSetPasswordOpen(true);
   };
 
-  const handleConfirmIdentitySubmit = async (e: React.FormEvent) => {
+  const handleSetPasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!targetUserForPassword || !superAdminPasswordInput) {
-      setSuperAdminError("Please enter SuperAdmin password.");
+    if (!targetUserForPassword) return;
+    if (!currentPasswordInput) {
+      setSetPasswordError("Enter your current password to confirm your identity.");
+      return;
+    }
+    if (newPasswordInput.length < 8) {
+      setSetPasswordError("New password must be at least 8 characters.");
+      return;
+    }
+    if (newPasswordInput !== confirmPasswordInput) {
+      setSetPasswordError("New password and confirmation do not match.");
       return;
     }
 
-    setVerifyingSuperAdmin(true);
-    setSuperAdminError("");
-
+    setSettingPassword(true);
+    setSetPasswordError("");
     try {
-      const res = await revealAdminPasswordAction(
+      const res = await setAdminPasswordAction(
         targetUserForPassword.email,
-        superAdminPasswordInput
+        newPasswordInput,
+        currentPasswordInput
       );
-
-      if (res.success && res.password) {
-        setRevealedPasswords((prev) => ({
-          ...prev,
-          [targetUserForPassword.email]: res.password!,
-        }));
-        setConfirmIdentityOpen(false);
+      if (res.success) {
+        setSetPasswordOpen(false);
+        setCurrentPasswordInput("");
+        setNewPasswordInput("");
+        setConfirmPasswordInput("");
+        setAdminNotice(res.message || "Password updated.");
+        loadAdminUsers();
       } else {
-        setSuperAdminError(res.message || "Verification failed.");
+        setSetPasswordError(res.message || "Failed to set the new password.");
       }
-    } catch (err: any) {
-      setSuperAdminError(err?.message || "SuperAdmin authentication failed.");
+    } catch (err) {
+      setSetPasswordError(err instanceof Error ? err.message : "Failed to set the new password.");
     } finally {
-      setVerifyingSuperAdmin(false);
+      setSettingPassword(false);
     }
   };
 
@@ -262,12 +282,20 @@ export default function AdminSettingsPage() {
 
     setDeletingUser(true);
     try {
-      await deleteAdminUserAction(targetUserForDelete.id, targetUserForDelete.email);
+      const res = await deleteAdminUserAction(targetUserForDelete.id, targetUserForDelete.email);
       setDeleteConfirmOpen(false);
       setTargetUserForDelete(null);
+      if (res.success) {
+        setAdminListError("");
+        setAdminNotice(res.message || "Admin account deleted.");
+      } else {
+        setAdminNotice("");
+        setAdminListError(res.message || "Failed to delete admin account.");
+      }
       loadAdminUsers();
     } catch (err) {
       console.error("Failed to delete admin user:", err);
+      setAdminListError(err instanceof Error ? err.message : "Failed to delete admin account.");
     } finally {
       setDeletingUser(false);
     }
@@ -323,7 +351,7 @@ export default function AdminSettingsPage() {
                   type={showModalPassword ? "text" : "password"}
                   value={newAdminPassword}
                   onChange={(e) => setNewAdminPassword(e.target.value)}
-                  placeholder="Set account password"
+                  placeholder="At least 8 characters"
                   required
                   className="rounded-none h-9 text-xs pr-9"
                 />
@@ -370,44 +398,92 @@ export default function AdminSettingsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* 2. Confirm SuperAdmin Identity Modal */}
-      <Dialog open={confirmIdentityOpen} onOpenChange={setConfirmIdentityOpen}>
+      {/* 2. Set New Password Modal (superadmin only) */}
+      <Dialog open={setPasswordOpen} onOpenChange={setSetPasswordOpen}>
         <DialogContent className="sm:max-w-md rounded-none font-sans bg-white">
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
               <KeyRound className="size-4 text-amber-500" />
-              <span>Confirm Your Identity</span>
+              <span>Set New Password</span>
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
-              SuperAdmin authentication is required to reveal password credentials for{" "}
-              <strong className="text-foreground font-semibold">{targetUserForPassword?.name}</strong>.
+              Set a new sign-in password for{" "}
+              <strong className="text-foreground font-semibold">{targetUserForPassword?.name}</strong> (
+              <span className="font-mono text-neutral-700">{targetUserForPassword?.email}</span>).
+              Confirm with your own current password. Their other sessions will be signed out.
             </DialogDescription>
           </DialogHeader>
 
-          {superAdminError && (
+          {setPasswordError && (
             <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-none">
-              {superAdminError}
+              {setPasswordError}
             </div>
           )}
 
-          <form onSubmit={handleConfirmIdentitySubmit} className="flex flex-col gap-4 text-xs mt-2">
+          <form onSubmit={handleSetPasswordSubmit} className="flex flex-col gap-4 text-xs mt-2">
             <div className="flex flex-col gap-1">
-              <label className="font-semibold text-foreground">SuperAdmin Password</label>
+              <label className="font-semibold text-foreground">Your Current Password (SuperAdmin)</label>
               <div className="relative w-full">
                 <Input
-                  type={showSuperAdminInputPassword ? "text" : "password"}
-                  value={superAdminPasswordInput}
-                  onChange={(e) => setSuperAdminPasswordInput(e.target.value)}
-                  placeholder="Enter SuperAdmin password"
+                  type={showCurrentPassword ? "text" : "password"}
+                  value={currentPasswordInput}
+                  onChange={(e) => setCurrentPasswordInput(e.target.value)}
+                  placeholder="Enter your own current password"
+                  autoComplete="current-password"
                   required
                   className="rounded-none h-9 text-xs pr-9"
                 />
                 <button
                   type="button"
-                  onClick={() => setShowSuperAdminInputPassword(!showSuperAdminInputPassword)}
+                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                  aria-label={showCurrentPassword ? "Hide password" : "Show password"}
                   className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-neutral-400 hover:text-black cursor-pointer bg-transparent border-none"
                 >
-                  {showSuperAdminInputPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  {showCurrentPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="font-semibold text-foreground">New Password</label>
+              <div className="relative w-full">
+                <Input
+                  type={showNewPassword ? "text" : "password"}
+                  value={newPasswordInput}
+                  onChange={(e) => setNewPasswordInput(e.target.value)}
+                  placeholder="At least 8 characters"
+                  autoComplete="new-password"
+                  required
+                  className="rounded-none h-9 text-xs pr-9"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                  aria-label={showNewPassword ? "Hide password" : "Show password"}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-neutral-400 hover:text-black cursor-pointer bg-transparent border-none"
+                >
+                  {showNewPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="font-semibold text-foreground">Confirm New Password</label>
+              <div className="relative w-full">
+                <Input
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPasswordInput}
+                  onChange={(e) => setConfirmPasswordInput(e.target.value)}
+                  placeholder="Re-enter the new password"
+                  autoComplete="new-password"
+                  required
+                  className="rounded-none h-9 text-xs pr-9"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-neutral-400 hover:text-black cursor-pointer bg-transparent border-none"
+                >
+                  {showConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
               </div>
             </div>
@@ -416,21 +492,17 @@ export default function AdminSettingsPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setConfirmIdentityOpen(false)}
+                onClick={() => setSetPasswordOpen(false)}
                 className="rounded-none text-xs h-9 border-neutral-200"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={verifyingSuperAdmin}
+                disabled={settingPassword}
                 className="rounded-none text-xs h-9 bg-black text-white hover:bg-neutral-800"
               >
-                {verifyingSuperAdmin ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : (
-                  "Verify & Reveal Password"
-                )}
+                {settingPassword ? <Loader2 className="size-3.5 animate-spin" /> : "Set Password"}
               </Button>
             </div>
           </form>
@@ -498,20 +570,38 @@ export default function AdminSettingsPage() {
               <span>Admin Users & Staff Accounts</span>
             </CardTitle>
             <CardDescription className="text-xs">
-              Manage regular admin accounts and staff login access credentials.
+              Manage admin accounts and their sign-in passwords. Passwords are stored hashed and can never be viewed — only replaced.
             </CardDescription>
           </div>
 
+          {isSuperAdmin && (
           <Button
             size="sm"
-            onClick={() => setIsAddAdminOpen(true)}
+            onClick={() => { setAdminFormError(""); setIsAddAdminOpen(true); }}
             className="flex items-center gap-1.5 text-xs bg-black text-white hover:bg-neutral-800 rounded-none shadow-none font-medium"
           >
             <UserPlus className="size-3.5" />
             <span>Add Regular Admin</span>
           </Button>
+          )}
         </CardHeader>
         <CardContent>
+          {adminNotice && (
+            <div className="mb-3 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-none flex items-center gap-2">
+              <Check className="size-3.5" />
+              <span>{adminNotice}</span>
+            </div>
+          )}
+          {adminListError && (
+            <div className="mb-3 p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-none">
+              {adminListError}
+            </div>
+          )}
+          {myAdminRole && !isSuperAdmin && (
+            <p className="mb-3 text-[11px] text-neutral-500">
+              Read-only: only a superadmin can add, remove or change passwords for admin accounts.
+            </p>
+          )}
           <Table>
             <TableHeader className="bg-neutral-50/50">
               <TableRow className="border-b border-neutral-200">
@@ -538,33 +628,21 @@ export default function AdminSettingsPage() {
                 </TableRow>
               ) : (
                 adminUsers.map((usr) => {
-                  const isRevealed = !!revealedPasswords[usr.email];
-                  const displayedPassword = isRevealed
-                    ? revealedPasswords[usr.email]
-                    : "••••••••";
-
                   return (
                     <TableRow key={usr.id} className="border-b border-neutral-200">
                       <TableCell className="font-medium text-xs text-foreground py-3">
                         {usr.name}
+                        {usr.isSelf && <span className="ml-1 text-[10px] text-neutral-400">(you)</span>}
                       </TableCell>
                       <TableCell className="font-mono text-xs text-neutral-600 py-3">
                         {usr.email}
                       </TableCell>
                       <TableCell className="py-3">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs font-semibold text-neutral-700 bg-neutral-100 px-2 py-0.5 border border-neutral-200">
-                            {displayedPassword}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => openRevealPasswordModal(usr)}
-                            title={isRevealed ? "Hide password" : "Reveal password (Requires SuperAdmin Identity)"}
-                            className="p-1 text-neutral-400 hover:text-black transition-colors cursor-pointer bg-transparent border-none"
-                          >
-                            {isRevealed ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
-                          </button>
-                        </div>
+                        {usr.hasPassword ? (
+                          <span className="text-xs text-emerald-700">Password set</span>
+                        ) : (
+                          <span className="text-xs text-amber-700">No password — set one</span>
+                        )}
                       </TableCell>
                       <TableCell className="py-3">
                         <Badge
@@ -581,16 +659,30 @@ export default function AdminSettingsPage() {
                         {usr.createdAt}
                       </TableCell>
                       <TableCell className="text-right pr-4 py-3">
-                        {usr.role !== "superadmin" ? (
-                          <button
-                            onClick={() => openDeleteModal(usr)}
-                            className="p-1 text-neutral-400 hover:text-rose-600 transition-colors cursor-pointer bg-transparent border-none"
-                            title="Remove admin user"
-                          >
-                            <Trash2 className="size-4" />
-                          </button>
+                        {isSuperAdmin ? (
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              type="button"
+                              onClick={() => openSetPasswordModal(usr)}
+                              className="flex items-center gap-1 px-2 py-1 text-[11px] text-neutral-600 hover:text-black border border-neutral-200 hover:border-black transition-colors cursor-pointer bg-transparent"
+                              title="Set a new password for this admin"
+                            >
+                              <KeyRound className="size-3.5" />
+                              <span>Set new password</span>
+                            </button>
+                            {!usr.isSelf && (
+                              <button
+                                type="button"
+                                onClick={() => openDeleteModal(usr)}
+                                className="p-1 text-neutral-400 hover:text-rose-600 transition-colors cursor-pointer bg-transparent border-none"
+                                title="Remove admin user"
+                              >
+                                <Trash2 className="size-4" />
+                              </button>
+                            )}
+                          </div>
                         ) : (
-                          <span className="text-[11px] text-neutral-400 italic">Primary</span>
+                          <span className="text-[11px] text-neutral-400 italic">—</span>
                         )}
                       </TableCell>
                     </TableRow>

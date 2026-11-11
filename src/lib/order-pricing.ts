@@ -235,11 +235,15 @@ export async function quoteOrder(
     // fallback to defaults
   }
 
-  const freeShippingEligible = subtotalBdt >= freeShippingThreshold;
-  const amountNeededForFreeShippingBdt = freeShippingEligible ? 0 : Math.max(0, freeShippingThreshold - subtotalBdt);
+  // Standard VAT & free-delivery rule (owner decision: "use what is standard"):
+  // 1. Apply promo discount first: taxable = subtotal - discount
+  const taxableBdt = Math.max(0, subtotalBdt - discountBdt);
 
-  // P1.7: Delivery charge lookup from database (shipping_regions table)
-  // Free shipping is evaluated on subtotalBdt (prior to coupon discounts).
+  // 2. Free delivery when taxable >= freeShippingThreshold (the amount actually paid for goods)
+  const freeShippingEligible = taxableBdt >= freeShippingThreshold;
+  const amountNeededForFreeShippingBdt = freeShippingEligible ? 0 : Math.max(0, freeShippingThreshold - taxableBdt);
+
+  // Delivery charge lookup from database (shipping_regions table)
   if (freeShippingEligible) {
     deliveryChargeBdt = 0;
   } else {
@@ -268,9 +272,9 @@ export async function quoteOrder(
     }
   }
 
-  // VAT is charged on the subtotal
-  const vatBdt = Math.round((subtotalBdt * effectiveVatPercent) / 100);
-  const totalBdt = Math.max(0, subtotalBdt - discountBdt + vatBdt + deliveryChargeBdt);
+  // 3. VAT is charged on the discounted amount (taxable)
+  const vatBdt = Math.round((taxableBdt * effectiveVatPercent) / 100);
+  const totalBdt = Math.max(0, taxableBdt + vatBdt + deliveryChargeBdt);
 
   return {
     ok: true,

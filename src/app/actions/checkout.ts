@@ -111,6 +111,12 @@ async function generateOrderNumber(): Promise<string> {
 }
 
 export async function placeOrderAction(data: CheckoutFormValues & { promoCode?: string }) {
+  // Track 1: Rate limit order placement to prevent automated checkout spam
+  const rate = await checkRateLimit('place_order', 5, 60000);
+  if (!rate.success) {
+    return { success: false, message: 'Too many order attempts. Please wait a minute and try again.' };
+  }
+
   // 1. Validate the form payload
   const parseResult = CheckoutFormSchema.safeParse(data);
   if (!parseResult.success) {

@@ -232,10 +232,11 @@ export function CheckoutPage() {
   }, 0);
   const subtotalVal = quote?.subtotalBdt ?? localSubtotal;
   const vatRatePct = quote?.vatPercent ?? 10;
-  const vatVal = quote?.vatBdt ?? (cartItems.length > 0 ? Math.round((localSubtotal * vatRatePct) / 100) : 0);
-  const deliveryVal = quote?.deliveryChargeBdt ?? (cartItems.length > 0 ? 150 : 0);
   const discountVal = quote?.discountBdt ?? 0;
-  const totalVal = quote?.totalBdt ?? Math.max(0, subtotalVal - discountVal + vatVal + deliveryVal);
+  const localTaxable = Math.max(0, localSubtotal - discountVal);
+  const vatVal = quote?.vatBdt ?? (cartItems.length > 0 ? Math.round((localTaxable * vatRatePct) / 100) : 0);
+  const deliveryVal = quote?.deliveryChargeBdt ?? (cartItems.length > 0 ? (localTaxable >= 2500 ? 0 : 150) : 0);
+  const totalVal = quote?.totalBdt ?? Math.max(0, localTaxable + vatVal + deliveryVal);
 
   const handleApplyPromo = async () => {
     const code = promoCode.trim().toUpperCase();
@@ -452,6 +453,9 @@ export function CheckoutPage() {
                     autoComplete="email"
                     error={errors.email}
                   />
+                  <p className="text-[12px] text-neutral-500 font-sans mt-[-8px]">
+                    We save your details while you check out so you can finish your order later.
+                  </p>
                 </div>
               </div>
 
@@ -966,12 +970,17 @@ export function CheckoutPage() {
                     <p style={{ ...base, letterSpacing: "-0.34px", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>Delivery Charge</p>
                     <p style={{ ...base, letterSpacing: "-0.34px", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>
                       {deliveryVal === 0 ? (
-                        <span style={{ color: "#10b981", fontWeight: 600 }}>FREE (Over ৳2,500)</span>
+                        <span style={{ color: "#10b981", fontWeight: 600 }}>FREE (Over ৳{(quote?.freeShippingThresholdBdt ?? 2500).toLocaleString()})</span>
                       ) : (
                         `৳ ${deliveryVal.toFixed(0)} BDT`
                       )}
                     </p>
                   </div>
+                  {Boolean(quote?.amountNeededForFreeShippingBdt && quote.amountNeededForFreeShippingBdt > 0 && deliveryVal > 0) && (
+                    <p style={{ fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)", fontSize: "12px", color: "#737373", marginTop: "-4px", textAlign: "right" }}>
+                      Add ৳{quote?.amountNeededForFreeShippingBdt?.toLocaleString()} more for FREE delivery
+                    </p>
+                  )}
                 </div>
 
                 <div style={{ display: "flex", justifyContent: "space-between" }}>

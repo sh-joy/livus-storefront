@@ -46,6 +46,7 @@ export interface OrderDrawerRecord {
   city?: string;
   district?: string;
   subtotalBdt: number;
+  discountBdt?: number;
   vatBdt: number;
   deliveryChargeBdt: number;
   totalAmount: number;
@@ -431,9 +432,11 @@ export function OrderDetailsDrawer({
   };
 
   const subtotal = editableItems.reduce((sum, i) => sum + (i.priceBdt * i.quantity), 0);
-  const vat = Math.round((subtotal * vatRatePct) / 100);
-  const delivery = order.deliveryChargeBdt || 150;
-  const grandTotal = subtotal + vat + delivery;
+  const discount = order.discountBdt || 0;
+  const taxable = Math.max(0, subtotal - discount);
+  const vat = order.vatBdt ?? Math.round((taxable * vatRatePct) / 100);
+  const delivery = order.deliveryChargeBdt ?? (taxable >= 2500 ? 0 : 150);
+  const grandTotal = order.totalAmount ?? (taxable + vat + delivery);
 
   // Print Invoice using 100% exact template generator
   const handlePrintInvoice = () => {
@@ -446,7 +449,9 @@ export function OrderDetailsDrawer({
       city,
       district,
       subtotalBdt: subtotal,
+      discountBdt: discount,
       vatBdt: vat,
+      vatPercent: vatRatePct,
       deliveryChargeBdt: delivery,
       totalAmount: grandTotal,
       paymentMethod: order.paymentMethod,

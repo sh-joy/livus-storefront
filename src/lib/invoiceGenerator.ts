@@ -7,7 +7,9 @@ export interface InvoiceOrderData {
   city?: string;
   district?: string;
   subtotalBdt: number;
+  discountBdt?: number;
   vatBdt: number;
+  vatPercent?: number;
   deliveryChargeBdt: number;
   totalAmount: number;
   paymentMethod: string;
@@ -30,9 +32,12 @@ export function generateOrderInvoiceHtml(order: InvoiceOrderData): string {
 
   const fullCustomerAddress = `${order.shippingAddress}${order.city ? `, ${order.city}` : ''}${order.district ? `, ${order.district}` : ''}`;
   const subtotal = order.subtotalBdt || order.items.reduce((sum, item) => sum + (item.priceBdt * item.quantity), 0);
-  const vat = order.vatBdt || Math.round((subtotal * 10) / 100);
-  const delivery = order.deliveryChargeBdt || 150;
-  const grandTotal = order.totalAmount || (subtotal + vat + delivery);
+  const discount = order.discountBdt || 0;
+  const taxable = Math.max(0, subtotal - discount);
+  const vatRate = order.vatPercent ?? 10;
+  const vat = order.vatBdt !== undefined ? order.vatBdt : Math.round((taxable * vatRate) / 100);
+  const delivery = order.deliveryChargeBdt !== undefined ? order.deliveryChargeBdt : (taxable >= 2500 ? 0 : 150);
+  const grandTotal = order.totalAmount || (taxable + vat + delivery);
 
   const itemRowsHtml = order.items.map((item) => {
     const lineTotal = item.priceBdt * item.quantity;
@@ -164,13 +169,19 @@ export function generateOrderInvoiceHtml(order: InvoiceOrderData): string {
                                                 <td align="left" style="font-size: 11px; font-weight: bold;">SUBTOTAL</td>
                                                 <td align="right">৳${subtotal.toLocaleString()} BDT</td>
                                             </tr>
+                                            ${discount > 0 ? `
                                             <tr>
-                                                <td align="left" style="font-size: 11px; font-weight: bold;">VAT (10%)</td>
+                                                <td align="left" style="font-size: 11px; font-weight: bold; color: #d4183d;">DISCOUNT</td>
+                                                <td align="right" style="color: #d4183d;">-৳${discount.toLocaleString()} BDT</td>
+                                            </tr>
+                                            ` : ''}
+                                            <tr>
+                                                <td align="left" style="font-size: 11px; font-weight: bold;">VAT (${vatRate}%)</td>
                                                 <td align="right">৳${vat.toLocaleString()} BDT</td>
                                             </tr>
                                             <tr>
                                                 <td align="left" style="font-size: 11px; font-weight: bold;">DELIVERY CHARGE</td>
-                                                <td align="right">৳${delivery.toLocaleString()} BDT</td>
+                                                <td align="right">${delivery === 0 ? '<span style="color: #10b981; font-weight: bold;">FREE</span>' : `৳${delivery.toLocaleString()} BDT`}</td>
                                             </tr>
                                             <tr>
                                                 <td align="left" bgcolor="#e5e5e5" style="font-size: 11px; font-weight: bold; padding: 8px;">TOTAL</td>

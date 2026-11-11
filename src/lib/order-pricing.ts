@@ -219,62 +219,7 @@ export async function quoteOrder(
     }
   }
 
-  let freeShippingThreshold = 2500;
-  let deliveryChargeBdt = 150;
-  let effectiveVatPercent = VAT_PERCENT;
-
-  try {
-    if (db) {
-      const settings = await db.query.storeSettings.findFirst({ where: eq(storeSettings.id, 'general') });
-      if (settings) {
-        freeShippingThreshold = settings.freeShippingThresholdBdt ?? 2500;
-        effectiveVatPercent = settings.vatPercent ?? 10;
-      }
-    }
-  } catch (err) {
-    // fallback to defaults
-  }
-
-  // Standard VAT & free-delivery rule (owner decision: "use what is standard"):
-  // 1. Apply promo discount first: taxable = subtotal - discount
-  const taxableBdt = Math.max(0, subtotalBdt - discountBdt);
-
-  // 2. Free delivery when taxable >= freeShippingThreshold (the amount actually paid for goods)
-  const freeShippingEligible = taxableBdt >= freeShippingThreshold;
-  const amountNeededForFreeShippingBdt = freeShippingEligible ? 0 : Math.max(0, freeShippingThreshold - taxableBdt);
-
-  // Delivery charge lookup from database (shipping_regions table)
-  if (freeShippingEligible) {
-    deliveryChargeBdt = 0;
-  } else {
-    deliveryChargeBdt = 150; // default fallback
-    try {
-      if (db && divisionOrRegion && divisionOrRegion.trim()) {
-        const rawTarget = divisionOrRegion.trim().toLowerCase().replace('division', '').replace('divisions', '').trim();
-        // Handle alternative spelling Barisal <-> Barishal
-        const searchKey = rawTarget.replace('barishal', 'barisal');
-        const allRegions = await db.select().from(shippingRegions);
-        const match = allRegions.find((r) => {
-          const regClean = r.regionName.toLowerCase().replace('division', '').trim().replace('barishal', 'barisal');
-          return regClean.includes(searchKey) || searchKey.includes(regClean);
-        });
-        if (match) {
-          deliveryChargeBdt = match.deliveryChargeBdt;
-        } else {
-          const settings = await db.query.storeSettings.findFirst({ where: eq(storeSettings.id, 'general') });
-          if (settings?.defaultDeliveryChargeBdt) {
-            deliveryChargeBdt = settings.defaultDeliveryChargeBdt;
-          }
-        }
-      }
-    } catch (regErr) {
-      deliveryChargeBdt = 150;
-    }
-  }
-
-  // 3. VAT is charged on the discounted amount (taxable)
-  const vatBdt = Math.round((taxableBdt * effectiveVatPercent) / 100);
-  const totalBdt = Math.max(0, taxableBdt + vatBdt + deliveryChargeBdt);
+  const charges = await computeOrderCharges(subtotalBdt, discountBdt, divisionOrRegion);
 
   return {
     ok: true,
@@ -282,16 +227,78 @@ export async function quoteOrder(
       lines,
       subtotalBdt,
       discountBdt,
-      vatBdt,
-      vatPercent: effectiveVatPercent,
-      deliveryChargeBdt,
-      freeShippingThresholdBdt: freeShippingThreshold,
-      freeShippingEligible,
-      amountNeededForFreeShippingBdt,
-      totalBdt,
+      vatBdt: charges.vatBdt,
+      vatPercent: charges.vatPercent,
+      deliveryChargeBdt: charges.deliveryChargeBdt,
+      freeShippingThresholdBdt: charges.freeShippingThresholdBdt,
+      freeShippingEligible: charges.freeShippingEligible,
+      amountNeededForFreeShippingBdt: charges.amountNeededForFreeShippingBdt,
+      totalBdt: charges.totalBdt,
       promo,
       promoError,
     },
+  };
+}
+
+/**
+ * VAT, delivery and total for a given goods subtotal — the single place these rules live.
+ * Used by customer checkout (via quoteOrder) and by admin-created orders.
+ * Standard rule: discount first, then VAT and the free-delivery check use the discounted amount.
+ */
+export async function computeOrderCharges(subtotalBdt: number, discountBdt: number, divisionOrRegion?: string) {
+  let freeShippingThreshold = 2500;
+  let defaultDelivery = DELIVERY_CHARGE_BDT;
+  let vatPercent = VAT_PERCENT;
+
+  try {
+    const settings = await db.query.storeSettings.findFirst({ where: eq(storeSettings.id, 'general') });
+    if (settings) {
+      freeShippingThreshold = settings.freeShippingThresholdBdt ?? 2500;
+      vatPercent = settings.vatPercent ?? VAT_PERCENT;
+      defaultDelivery = settings.defaultDeliveryChargeBdt ?? DELIVERY_CHARGE_BDT;
+    }
+  } catch {
+    // fall back to defaults
+  }
+
+  const taxableBdt = Math.max(0, subtotalBdt - discountBdt);
+  const freeShippingEligible = taxableBdt >= freeShippingThreshold;
+  const amountNeededForFreeShippingBdt = freeShippingEligible ? 0 : Math.max(0, freeShippingThreshold - taxableBdt);
+
+  let deliveryChargeBdt = 0;
+  if (!freeShippingEligible) {
+    deliveryChargeBdt = defaultDelivery;
+    try {
+      if (divisionOrRegion && divisionOrRegion.trim()) {
+        const norm = (s: string) =>
+          s.toLowerCase().replace(/divisions?/g, '').replace('barishal', 'barisal').replace(/[^a-z]/g, '');
+        const searchKey = norm(divisionOrRegion);
+        const allRegions = await db.select().from(shippingRegions);
+        const match = searchKey
+          ? allRegions.find((r) => {
+              const reg = norm(r.regionName);
+              return reg === searchKey || reg.includes(searchKey) || searchKey.includes(reg);
+            })
+          : undefined;
+        if (match) deliveryChargeBdt = match.deliveryChargeBdt;
+      }
+    } catch {
+      deliveryChargeBdt = defaultDelivery;
+    }
+  }
+
+  const vatBdt = Math.round((taxableBdt * vatPercent) / 100);
+  const totalBdt = Math.max(0, taxableBdt + vatBdt + deliveryChargeBdt);
+
+  return {
+    taxableBdt,
+    vatPercent,
+    vatBdt,
+    deliveryChargeBdt,
+    freeShippingThresholdBdt: freeShippingThreshold,
+    freeShippingEligible,
+    amountNeededForFreeShippingBdt,
+    totalBdt,
   };
 }
 

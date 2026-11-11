@@ -10,7 +10,11 @@ import fs from 'fs';
 import { cookies } from 'next/headers';
 import { ADMIN_COOKIE, ADMIN_SESSION_MAX_AGE, createAdminToken, safeEqual } from '@/lib/admin-session';
 import path from 'path';
-import { restoreStockForOrderItems, quoteOrder, reserveStock } from '@/lib/order-pricing';
+import { restoreStockForOrderItems, quoteOrder, reserveStock, releaseStock, computeOrderCharges } from '@/lib/order-pricing';
+import { randomInt } from 'crypto';
+
+const ORDER_STATUSES = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'] as const;
+const BD_PHONE = /^(?:\+?88)?01[3-9]\d{8}$/;
 import { sendOrderStatusNotificationEmail } from '@/lib/email';
 
 // ----------------------------------------------------
@@ -222,16 +226,26 @@ export async function createAdminCategoryAction(data: { name: string; slug: stri
 
 export async function deleteAdminCategoryAction(id: string) {
   await requireAdmin();
+  if (!/^[0-9a-f-]{36}$/i.test(id || '')) return { success: false, message: 'Invalid category.' };
   try {
-    if (db) {
-      await db.delete(categories).where(eq(categories.id, id));
-      revalidatePath('/admin/categories');
-      return { success: true };
+    const [{ count }] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(products)
+      .where(eq(products.categoryId, id));
+    if (Number(count) > 0) {
+      return {
+        success: false,
+        message: `This category still has ${count} product${Number(count) === 1 ? '' : 's'}. Move them to another category first.`,
+      };
     }
+    await db.delete(categories).where(eq(categories.id, id));
+    revalidatePath('/admin/categories');
+    revalidatePath('/', 'layout');
+    return { success: true };
   } catch (error) {
     console.error('Failed to delete category:', error);
+    return { success: false, message: 'Failed to delete category' };
   }
-  return { success: true };
 }
 
 // ----------------------------------------------------
@@ -265,6 +279,17 @@ export async function fetchAdminPromos() {
 
 export async function createAdminPromoAction(data: { code: string; type: 'percentage' | 'fixed'; value: number }) {
   await requireAdmin();
+  const code = (data.code || '').trim().toUpperCase();
+  const value = Number(data.value);
+  if (!/^[A-Z0-9_-]{3,30}$/.test(code)) {
+    return { success: false, message: 'Code must be 3–30 letters, numbers, dashes or underscores.' };
+  }
+  if (data.type !== 'percentage' && data.type !== 'fixed') {
+    return { success: false, message: 'Discount type must be percentage or fixed.' };
+  }
+  if (!Number.isInteger(value) || value <= 0 || (data.type === 'percentage' && value > 100)) {
+    return { success: false, message: data.type === 'percentage' ? 'Percentage must be between 1 and 100.' : 'Discount amount must be a positive whole number.' };
+  }
   try {
     if (!db) return { success: false, message: 'Database connection missing' };
 
@@ -416,6 +441,9 @@ export async function fetchAdminOrders() {
 
 export async function updateOrderStatusAction(orderId: string, newStatus: string) {
   await requireAdmin();
+  if (!(ORDER_STATUSES as readonly string[]).includes(newStatus)) {
+    return { success: false, message: `Unknown status "${newStatus}".` };
+  }
   try {
     if (!db) return { success: false, message: 'Database not initialized' };
 
@@ -585,17 +613,24 @@ export async function verifyOrderPaymentAction(orderId: string, action: 'verify'
 export async function deleteAdminOrderAction(orderId: string) {
   await requireAdmin();
   try {
-    if (db) {
-      await db.delete(orders).where(eq(orders.id, orderId));
-      revalidatePath('/admin/orders');
-      revalidatePath('/profile');
-      return { success: true, message: 'Order deleted successfully' };
+    const existing = await db.query.orders.findFirst({ where: eq(orders.id, orderId), with: { items: true } });
+    if (!existing) return { success: false, message: 'Order not found' };
+
+    // Stock is still held for orders that haven't left the store; give it back.
+    if (['Pending', 'Processing'].includes(existing.status) && existing.items?.length) {
+      await restoreStockForOrderItems(
+        existing.items.map((i) => ({ productId: i.productId, variantName: i.variantName, size: i.size, quantity: i.quantity }))
+      );
     }
+    await db.delete(orders).where(eq(orders.id, orderId));
+    revalidatePath('/admin/orders');
+    revalidatePath('/admin');
+    revalidatePath('/profile');
+    return { success: true, message: 'Order deleted successfully' };
   } catch (error) {
     console.error('Failed to delete order:', error);
     return { success: false, message: 'Failed to delete order' };
   }
-  return { success: true, message: 'Order deleted successfully' };
 }
 
 export async function createAdminOrderAction(data: {
@@ -608,6 +643,7 @@ export async function createAdminOrderAction(data: {
   status?: string;
   paymentMethod?: string;
   items: {
+    productId?: string;
     productName: string;
     variantName?: string;
     size?: string;
@@ -616,122 +652,126 @@ export async function createAdminOrderAction(data: {
   }[];
 }) {
   await requireAdmin();
+  const cleanPhone = (data.phone || '').trim().replace(/[\s-]/g, '');
+  const cleanName = (data.customerName || '').trim();
+  const cleanEmail = data.email ? data.email.trim().toLowerCase() : null;
+  const cleanAddress = (data.shippingAddress || '').trim();
+  const cleanCity = data.city ? data.city.trim() : '';
+  const cleanDistrict = data.district ? data.district.trim() : 'Dhaka Division';
+  const status = data.status && (ORDER_STATUSES as readonly string[]).includes(data.status) ? data.status : 'Pending';
+
+  if (!cleanName) return { success: false, message: 'Customer name is required.' };
+  if (!BD_PHONE.test(cleanPhone)) return { success: false, message: 'Enter a valid 11-digit Bangladeshi phone number.' };
+  if (!cleanAddress) return { success: false, message: 'Shipping address is required.' };
+  if (!data.items || data.items.length === 0) return { success: false, message: 'Add at least one item.' };
+  for (const i of data.items) {
+    if (!Number.isInteger(i.quantity) || i.quantity < 1) return { success: false, message: 'Item quantity must be at least 1.' };
+    if (!Number.isFinite(i.priceBdt) || i.priceBdt < 0) return { success: false, message: 'Item price cannot be negative.' };
+  }
+
   try {
-    if (!db) {
-      return { success: false, message: 'Database connection uninitialized' };
+    // Resolve catalogue items (to check and take stock); manual items without a product are allowed.
+    const catalogItems = data.items.filter((i) => i.productId);
+    let reservedRows: { id: string; qty: number }[] = [];
+    let lineMeta: { productId: string; thumbnailUrl: string | null }[] = data.items.map((i) => ({ productId: i.productId || 'manual', thumbnailUrl: null }));
+    if (catalogItems.length > 0 && status !== 'Cancelled' && status !== 'Delivered') {
+      const quote = await quoteOrder(
+        catalogItems.map((i) => ({ productId: i.productId!, variantName: i.variantName, size: i.size, quantity: i.quantity })),
+        undefined,
+        cleanDistrict
+      );
+      if (!quote.ok) return { success: false, message: quote.message };
+      const reserved = await reserveStock(quote.quote.lines);
+      if (!reserved.ok) return { success: false, message: reserved.message };
+      reservedRows = quote.quote.lines.filter((l) => l.stockRowId).map((l) => ({ id: l.stockRowId!, qty: l.quantity }));
+      let k = 0;
+      lineMeta = data.items.map((i) => {
+        if (!i.productId) return { productId: 'manual', thumbnailUrl: null };
+        const l = quote.quote.lines[k++];
+        return { productId: l.productId, thumbnailUrl: l.thumbnailUrl };
+      });
     }
 
-    const orderNum = `LIV-${Math.floor(10000 + Math.random() * 90000)}`;
+    // Admin may set the price (e.g. phone orders); VAT and delivery follow the same rules as checkout.
+    const subtotalBdt = data.items.reduce((sum, i) => sum + Math.round(i.priceBdt) * i.quantity, 0);
+    const charges = await computeOrderCharges(subtotalBdt, 0, cleanDistrict);
 
-    const cleanPhone = data.phone.trim();
-    const cleanName = data.customerName.trim();
-    const cleanEmail = data.email ? data.email.trim() : null;
-    const cleanAddress = data.shippingAddress.trim();
-    const cleanCity = data.city ? data.city.trim() : 'Dhaka';
-    const cleanDistrict = data.district ? data.district.trim() : 'Dhaka Division';
+    let orderNum = `LIV-${randomInt(100000, 1000000)}`;
+    for (let t = 0; t < 5; t++) {
+      const clash = await db.query.orders.findFirst({ where: eq(orders.orderNumber, orderNum), columns: { id: true } });
+      if (!clash) break;
+      orderNum = `LIV-${randomInt(100000, 1000000)}`;
+    }
 
-    let subtotalBdt = 0;
-    const itemsInput = (data.items || []).map((i) => {
-      const itemPrice = i.priceBdt || 899;
-      subtotalBdt += itemPrice * (i.quantity || 1);
-      return {
-        productName: i.productName || 'Apparel Item',
-        variantName: i.variantName || 'Primary',
-        size: i.size || 'M',
-        quantity: i.quantity || 1,
-        priceBdt: itemPrice,
-      };
-    });
+    const method = data.paymentMethod || 'Cash on Delivery';
+    const isCod = /cash/i.test(method);
+    const paymentStatus = status === 'Delivered' ? (isCod ? 'Paid (COD Collected)' : 'Paid (Verified)') : isCod ? 'Unpaid (COD)' : 'Awaiting Verification';
 
-    const vatBdt = itemsInput.length > 0 ? 90 : 0;
-    const deliveryChargeBdt = itemsInput.length > 0 ? 150 : 0;
-    const totalAmountVal = subtotalBdt + vatBdt + deliveryChargeBdt;
-
-    // Customer Upsert (initial totalOrdersCount = 0)
-    let customerId: string | null = null;
+    let newOrderId: string;
     try {
-      const existingCustomer = await db.query.customers.findFirst({
-        where: eq(customers.phone, cleanPhone),
-      });
+      const [newOrder] = await db.insert(orders).values({
+        orderNumber: orderNum,
+        customerName: cleanName,
+        phone: cleanPhone,
+        email: cleanEmail,
+        shippingAddress: cleanAddress,
+        city: cleanCity,
+        district: cleanDistrict,
+        subtotalBdt,
+        vatBdt: charges.vatBdt,
+        deliveryChargeBdt: charges.deliveryChargeBdt,
+        discountBdt: 0,
+        totalAmount: charges.totalBdt.toString(),
+        paymentMethod: method,
+        status,
+        paymentStatus,
+      }).returning();
+      newOrderId = newOrder.id;
 
-      if (existingCustomer) {
-        customerId = existingCustomer.id;
+      await db.insert(orderItems).values(
+        data.items.map((item, idx) => ({
+          orderId: newOrder.id,
+          productId: lineMeta[idx].productId,
+          productName: item.productName || 'Apparel Item',
+          variantName: item.variantName || 'Primary',
+          size: item.size || 'M',
+          thumbnailUrl: lineMeta[idx].thumbnailUrl || '/images/for_him.jpg',
+          quantity: item.quantity,
+          priceBdt: Math.round(item.priceBdt),
+          price: String(Math.round(item.priceBdt)),
+        }))
+      );
+    } catch (insertErr) {
+      await releaseStock(reservedRows);
+      throw insertErr;
+    }
+
+    // Link / create the CRM customer (non-fatal)
+    try {
+      const existingCustomer = await db.query.customers.findFirst({ where: eq(customers.phone, cleanPhone) });
+      let customerId = existingCustomer?.id ?? null;
+      if (!existingCustomer) {
+        const [c] = await db.insert(customers).values({
+          fullName: cleanName, phone: cleanPhone, email: cleanEmail, address: cleanAddress,
+          city: cleanCity, district: cleanDistrict, totalOrdersCount: 1, totalSpentBdt: charges.totalBdt,
+        }).returning();
+        customerId = c?.id ?? null;
+      } else {
         await db.update(customers).set({
-          fullName: cleanName,
-          email: cleanEmail || existingCustomer.email,
-          address: cleanAddress,
-          city: cleanCity,
-          district: cleanDistrict,
           totalOrdersCount: (existingCustomer.totalOrdersCount || 0) + 1,
-          totalSpentBdt: (existingCustomer.totalSpentBdt || 0) + Math.round(totalAmountVal),
+          totalSpentBdt: (existingCustomer.totalSpentBdt || 0) + charges.totalBdt,
           updatedAt: new Date(),
         }).where(eq(customers.id, existingCustomer.id));
-      } else {
-        const [newCust] = await db.insert(customers).values({
-          fullName: cleanName,
-          phone: cleanPhone,
-          email: cleanEmail,
-          address: cleanAddress,
-          city: cleanCity,
-          district: cleanDistrict,
-          totalOrdersCount: 0, // initially 0 for new customers
-          totalSpentBdt: 0,
-        }).returning();
-
-        if (newCust) {
-          customerId = newCust.id;
-          await db.update(customers).set({
-            totalOrdersCount: 1,
-            totalSpentBdt: Math.round(totalAmountVal),
-          }).where(eq(customers.id, newCust.id));
-        }
       }
+      if (customerId) await db.update(orders).set({ customerId }).where(eq(orders.id, newOrderId));
     } catch (custErr) {
-      console.warn('Admin customer upsert non-fatal warning:', custErr);
+      console.warn('Admin order customer link warning:', custErr);
     }
 
-    const [newOrder] = await db.insert(orders).values({
-      orderNumber: orderNum,
-      customerId: customerId,
-      customerName: cleanName,
-      phone: cleanPhone,
-      email: cleanEmail,
-      shippingAddress: cleanAddress,
-      city: cleanCity,
-      district: cleanDistrict,
-      subtotalBdt: subtotalBdt,
-      vatBdt: vatBdt,
-      deliveryChargeBdt: deliveryChargeBdt,
-      discountBdt: 0,
-      totalAmount: totalAmountVal.toString(),
-      paymentMethod: data.paymentMethod || 'Cash on Delivery',
-      status: data.status || 'Pending',
-      paymentStatus: data.status === 'Delivered' ? 'Paid (COD Collected)' : 'Unpaid (COD)',
-    }).returning();
-
-    const itemsToInsert = itemsInput.map((item) => ({
-      orderId: newOrder.id,
-      productId: 'admin-prod-manual',
-      productName: item.productName,
-      variantName: item.variantName,
-      size: item.size,
-      thumbnailUrl: '/images/for_him.jpg',
-      quantity: item.quantity,
-      priceBdt: item.priceBdt,
-      price: item.priceBdt.toString(),
-    }));
-
-    await db.insert(orderItems).values(itemsToInsert);
-
-    try {
-      revalidatePath('/admin/orders');
-      revalidatePath('/admin/customers');
-      revalidatePath('/profile');
-    } catch {
-      // safe fallback
-    }
-
-    return { success: true, orderId: newOrder.id, orderNumber: newOrder.orderNumber, message: 'Order created successfully' };
+    revalidatePath('/admin/orders');
+    revalidatePath('/admin/customers');
+    revalidatePath('/admin');
+    return { success: true, orderId: newOrderId, orderNumber: orderNum, message: 'Order created successfully' };
   } catch (error) {
     console.error('Failed to create admin order:', error);
     return { success: false, message: 'Failed to create order' };
@@ -749,6 +789,15 @@ export async function editAdminOrderAction(data: {
   status: string;
 }) {
   await requireAdmin();
+  if (!(ORDER_STATUSES as readonly string[]).includes(data.status)) {
+    return { success: false, message: `Unknown status "${data.status}".` };
+  }
+  if (!(data.customerName || '').trim() || !(data.shippingAddress || '').trim()) {
+    return { success: false, message: 'Customer name and address are required.' };
+  }
+  if (!BD_PHONE.test((data.phone || '').trim().replace(/[\s-]/g, ''))) {
+    return { success: false, message: 'Enter a valid 11-digit Bangladeshi phone number.' };
+  }
   try {
     if (db) {
       await db.update(orders).set({
@@ -789,41 +838,18 @@ interface AdminCredentialRecord {
 }
 
 function getStoredAdminUsers(): AdminCredentialRecord[] {
+  // Local-development convenience only. In production, admins live in the database
+  // (hashed passwords via Better Auth) — never in a file or in source code.
+  if (process.env.NODE_ENV === 'production') return [];
   try {
     if (fs.existsSync(CREDENTIALS_FILE)) {
-      const content = fs.readFileSync(CREDENTIALS_FILE, 'utf-8');
-      const data = JSON.parse(content);
-      if (Array.isArray(data) && data.length > 0) return data;
+      const data = JSON.parse(fs.readFileSync(CREDENTIALS_FILE, 'utf-8'));
+      if (Array.isArray(data)) return data;
     }
   } catch (err) {
     console.error("Error reading .admin-credentials.json:", err);
   }
-  return [
-    {
-      id: "usr-superadmin",
-      name: "Super Admin",
-      email: "superadmin@livus.com",
-      password: "SuperAdmin123!",
-      role: "superadmin",
-      createdAt: "System Primary",
-    },
-    {
-      id: "usr-admin-1",
-      name: "Store Manager",
-      email: "manager@livus.com",
-      password: "ManagerSecret123!",
-      role: "admin",
-      createdAt: "Jul 28, 2026",
-    },
-    {
-      id: "usr-test6",
-      name: "Test 6 Admin",
-      email: "test6@livus.com",
-      password: "test6@livus.com",
-      role: "admin",
-      createdAt: "Aug 7, 2026",
-    }
-  ];
+  return [];
 }
 
 function saveStoredAdminUser(newUserRecord: AdminCredentialRecord) {
@@ -1010,6 +1036,12 @@ export async function verifyAdminLoginAction(email: string, pass: string) {
   });
 
   return { success: true as const, user: matchedUser, message: '' };
+}
+
+/** Name / email / role of the signed-in admin, read from the signed admin session cookie. */
+export async function getAdminIdentityAction() {
+  const me = await requireAdmin();
+  return { name: me.name, email: me.email, role: me.role };
 }
 
 export async function adminSignOutAction() {
@@ -1355,7 +1387,8 @@ export async function createAdminCustomerAction(data: {
     const cleanName = (data.fullName || '').trim();
 
     if (!cleanName) return { success: false, message: 'Full name is required' };
-    if (!cleanPhone) return { success: false, message: 'Phone number is required' };
+    if (!BD_PHONE.test(cleanPhone.replace(/[\s-]/g, ''))) return { success: false, message: 'Enter a valid 11-digit Bangladeshi phone number.' };
+    if (cleanEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) return { success: false, message: 'Enter a valid email address.' };
 
     if (db) {
       const existing = await db.query.customers.findFirst({
@@ -1363,16 +1396,9 @@ export async function createAdminCustomerAction(data: {
       });
 
       if (existing) {
-        await db.update(customers).set({
-          fullName: cleanName,
-          email: cleanEmail || existing.email,
-          address: data.address || existing.address,
-          apt: data.apt || existing.apt,
-          city: data.city || existing.city,
-          district: data.district || existing.district,
-          updatedAt: new Date(),
-        }).where(eq(customers.id, existing.id));
-      } else {
+        return { success: false, message: `A customer with phone ${cleanPhone} already exists (${existing.fullName}).` };
+      }
+      {
         await db.insert(customers).values({
           fullName: cleanName,
           phone: cleanPhone,
@@ -1530,6 +1556,18 @@ export async function updateAdminStoreSettingsAction(data: {
   nagadMerchantNumber?: string;
 }) {
   const admin = await requireAdmin();
+  const intIn = (v: unknown, min: number, max: number) => v === undefined || (Number.isInteger(Number(v)) && Number(v) >= min && Number(v) <= max);
+  if (!intIn(data.vatPercent, 0, 50)) return { success: false, message: 'VAT must be a whole number between 0 and 50.' };
+  if (!intIn(data.freeShippingThresholdBdt, 0, 1000000)) return { success: false, message: 'Free delivery threshold must be 0 or more.' };
+  if (!intIn(data.defaultDeliveryChargeBdt, 0, 10000)) return { success: false, message: 'Default delivery fee must be between 0 and 10,000.' };
+  for (const [label, v] of [['bKash', data.bKashMerchantNumber], ['Nagad', data.nagadMerchantNumber]] as const) {
+    if (v !== undefined && v.trim() !== '' && !/^01[3-9]\d{8}$/.test(v.trim())) {
+      return { success: false, message: `${label} number must be a valid 11-digit Bangladeshi mobile number.` };
+    }
+  }
+  if (data.supportEmail !== undefined && data.supportEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.supportEmail.trim())) {
+    return { success: false, message: 'Support email is not a valid email address.' };
+  }
   try {
     if (!db) return { success: false, message: 'Database not initialized' };
 
@@ -1596,6 +1634,11 @@ export async function updateAdminStoreSettingsAction(data: {
 
 export async function updateAdminShippingRegionAction(id: string, deliveryChargeBdt: number) {
   await requireAdmin();
+  const fee = Number(deliveryChargeBdt);
+  if (!Number.isInteger(fee) || fee < 0 || fee > 10000) {
+    return { success: false, message: 'Delivery fee must be a whole number between 0 and 10,000.' };
+  }
+  deliveryChargeBdt = fee;
   try {
     if (!db) return { success: false, message: 'Database not initialized' };
     await db.update(shippingRegions).set({

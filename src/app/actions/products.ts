@@ -189,7 +189,7 @@ export async function getProductBySlugAction(slug: string) {
         },
       });
 
-      if (!product) {
+      if (!product && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanSlug)) {
         product = await db.query.products.findFirst({
           where: eq(products.id, cleanSlug),
           with: {
@@ -322,47 +322,8 @@ export async function getProductBySlugAction(slug: string) {
       };
     }
 
-    const formattedTitle = cleanSlug
-      .split("-")
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(" ");
-
-    return {
-      id: `dyn-${cleanSlug}`,
-      name: formattedTitle,
-      slug: cleanSlug,
-      description: `Premium ${formattedTitle} handcrafted with luxury fabrics and athletic tailoring.`,
-      specifications: "Fabric: 100% Breathable Micro-Mesh\nFit: Athletic Ergonomic\nCare: Machine Wash Cold",
-      sizeMatrix: [
-        { size: "S", chest: "36-38 in", length: "27 in", sleeve: "8 in" },
-        { size: "M", chest: "38-40 in", length: "28 in", sleeve: "8.5 in" },
-        { size: "L", chest: "40-42 in", length: "29 in", sleeve: "9 in" },
-        { size: "XL", chest: "42-44 in", length: "30 in", sleeve: "9.5 in" },
-        { size: "XXL", chest: "44-46 in", length: "31 in", sleeve: "10 in" },
-      ],
-      collectionTag: "Minimal",
-      priceBdt: 899,
-      price: "899",
-      compareAtPriceBdt: 1199,
-      isActive: true,
-      colorVariants: [
-        {
-          id: `var-${cleanSlug}-1`,
-          name: "Primary",
-          hexColor: "#050505",
-          thumbnailUrl: "/images/for_him.jpg",
-          isLowStock: false,
-          galleryImages: ["/images/for_him.jpg", "/images/for_her.jpg"],
-          sizes: [
-            { size: "S", sku: `${cleanSlug}-S`, quantity: 10, isStockOut: false },
-            { size: "M", sku: `${cleanSlug}-M`, quantity: 10, isStockOut: false },
-            { size: "L", sku: `${cleanSlug}-L`, quantity: 10, isStockOut: false },
-            { size: "XL", sku: `${cleanSlug}-XL`, quantity: 5, isStockOut: false },
-            { size: "XXL", sku: `${cleanSlug}-XXL`, quantity: 0, isStockOut: true },
-          ],
-        },
-      ],
-    };
+    // Unknown or inactive product: the page shows a proper 404 instead of inventing one.
+    return null;
   } catch (error) {
     console.error("Failed to fetch product by slug:", error);
     return null;
@@ -649,214 +610,171 @@ export async function getPopularProductsAction(limit = 12): Promise<ProductItem[
 
 export async function updateFullProductAction(productId: string, inputData: unknown) {
   await requireAdmin();
-  if (!db || !productId) {
-    return { success: false, message: 'Database or Product ID missing.' };
-  }
-
+  if (!productId) return { success: false, message: 'Product ID missing.' };
   const validation = CreateProductSchema.safeParse(inputData);
   if (!validation.success) {
-    return { success: false, errors: validation.error.flatten().fieldErrors, message: 'Validation failed.' };
+    return { success: false, errors: validation.error.flatten().fieldErrors, message: firstValidationMessage(validation.error) };
   }
-
   const data = validation.data;
 
-  try {
-    let resolvedCategoryId: string | null = null;
-    if (data.categoryId && data.categoryId.trim()) {
-      const catVal = data.categoryId.trim();
-      const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(catVal);
-      if (isUuid) {
-        const existingCat = await db.query.categories.findFirst({
-          where: eq(categories.id, catVal),
-        });
-        if (existingCat) resolvedCategoryId = existingCat.id;
-      } else {
-        const existingCat = await db.query.categories.findFirst({
-          where: eq(categories.slug, catVal.toLowerCase()),
-        });
-        if (existingCat) {
-          resolvedCategoryId = existingCat.id;
-        }
-      }
-    }
+  const existing = await db.query.products.findFirst({
+    where: eq(products.id, productId),
+    with: { colorVariants: { with: { variantImages: true, stockInventory: true } } },
+  });
+  if (!existing) return { success: false, message: 'Product not found.' };
+  const clash = await db.query.products.findFirst({ where: eq(products.slug, data.slug), columns: { id: true } });
+  if (clash && clash.id !== productId) return { success: false, message: `The URL slug "${data.slug}" is already used by another product.` };
 
+  // Snapshot so we can put things back if anything fails half-way.
+  const snapshot = existing;
+  try {
+    const skus = await assignUniqueSkus(data, productId);
     await db.update(products).set({
       name: data.title,
-      slug: data.slug.toLowerCase().trim(),
+      slug: data.slug,
       description: data.specifications || data.title,
-      collectionTag: data.collectionTag,
-      categoryId: resolvedCategoryId,
-      priceBdt: parseInt(data.basePrice, 10),
-      compareAtPriceBdt: data.compareAtPrice ? parseInt(data.compareAtPrice, 10) : null,
-      specifications: data.specifications,
+      collectionTag: data.collectionTag || null,
+      categoryId: await resolveCategoryId(data.categoryId),
+      priceBdt: Number(data.basePrice),
+      compareAtPriceBdt: data.compareAtPrice ? Number(data.compareAtPrice) : null,
+      specifications: data.specifications || null,
       isActive: data.isActive,
     }).where(eq(products.id, productId));
 
     await db.delete(colorVariants).where(eq(colorVariants.productId, productId));
+    await insertVariants(productId, data, skus);
 
-    for (const variant of data.colorVariants) {
-      const [newVariant] = await db.insert(colorVariants).values({
-        productId,
-        name: variant.colorName,
-        hexColor: variant.hexCode,
-        thumbnailUrl: variant.thumbnailUrl || '/images/for_him.jpg',
-        isLowStock: variant.isLowStock,
-      }).returning();
-
-      if (variant.images && variant.images.length > 0) {
-        await db.insert(variantImages).values(
-          variant.images.map((url: string, index: number) => ({
-            variantId: newVariant.id,
-            imageUrl: url,
-            displayOrder: index,
-          }))
-        );
-      }
-
-      if (variant.inventory && variant.inventory.length > 0) {
-        const inventoryWithUniqueSkus = variant.inventory.map((inv: any, idx: number) => {
-          const uniqueSku = inv.sku && inv.sku.trim() && !inv.sku.includes('MS7K') && inv.sku.length < 15
-            ? inv.sku.trim()
-            : generateCleanSku(data.title || data.name || 'Product', inv.size, idx);
-
-          return {
-            variantId: newVariant.id,
-            size: inv.size,
-            sku: uniqueSku,
-            quantity: inv.quantity,
-            isStockOut: inv.quantity === 0 || inv.isStockOut,
-          };
-        });
-
-        await db.insert(stockInventory).values(inventoryWithUniqueSkus);
-      }
-    }
-
-    revalidatePath('/admin/products');
-    revalidatePath('/admin');
-    revalidatePath('/', 'layout'); // refresh every storefront page (home, categories, all-products, search…)
-    revalidatePath('/for-him');
-    revalidatePath('/for-her');
-    revalidatePath(`/product/${data.slug}`);
-
-    return { success: true, message: 'Product updated successfully!' };
-  } catch (error: any) {
+    revalidateProductPages(data.slug);
+    if (snapshot.slug !== data.slug) revalidatePath(`/product/${snapshot.slug}`);
+    return { success: true, message: 'Product updated successfully.' };
+  } catch (error) {
     console.error('Failed to update product:', error);
-    const detail = error?.detail || error?.message || String(error);
-    return { success: false, message: `Database error: ${detail}` };
+    // Restore the previous version of the product, its colours, images and stock.
+    try {
+      await db.update(products).set({
+        name: snapshot.name, slug: snapshot.slug, description: snapshot.description, collectionTag: snapshot.collectionTag,
+        categoryId: snapshot.categoryId, priceBdt: snapshot.priceBdt, compareAtPriceBdt: snapshot.compareAtPriceBdt,
+        specifications: snapshot.specifications, isActive: snapshot.isActive,
+      }).where(eq(products.id, productId));
+      await db.delete(colorVariants).where(eq(colorVariants.productId, productId));
+      for (const v of snapshot.colorVariants) {
+        await db.insert(colorVariants).values({ id: v.id, productId, name: v.name, hexColor: v.hexColor, thumbnailUrl: v.thumbnailUrl, isLowStock: v.isLowStock, createdAt: v.createdAt });
+        if (v.variantImages.length) await db.insert(variantImages).values(v.variantImages);
+        if (v.stockInventory.length) await db.insert(stockInventory).values(v.stockInventory);
+      }
+    } catch (restoreErr) {
+      console.error('Failed to restore product after update error:', restoreErr);
+    }
+    return { success: false, message: 'Could not save the changes. The product was left as it was — please try again.' };
   }
+}
+
+type ProductInput = import('zod').infer<typeof CreateProductSchema>;
+
+function firstValidationMessage(error: import('zod').ZodError): string {
+  return error.issues[0]?.message || 'Please check the product details.';
+}
+
+async function resolveCategoryId(raw?: string | null): Promise<string | null> {
+  const catVal = (raw || '').trim();
+  if (!catVal) return null;
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(catVal);
+  const cat = await db.query.categories.findFirst({
+    where: isUuid ? eq(categories.id, catVal) : eq(categories.slug, catVal.toLowerCase()),
+  });
+  return cat?.id ?? null;
+}
+
+/** Gives every size row a SKU that is unique across the whole store (SKUs are UNIQUE in the database). */
+async function assignUniqueSkus(data: ProductInput, excludeProductId?: string) {
+  const rows = await db
+    .select({ sku: stockInventory.sku, productId: colorVariants.productId })
+    .from(stockInventory)
+    .innerJoin(colorVariants, eq(stockInventory.variantId, colorVariants.id));
+  const taken = new Set(rows.filter((r) => r.sku && r.productId !== excludeProductId).map((r) => r.sku!.toUpperCase()));
+  return data.colorVariants.map((v, vi) =>
+    v.inventory.map((inv, ii) => {
+      let base = (inv.sku || '').trim().toUpperCase().replace(/[^A-Z0-9-]/g, '');
+      if (!base || base.length > 40) base = generateCleanSku(data.title, inv.size, vi * 100 + ii).toUpperCase();
+      let sku = base;
+      for (let n = 2; taken.has(sku); n++) sku = `${base}-${n}`;
+      taken.add(sku);
+      return sku;
+    })
+  );
+}
+
+async function insertVariants(productId: string, data: ProductInput, skus: string[][]) {
+  for (let vi = 0; vi < data.colorVariants.length; vi++) {
+    const variant = data.colorVariants[vi];
+    const images = variant.images.filter(Boolean);
+    const [newVariant] = await db.insert(colorVariants).values({
+      productId,
+      name: variant.colorName,
+      hexColor: variant.hexCode,
+      thumbnailUrl: variant.thumbnailUrl || images[0] || '/images/for_him.jpg',
+      isLowStock: variant.isLowStock,
+    }).returning();
+
+    if (images.length > 0) {
+      await db.insert(variantImages).values(images.map((url, index) => ({ variantId: newVariant.id, imageUrl: url, displayOrder: index })));
+    }
+    if (variant.inventory.length > 0) {
+      await db.insert(stockInventory).values(
+        variant.inventory.map((inv, ii) => ({
+          variantId: newVariant.id,
+          size: inv.size,
+          sku: skus[vi][ii],
+          quantity: inv.quantity,
+          isStockOut: inv.quantity === 0,
+        }))
+      );
+    }
+  }
+}
+
+function revalidateProductPages(slug: string) {
+  revalidatePath('/admin/products');
+  revalidatePath('/admin');
+  revalidatePath('/', 'layout');
+  revalidatePath(`/product/${slug}`);
 }
 
 export async function createFullProductAction(inputData: unknown) {
   await requireAdmin();
-  if (!db) {
-    return { success: false, message: 'Database connection missing.' };
-  }
-
   const validation = CreateProductSchema.safeParse(inputData);
-
   if (!validation.success) {
-    return { success: false, errors: validation.error.flatten().fieldErrors, message: 'Validation failed.' };
+    return { success: false, errors: validation.error.flatten().fieldErrors, message: firstValidationMessage(validation.error) };
   }
-
   const data = validation.data;
 
+  const clash = await db.query.products.findFirst({ where: eq(products.slug, data.slug), columns: { id: true } });
+  if (clash) return { success: false, message: `The URL slug "${data.slug}" is already used by another product.` };
+
+  let newProductId: string | null = null;
   try {
-    const existingProduct = await db.query.products.findFirst({
-      where: eq(products.slug, data.slug.toLowerCase().trim()),
-    });
-
-    if (existingProduct) {
-      return {
-        success: false,
-        message: `Slug "${data.slug}" is already taken in the database. Please edit the URL Slug to make it unique.`,
-      };
-    }
-
-    let resolvedCategoryId: string | null = null;
-    if (data.categoryId && data.categoryId.trim()) {
-      const catVal = data.categoryId.trim();
-      const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(catVal);
-      if (isUuid) {
-        const existingCat = await db.query.categories.findFirst({
-          where: eq(categories.id, catVal),
-        });
-        if (existingCat) resolvedCategoryId = existingCat.id;
-      } else {
-        const existingCat = await db.query.categories.findFirst({
-          where: eq(categories.slug, catVal.toLowerCase()),
-        });
-        if (existingCat) {
-          resolvedCategoryId = existingCat.id;
-        }
-      }
-    }
-
+    const skus = await assignUniqueSkus(data);
     const [newProduct] = await db.insert(products).values({
       name: data.title,
-      slug: data.slug.toLowerCase().trim(),
+      slug: data.slug,
       description: data.specifications || data.title,
-      collectionTag: data.collectionTag,
-      categoryId: resolvedCategoryId,
-      priceBdt: parseInt(data.basePrice, 10),
-      compareAtPriceBdt: data.compareAtPrice ? parseInt(data.compareAtPrice, 10) : null,
-      specifications: data.specifications,
+      collectionTag: data.collectionTag || null,
+      categoryId: await resolveCategoryId(data.categoryId),
+      priceBdt: Number(data.basePrice),
+      compareAtPriceBdt: data.compareAtPrice ? Number(data.compareAtPrice) : null,
+      specifications: data.specifications || null,
       isActive: data.isActive,
     }).returning();
+    newProductId = newProduct.id;
 
-    for (const variant of data.colorVariants) {
-      const [newVariant] = await db.insert(colorVariants).values({
-        productId: newProduct.id,
-        name: variant.colorName,
-        hexColor: variant.hexCode,
-        thumbnailUrl: variant.thumbnailUrl || '/images/for_him.jpg',
-        isLowStock: variant.isLowStock,
-      }).returning();
-
-      if (variant.images && variant.images.length > 0) {
-        await db.insert(variantImages).values(
-          variant.images.map((url: string, index: number) => ({
-            variantId: newVariant.id,
-            imageUrl: url,
-            displayOrder: index,
-          }))
-        );
-      }
-
-      if (variant.inventory && variant.inventory.length > 0) {
-        const inventoryWithUniqueSkus = variant.inventory.map((inv: any, idx: number) => {
-          const uniqueSku = inv.sku && inv.sku.trim() && !inv.sku.includes('MS7K') && inv.sku.length < 15
-            ? inv.sku.trim()
-            : generateCleanSku(data.title || data.name || 'Product', inv.size, idx);
-
-          return {
-            variantId: newVariant.id,
-            size: inv.size,
-            sku: uniqueSku,
-            quantity: inv.quantity,
-            isStockOut: inv.quantity === 0 || inv.isStockOut,
-          };
-        });
-
-        await db.insert(stockInventory).values(inventoryWithUniqueSkus);
-      }
-    }
-
-    revalidatePath('/admin/products');
-    revalidatePath('/admin');
-    revalidatePath('/', 'layout'); // refresh every storefront page (home, categories, all-products, search…)
-    revalidatePath('/for-him');
-    revalidatePath('/for-her');
-    revalidatePath(`/product/${data.slug}`);
-
-    return { success: true, message: 'Product & Dual-Axis Variants created successfully!' };
-  } catch (error: any) {
+    await insertVariants(newProduct.id, data, skus);
+    revalidateProductPages(data.slug);
+    return { success: true, productId: newProduct.id, message: 'Product created successfully.' };
+  } catch (error) {
     console.error('Failed to create product:', error);
-    const detail = error?.detail || error?.message || String(error);
-    return {
-      success: false,
-      message: `Database error: ${detail}`,
-    };
+    // Undo the partial save so no half-built product appears in the shop (variants/images/stock cascade).
+    if (newProductId) await db.delete(products).where(eq(products.id, newProductId)).catch(() => {});
+    return { success: false, message: 'Could not save the product. Nothing was saved — please try again.' };
   }
 }
 
@@ -962,6 +880,7 @@ export async function getAllInventorySkusAction() {
           variantName: item.variant?.name || 'Primary',
           thumbnailUrl: item.variant?.thumbnailUrl || '/images/products/oakwood-yellow-thumb.png',
           productName: item.variant?.product?.name || 'Apparel Item',
+          productId: item.variant?.product?.id || '',
           priceBdt: item.variant?.product?.priceBdt || 1450,
         }));
       }

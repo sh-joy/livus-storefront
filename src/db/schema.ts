@@ -50,7 +50,7 @@ export const variantImages = pgTable('variant_images', {
 export const stockInventory = pgTable('stock_inventory', {
   id: uuid('id').defaultRandom().primaryKey(),
   variantId: uuid('variant_id').references(() => colorVariants.id, { onDelete: 'cascade' }).notNull(),
-  sku: text('sku'),
+  sku: text('sku').unique(),
   size: text('size').notNull(),
   quantity: integer('quantity').default(10).notNull(),
   isStockOut: boolean('is_stock_out').default(false).notNull(),

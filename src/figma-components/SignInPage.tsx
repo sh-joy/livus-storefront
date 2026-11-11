@@ -127,12 +127,9 @@ export function SignInPage() {
       if (res.error) {
         setErrorMessage(res.error.message || "Invalid email or password.");
       } else {
-        const userRole = (res.data?.user as any)?.role || "user";
-        if (userRole === "superadmin" || userRole === "admin") {
-          router.push("/admin");
-        } else {
-          router.push("/profile");
-        }
+        // Send shoppers back where they came from (e.g. checkout). Only same-site paths are allowed.
+        const back = searchParams?.get("redirect") || "";
+        router.push(back.startsWith("/") && !back.startsWith("//") ? back : "/profile");
       }
     } catch (err: any) {
       console.error("Sign in failed:", err);
@@ -149,7 +146,10 @@ export function SignInPage() {
     try {
       const res = await authClient.signIn.social({
         provider: provider as any,
-        callbackURL: "/profile",
+        callbackURL: (() => {
+          const back = searchParams?.get("redirect") || "";
+          return back.startsWith("/") && !back.startsWith("//") ? back : "/profile";
+        })(),
         ...(provider === "facebook" ? { scope: ["public_profile"] } : {}),
       });
 
@@ -375,7 +375,7 @@ export function SignInPage() {
                     <div className="flex-1 border-b border-dashed border-neutral-800" />
                   </div>
 
-                  <div className="grid grid-cols-3 gap-3 w-full">
+                  <div className="grid grid-cols-2 gap-3 w-full">
                     {/* Google */}
                     <button
                       type="button"
@@ -403,17 +403,7 @@ export function SignInPage() {
                       </svg>
                     </button>
 
-                    {/* Apple (Visual same as Google/Facebook, click does nothing) */}
-                    <button
-                      type="button"
-                      onClick={(e) => e.preventDefault()}
-                      aria-label="Sign in with Apple"
-                      className="w-full h-12 bg-[#181818] border border-neutral-800 text-white flex items-center justify-center cursor-default rounded-none"
-                    >
-                      <svg className="w-5 h-5 shrink-0" viewBox="0 0 800 800" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M623.666 650C596 691.333 566.666 731.667 522 732.333C477.333 733.333 463 706 412.333 706C361.333 706 345.666 731.667 303.332 733.333C259.665 735 226.665 689.333 198.666 649C141.666 566.667 97.9988 415 156.665 313C185.665 262.333 237.666 230.333 293.999 229.333C336.667 228.667 377.333 258.333 403.666 258.333C429.666 258.333 479 222.667 530.666 228C552.333 229 613 236.667 652 294C649 296 579.666 336.667 580.333 421C581.333 521.667 668.666 555.333 669.666 555.667C668.666 558 655.666 603.667 623.666 650ZM433.333 116.667C457.666 89 498 68 531.333 66.6666C535.666 105.667 520 145 496.666 173C473.666 201.333 435.666 223.333 398.333 220.333C393.333 182 412 142 433.333 116.667Z" fill="currentColor"/>
-                      </svg>
-                    </button>
+                    
                   </div>
                 </div>
 

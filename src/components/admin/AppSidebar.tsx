@@ -1,6 +1,6 @@
 'use client';
 
-import { adminSignOutAction } from '@/app/actions/admin-actions';
+import { adminSignOutAction, getAdminIdentityAction } from '@/app/actions/admin-actions';
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -34,45 +34,35 @@ const allNavItems = [
   { title: "All Orders", url: "/admin/orders", icon: ShoppingBag },
   { title: "Abandoned Carts", url: "/admin/abandoned-carts", icon: ShoppingCart },
   { title: "Customers Directory", url: "/admin/customers", icon: Users },
+  { title: "Product Reviews", url: "/admin/reviews", icon: Star },
+  { title: "Analytics", url: "/admin/analytics", icon: BarChart3 },
   { title: "Newsletter CRM", url: "/admin/subscribers", icon: Mail },
   { title: "Discounts & Promos", url: "/admin/promos", icon: Ticket },
   { title: "Marquee Banners", url: "/admin/marquee", icon: Megaphone },
   { title: "Store Settings", url: "/admin/settings", icon: Settings },
 ];
 
-import { useSession, signOut } from "@/lib/auth-client";
-import { LogOut } from "lucide-react";
+import { LogOut, Star, BarChart3 } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const { data: sessionData } = useSession();
+  const [adminName, setAdminName] = useState("");
+  const [adminEmail, setAdminEmail] = useState("");
+  const [adminRole, setAdminRole] = useState("");
 
-  const [adminName, setAdminName] = useState("Super Admin");
-  const [adminEmail, setAdminEmail] = useState("superadmin@livus.com");
-  const [adminRole, setAdminRole] = useState("superadmin");
-
+  // Identity comes from the signed admin session on the server — not from the storefront customer login.
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const getCookie = (name: string) => {
-        const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-        return match ? decodeURIComponent(match[2]) : null;
-      };
-
-      const cName = getCookie('livus_admin_name');
-      const cEmail = getCookie('livus_admin_email');
-      const cRole = getCookie('livus_admin_role');
-
-      if (cName) setAdminName(cName);
-      else if (sessionData?.user?.name) setAdminName(sessionData.user.name);
-
-      if (cEmail) setAdminEmail(cEmail);
-      else if (sessionData?.user?.email) setAdminEmail(sessionData.user.email);
-
-      if (cRole) setAdminRole(cRole);
-      else if ((sessionData?.user as any)?.role) setAdminRole((sessionData?.user as any).role);
-    }
-  }, [sessionData]);
+    getAdminIdentityAction()
+      .then((me) => {
+        setAdminName(me.name);
+        setAdminEmail(me.email);
+        setAdminRole(me.role);
+      })
+      .catch(() => {
+        window.location.href = "/admin/sign-in";
+      });
+  }, []);
 
   const userInitials = adminName
     ? adminName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
@@ -84,7 +74,6 @@ export function AppSidebar() {
     document.cookie = 'livus_admin_role=; path=/; max-age=0';
     document.cookie = 'livus_admin_name=; path=/; max-age=0';
     document.cookie = 'livus_admin_email=; path=/; max-age=0';
-    await signOut();
     window.location.href = "/admin/sign-in";
   };
 

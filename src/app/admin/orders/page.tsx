@@ -110,6 +110,7 @@ interface SkuOption {
   thumbnailUrl: string;
   productName: string;
   priceBdt: number;
+  productId?: string;
 }
 
 export default function AdminOrdersPage() {
@@ -316,6 +317,7 @@ export default function AdminOrdersPage() {
         status: createStatus,
         items: [
           {
+            productId: inventorySkus.find((sk) => sk.sku === selectedSku)?.productId || undefined,
             productName: itemTitle,
             variantName: itemVariant,
             size: itemSize,

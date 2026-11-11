@@ -404,15 +404,21 @@ export function CheckoutPage() {
               fontSize: "48px", fontWeight: 600,
               color: "var(--ink)", letterSpacing: "-1.44px", lineHeight: "56px",
             }}>Checkout</p>
-            <p style={{ ...base, color: "var(--ink-muted)", textTransform: "uppercase" }}>
-              ALREADY HAVE AN ACCOUNT?{" "}
-              <span
-                style={{ color: "var(--ink)", textDecoration: "underline", cursor: "pointer", fontSize: "15px" }}
-                onClick={() => router.push("/signin")}
-              >
-                SIGN IN
-              </span>
-            </p>
+            {user ? (
+              <p style={{ ...base, color: "var(--ink-muted)", textTransform: "uppercase" }}>
+                Signed in as <span style={{ color: "var(--ink)" }}>{user.email}</span>
+              </p>
+            ) : (
+              <p style={{ ...base, color: "var(--ink-muted)", textTransform: "uppercase" }}>
+                ALREADY HAVE AN ACCOUNT?{" "}
+                <a
+                  href="/signin?redirect=/checkout"
+                  style={{ color: "var(--ink)", textDecoration: "underline", cursor: "pointer", fontSize: "15px" }}
+                >
+                  SIGN IN
+                </a>
+              </p>
+            )}
           </div>
 
           {/* Main 2-Column Grid (Personal Information & Order Summary on exact same horizontal level) */}

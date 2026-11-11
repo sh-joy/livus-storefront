@@ -130,11 +130,20 @@ export function OrderDetailsDrawer({
   const [verifyingPayment, setVerifyingPayment] = useState(false);
 
   const handleVerifyPayment = async (action: 'verify' | 'reject') => {
+    let cancelOrder = false;
+    if (action === 'reject') {
+      cancelOrder = window.confirm('Reject payment and cancel this order to release reserved stock back to inventory?\n\n- Click OK to cancel order and return stock\n- Click Cancel to mark payment failed only');
+    }
     setVerifyingPayment(true);
     try {
-      const res = await verifyOrderPaymentAction(order.id, action);
+      const res = await verifyOrderPaymentAction(order.id, action, cancelOrder);
       if (res.success) {
         setPaymentStatus(action === 'verify' ? (order.paymentMethod?.toLowerCase().includes('bkash') ? 'Paid (bKash Verified)' : 'Paid (Nagad Verified)') : 'Payment Failed / Rejected');
+        if (cancelOrder) {
+          setStatus('Cancelled');
+        }
+      } else {
+        alert(res.message);
       }
     } catch (err) {
       console.error('Failed to verify payment:', err);

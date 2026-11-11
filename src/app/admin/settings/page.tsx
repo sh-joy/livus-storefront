@@ -42,8 +42,9 @@ export default function AdminSettingsPage() {
   const [vatPercent, setVatPercent] = useState("10");
   const [freeShippingThreshold, setFreeShippingThreshold] = useState("2500");
   const [defaultDeliveryCharge, setDefaultDeliveryCharge] = useState("150");
-  const [bkashMerchantNumber, setBkashMerchantNumber] = useState("01711000000");
-  const [nagadMerchantNumber, setNagadMerchantNumber] = useState("01811000000");
+  const [bkashMerchantNumber, setBkashMerchantNumber] = useState("");
+  const [nagadMerchantNumber, setNagadMerchantNumber] = useState("");
+  const [currentUserRole, setCurrentUserRole] = useState<string>("admin");
   const [savingSettings, setSavingSettings] = useState(false);
   const [saved, setSaved] = useState(false);
   const [settingsError, setSettingsError] = useState("");
@@ -103,8 +104,11 @@ export default function AdminSettingsPage() {
         if (data.settings.vatPercent !== undefined) setVatPercent(data.settings.vatPercent.toString());
         if (data.settings.freeShippingThresholdBdt !== undefined) setFreeShippingThreshold(data.settings.freeShippingThresholdBdt.toString());
         if (data.settings.defaultDeliveryChargeBdt !== undefined) setDefaultDeliveryCharge(data.settings.defaultDeliveryChargeBdt.toString());
-        if (data.settings.bKashMerchantNumber) setBkashMerchantNumber(data.settings.bKashMerchantNumber);
-        if (data.settings.nagadMerchantNumber) setNagadMerchantNumber(data.settings.nagadMerchantNumber);
+        setBkashMerchantNumber(data.settings.bKashMerchantNumber || "");
+        setNagadMerchantNumber(data.settings.nagadMerchantNumber || "");
+      }
+      if ((data as any)?.currentUserRole) {
+        setCurrentUserRole((data as any).currentUserRole);
       }
       if (data?.regions) {
         setRegions(data.regions);
@@ -672,15 +676,27 @@ export default function AdminSettingsPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-medium text-foreground uppercase tracking-wider block mb-1">
-                  bKash Merchant / Personal No.
+                  bKash Merchant / Personal No. {currentUserRole !== 'superadmin' && <span className="text-[10px] text-amber-600 font-mono font-normal">(Superadmin Only)</span>}
                 </label>
-                <Input value={bkashMerchantNumber} onChange={(e) => setBkashMerchantNumber(e.target.value)} className="rounded-none" />
+                <Input
+                  value={bkashMerchantNumber}
+                  onChange={(e) => setBkashMerchantNumber(e.target.value)}
+                  disabled={currentUserRole !== 'superadmin'}
+                  placeholder="e.g. 01712345678"
+                  className="rounded-none disabled:bg-neutral-100 disabled:cursor-not-allowed"
+                />
               </div>
               <div>
                 <label className="text-xs font-medium text-foreground uppercase tracking-wider block mb-1">
-                  Nagad Merchant / Personal No.
+                  Nagad Merchant / Personal No. {currentUserRole !== 'superadmin' && <span className="text-[10px] text-amber-600 font-mono font-normal">(Superadmin Only)</span>}
                 </label>
-                <Input value={nagadMerchantNumber} onChange={(e) => setNagadMerchantNumber(e.target.value)} className="rounded-none" />
+                <Input
+                  value={nagadMerchantNumber}
+                  onChange={(e) => setNagadMerchantNumber(e.target.value)}
+                  disabled={currentUserRole !== 'superadmin'}
+                  placeholder="e.g. 01812345678"
+                  className="rounded-none disabled:bg-neutral-100 disabled:cursor-not-allowed"
+                />
               </div>
             </div>
 

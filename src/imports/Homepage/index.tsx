@@ -63,10 +63,10 @@ function Frame8() {
 function Frame6() {
   return (
     <div className="content-stretch flex flex-[1_0_0] items-end justify-between min-w-px relative max-md:flex-col max-md:items-start max-md:gap-[20px]">
-      <div className="[word-break:break-word] font-serif font-bold leading-[0] relative shrink-0 text-[110px] max-md:text-[56px] text-black tracking-[-3.3px] max-md:tracking-[-1.5px] whitespace-nowrap">
-        <p className="leading-[110px] max-md:leading-[56px] mb-0">Your game.</p>
-        <p className="leading-[110px] max-md:leading-[56px]">Your Design.</p>
-      </div>
+      <h1 className="[word-break:break-word] font-serif font-bold leading-[0] relative shrink-0 text-[110px] max-md:text-[56px] text-black tracking-[-3.3px] max-md:tracking-[-1.5px] whitespace-nowrap">
+        <span className="block leading-[110px] max-md:leading-[56px] mb-0">Your game.</span>
+        <span className="block leading-[110px] max-md:leading-[56px]">Your Design.</span>
+      </h1>
       <Frame8 />
     </div>
   );

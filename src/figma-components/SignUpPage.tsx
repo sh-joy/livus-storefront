@@ -5,7 +5,7 @@ import { InputField } from "./InputField";
 import { SiteNav } from "./SiteNav";
 import { SiteFooter } from "./SiteFooter";
 import { authClient } from "@/lib/auth-client";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 import signupPhoto from "@/imports/SignUp/147bb3d7a50a487cfcb2163c878fc1a5c25e19e6.png";
 
 import { sendOtpVerificationAction, registerCustomerRecordAction } from "@/app/actions/auth-actions";
@@ -19,6 +19,7 @@ export function SignUpPage() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [newsletter, setNewsletter] = useState(true);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -175,7 +176,24 @@ export function SignUpPage() {
               <InputField label="Name" value={name} onChange={setName} variant="dark" autoComplete="name" />
               <InputField label="Phone number" type="tel" value={phone} onChange={setPhone} variant="dark" autoComplete="tel" />
               <InputField label="Email address" type="email" value={email} onChange={setEmail} variant="dark" autoComplete="email" />
-              <InputField label="Password" type="password" value={password} onChange={setPassword} variant="dark" autoComplete="new-password" />
+              <div className="relative w-full">
+                <InputField
+                  label="Password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={setPassword}
+                  variant="dark"
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute right-0 top-6 p-2 text-neutral-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
 
             {/* Newsletter checkbox */}

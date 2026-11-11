@@ -221,9 +221,9 @@ export default function AllProductsClient({ products = [] }: { products?: Produc
           <div className="flex flex-row items-center justify-center size-full">
             <div className="content-stretch flex items-center justify-center pt-[100px] max-md:pt-[32px] px-[36px] max-md:px-[16px] relative size-full">
               <div className="content-stretch flex flex-[1_0_0] items-end justify-between min-w-px relative max-md:flex-col max-md:items-start max-md:gap-[16px]">
-                <p className="[word-break:break-word] font-serif font-bold leading-[110px] max-md:leading-[64px] relative shrink-0 text-[110px] max-md:text-[64px] text-black tracking-[-3.3px] max-md:tracking-[-1.5px] whitespace-nowrap">
+                <h1 className="[word-break:break-word] font-serif font-bold leading-[110px] max-md:leading-[64px] relative shrink-0 text-[110px] max-md:text-[64px] text-black tracking-[-3.3px] max-md:tracking-[-1.5px] whitespace-nowrap">
                   Explore All.
-                </p>
+                </h1>
                 <div className="content-stretch flex flex-col items-end justify-center pb-[20px] relative shrink-0 w-[450px] max-md:w-full max-md:items-start max-md:pb-0">
                   <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[20px] max-md:!text-[16px] text-black text-right max-md:text-left tracking-[-0.1px] w-full">
                     Explore our complete collection of handcrafted apparel, luxury wear, and modern design drops.

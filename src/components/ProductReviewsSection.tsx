@@ -210,9 +210,11 @@ export function ProductReviewsSection({ productId, productName }: ProductReviews
 
                 <div className="flex items-center gap-2 mt-1">
                   <span className="font-semibold text-sm text-neutral-900">{rev.customerName}</span>
-                  <span className="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 uppercase tracking-wide font-medium flex items-center gap-1">
-                    <CheckCircle2 className="size-3" /> Verified Buyer
-                  </span>
+                  {rev.isVerifiedBuyer && (
+                    <span className="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 uppercase tracking-wide font-medium flex items-center gap-1">
+                      <CheckCircle2 className="size-3" /> Verified Buyer
+                    </span>
+                  )}
                 </div>
 
                 {rev.headline && (

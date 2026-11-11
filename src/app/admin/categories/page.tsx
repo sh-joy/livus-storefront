@@ -5,7 +5,13 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { fetchAdminCategories, createAdminCategoryAction, deleteAdminCategoryAction } from "@/app/actions/admin-actions";
+import {
+  fetchAdminCategories,
+  createAdminCategoryAction,
+  deleteAdminCategoryAction,
+  fetchAdminProductTypesAction,
+  updateAdminProductTypesAction,
+} from "@/app/actions/admin-actions";
 import { Plus, Trash2, Edit, Layers, Tag, AlertTriangle } from "lucide-react";
 
 interface CategoryRow {
@@ -15,32 +21,12 @@ interface CategoryRow {
   description: string;
 }
 
-const defaultProductTypes = [
-  "Shirt",
-  "Pant",
-  "Two Piece",
-  "Jersey",
-  "Hoodie",
-  "Jacket",
-  "Shorts",
-  "Casual",
-  "Other",
-];
-
-const defaultCollections: CategoryRow[] = [
-  { id: "cat-min", name: "Minimal", slug: "minimal", description: "Clean minimalist aesthetic apparel" },
-  { id: "cat-div", name: "Divine", slug: "divine", description: "High-fashion luxury aesthetic" },
-  { id: "cat-cas", name: "Casual", slug: "casual", description: "Everyday streetwear aesthetic" },
-  { id: "cat-gam", name: "Gaming", slug: "gaming", description: "Esports & geometric performance apparel" },
-  { id: "cat-flo", name: "Floral", slug: "floral", description: "Botanical and nature pattern aesthetic" },
-];
-
 export default function AdminCategoriesPage() {
   // Only 2 Tabs: "categories" | "types"
   const [activeTab, setActiveTab] = useState<"categories" | "types">("categories");
 
-  const [categories, setCategories] = useState<CategoryRow[]>(defaultCollections);
-  const [productTypes, setProductTypes] = useState<string[]>(defaultProductTypes);
+  const [categories, setCategories] = useState<CategoryRow[]>([]);
+  const [productTypes, setProductTypes] = useState<string[]>([]);
 
   const [loading, setLoading] = useState(true);
 
@@ -62,33 +48,18 @@ export default function AdminCategoriesPage() {
 
   const loadData = async () => {
     setLoading(true);
-    const data = await fetchAdminCategories();
-    
-    // Filter out legacy gender items
-    const dbFiltered = data.filter(c =>
-      !["for him", "for her", "unisex", "unisex / minimal"].includes(c.name.toLowerCase().trim())
-    );
-
-    // Merge DB categories with default aesthetic collections to prevent deletion loss
-    const map = new Map<string, CategoryRow>();
-    defaultCollections.forEach(c => map.set(c.slug, c));
-    dbFiltered.forEach(c => map.set(c.slug, c));
-
-    setCategories(Array.from(map.values()));
-
-    if (typeof window !== "undefined") {
-      const storedTypes = localStorage.getItem("my_store_product_types");
-      if (storedTypes) {
-        try {
-          const parsed = JSON.parse(storedTypes);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setProductTypes(parsed);
-          }
-        } catch (e) {}
-      }
+    try {
+      const [cats, types] = await Promise.all([
+        fetchAdminCategories(),
+        fetchAdminProductTypesAction(),
+      ]);
+      setCategories(cats || []);
+      setProductTypes(types || []);
+    } catch (err) {
+      console.error("Failed to load categories/types:", err);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -167,47 +138,42 @@ export default function AdminCategoriesPage() {
   const confirmDeleteCategory = async () => {
     if (!categoryToDelete) return;
     setCategories(categories.filter((c) => c.id !== categoryToDelete.id && c.slug !== categoryToDelete.slug));
-    if (categoryToDelete.id && !categoryToDelete.id.startsWith("cat-")) {
+    if (categoryToDelete.id) {
       await deleteAdminCategoryAction(categoryToDelete.id);
+      await loadData();
     }
     setCategoryToDelete(null);
   };
 
   // Add Product Type Handler
-  const handleAddProductType = (e: React.FormEvent) => {
+  const handleAddProductType = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
     const updated = Array.from(new Set([...productTypes, name.trim()]));
     setProductTypes(updated);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("my_store_product_types", JSON.stringify(updated));
-    }
+    await updateAdminProductTypesAction(updated);
     setName("");
     setIsAddOpen(false);
   };
 
   // Edit Product Type Handler
-  const handleEditProductType = (e: React.FormEvent) => {
+  const handleEditProductType = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingTypeOriginal || !editingTypeName.trim()) return;
 
     const updated = productTypes.map((t) => (t === editingTypeOriginal ? editingTypeName.trim() : t));
     setProductTypes(updated);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("my_store_product_types", JSON.stringify(updated));
-    }
+    await updateAdminProductTypesAction(updated);
     setEditingTypeOriginal(null);
     setEditingTypeName("");
   };
 
   // Confirm & Delete Product Type Action
-  const confirmDeleteProductType = () => {
+  const confirmDeleteProductType = async () => {
     if (!typeToDelete) return;
     const updated = productTypes.filter((t) => t !== typeToDelete);
     setProductTypes(updated);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("my_store_product_types", JSON.stringify(updated));
-    }
+    await updateAdminProductTypesAction(updated);
     setTypeToDelete(null);
   };
 

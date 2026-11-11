@@ -60,200 +60,8 @@ interface OrderRecord {
   items: OrderItem[];
 }
 
-// Fallback Mock Orders matching exact OrderRecord schema
-const FALLBACK_ORDERS: OrderRecord[] = [
-  {
-    id: "ORD-9021",
-    orderNumber: "#ORD-9021",
-    customerName: "Liam Martinez",
-    phone: "+8801712345678",
-    email: "liam@example.com",
-    shippingAddress: "House 12, Road 5, Dhanmondi",
-    city: "Dhaka",
-    district: "Dhaka Division",
-    subtotalBdt: 2450,
-    vatBdt: 0,
-    deliveryChargeBdt: 100,
-    discountBdt: 0,
-    totalAmount: 2550,
-    paymentMethod: "Cash on Delivery",
-    paymentStatus: "Pending",
-    status: "Shipped",
-    createdAt: "04/25/2026",
-    items: [{ productId: "p1", productName: "Wireless Headphones", quantity: 1, priceBdt: 2450 }],
-  },
-  {
-    id: "ORD-9022",
-    orderNumber: "#ORD-9022",
-    customerName: "Noah Kim",
-    phone: "+8801812345679",
-    email: "noah@example.com",
-    shippingAddress: "GEC Circle, Chittagong",
-    city: "Chittagong",
-    district: "Chittagong Division",
-    subtotalBdt: 1200,
-    vatBdt: 0,
-    deliveryChargeBdt: 120,
-    discountBdt: 0,
-    totalAmount: 1320,
-    paymentMethod: "bKash",
-    paymentStatus: "Paid",
-    status: "Processing",
-    createdAt: "04/23/2026",
-    items: [{ productId: "p2", productName: "Hardcover Novel", quantity: 1, priceBdt: 1200 }],
-  },
-  {
-    id: "ORD-9023",
-    orderNumber: "#ORD-9023",
-    customerName: "Emma Johnson",
-    phone: "+8801912345680",
-    email: "emma@example.com",
-    shippingAddress: "Zindabazar, Sylhet",
-    city: "Sylhet",
-    district: "Sylhet Division",
-    subtotalBdt: 4500,
-    vatBdt: 0,
-    deliveryChargeBdt: 150,
-    discountBdt: 200,
-    totalAmount: 4450,
-    paymentMethod: "Cash on Delivery",
-    paymentStatus: "Pending",
-    status: "Processing",
-    createdAt: "04/24/2026",
-    items: [{ productId: "p3", productName: "LED Desk Lamp", quantity: 2, priceBdt: 2250 }],
-  },
-  {
-    id: "ORD-9024",
-    orderNumber: "#ORD-9024",
-    customerName: "John Abraham",
-    phone: "+8801612345681",
-    email: "john@example.com",
-    shippingAddress: "Banani 11, Dhaka",
-    city: "Dhaka",
-    district: "Dhaka Division",
-    subtotalBdt: 1450,
-    vatBdt: 0,
-    deliveryChargeBdt: 60,
-    discountBdt: 0,
-    totalAmount: 1510,
-    paymentMethod: "Cash on Delivery",
-    paymentStatus: "Pending",
-    status: "Pending",
-    createdAt: "04/23/2026",
-    items: [{ productId: "p4", productName: "100M Leads Book", quantity: 1, priceBdt: 1450 }],
-  },
-  {
-    id: "ORD-9025",
-    orderNumber: "#ORD-9025",
-    customerName: "Sophia Lee",
-    phone: "+8801512345682",
-    email: "sophia@example.com",
-    shippingAddress: "Shaheb Bazar, Rajshahi",
-    city: "Rajshahi",
-    district: "Rajshahi Division",
-    subtotalBdt: 3200,
-    vatBdt: 0,
-    deliveryChargeBdt: 120,
-    discountBdt: 0,
-    totalAmount: 3320,
-    paymentMethod: "Nagad",
-    paymentStatus: "Paid",
-    status: "Cancelled",
-    createdAt: "04/22/2026",
-    items: [{ productId: "p5", productName: "Yoga Mat Blue", quantity: 1, priceBdt: 3200 }],
-  },
-  {
-    id: "ORD-9026",
-    orderNumber: "#ORD-9026",
-    customerName: "Ethan Davis",
-    phone: "+8801312345683",
-    email: "ethan@example.com",
-    shippingAddress: "Uttara Sector 7, Dhaka",
-    city: "Dhaka",
-    district: "Dhaka Division",
-    subtotalBdt: 14500,
-    vatBdt: 0,
-    deliveryChargeBdt: 0,
-    discountBdt: 500,
-    totalAmount: 14000,
-    paymentMethod: "Cash on Delivery",
-    paymentStatus: "Paid (COD Collected)",
-    status: "Delivered",
-    createdAt: "04/21/2026",
-    items: [{ productId: "p6", productName: "Livus Apex Jersey", quantity: 2, priceBdt: 7250 }],
-  },
-  {
-    id: "ORD-9027",
-    orderNumber: "#ORD-9027",
-    customerName: "Olivia Wilson",
-    phone: "+8801412345684",
-    email: "olivia@example.com",
-    shippingAddress: "Koyla Ghat, Khulna",
-    city: "Khulna",
-    district: "Khulna Division",
-    subtotalBdt: 5800,
-    vatBdt: 0,
-    deliveryChargeBdt: 120,
-    discountBdt: 0,
-    totalAmount: 5920,
-    paymentMethod: "bKash",
-    paymentStatus: "Paid",
-    status: "Shipped",
-    createdAt: "04/20/2026",
-    items: [{ productId: "p7", productName: "Heavyweight Hoodie", quantity: 1, priceBdt: 5800 }],
-  },
-  {
-    id: "ORD-9028",
-    orderNumber: "#ORD-9028",
-    customerName: "Mason Taylor",
-    phone: "+8801712345685",
-    email: "mason@example.com",
-    shippingAddress: "Sadot Bazar, Barishal",
-    city: "Barishal",
-    district: "Barishal Division",
-    subtotalBdt: 1800,
-    vatBdt: 0,
-    deliveryChargeBdt: 120,
-    discountBdt: 0,
-    totalAmount: 1920,
-    paymentMethod: "Cash on Delivery",
-    paymentStatus: "Pending",
-    status: "Processing",
-    createdAt: "04/19/2026",
-    items: [{ productId: "p8", productName: "Classic Cotton Tee", quantity: 1, priceBdt: 1800 }],
-  },
-  {
-    id: "ORD-9029",
-    orderNumber: "#ORD-9029",
-    customerName: "Ava Anderson",
-    phone: "+8801812345686",
-    email: "ava@example.com",
-    shippingAddress: "Town Hall, Mymensingh",
-    city: "Mymensingh",
-    district: "Mymensingh Division",
-    subtotalBdt: 2900,
-    vatBdt: 0,
-    deliveryChargeBdt: 100,
-    discountBdt: 0,
-    totalAmount: 3000,
-    paymentMethod: "Cash on Delivery",
-    paymentStatus: "Paid (COD Collected)",
-    status: "Delivered",
-    createdAt: "04/18/2026",
-    items: [{ productId: "p9", productName: "Minimalist Leather Cardholder", quantity: 1, priceBdt: 2900 }],
-  },
-];
-
-// Revenue Chart Days Data
-const REVENUE_CHART_DATA = [
-  { day: "13 Jul", revenue: 12000, expense: 19000 },
-  { day: "14 Jul", revenue: 18000, expense: 22000 },
-  { day: "15 Jul", revenue: 31000, expense: 15000 },
-  { day: "16 Jul", revenue: 26532, expense: 20341, highlighted: true },
-  { day: "17 Jul", revenue: 24000, expense: 18000 },
-  { day: "18 Jul", revenue: 27000, expense: 17000 },
-  { day: "19 Jul", revenue: 41000, expense: 9500 },
-];
+// Empty fallback list when DB has no orders
+const FALLBACK_ORDERS: OrderRecord[] = [];
 
 const TIME_RANGES = [
   { label: "24H", value: "24h" },
@@ -275,9 +83,7 @@ export default function AdminDashboardPage() {
   const [recordsPerPage, setRecordsPerPage] = useState(9);
   const [currentPage, setCurrentPage] = useState(1);
   const [sidebarOrder, setSidebarOrder] = useState<OrderRecord | null>(null);
-  const [hoveredDataPoint, setHoveredDataPoint] = useState<typeof REVENUE_CHART_DATA[0] | null>(
-    REVENUE_CHART_DATA.find((d) => d.highlighted) || REVENUE_CHART_DATA[3]
-  );
+
 
   const [quickActionOpen, setQuickActionOpen] = useState(false);
   const [timeFilterLabel, setTimeFilterLabel] = useState("Last 24 hours");
@@ -313,6 +119,10 @@ export default function AdminDashboardPage() {
 
     return matchesStatus && matchesQuery;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / recordsPerPage));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const paginatedOrders = filteredOrders.slice((safeCurrentPage - 1) * recordsPerPage, safeCurrentPage * recordsPerPage);
 
   const activeFilterCount = statusFilter !== "all" ? 1 : 0;
 
@@ -481,10 +291,6 @@ export default function AdminDashboardPage() {
           <p className="text-xs uppercase font-medium text-neutral-500">Gross Sales</p>
           <div className="flex items-center gap-2 mt-2">
             <p className="text-2xl font-bold text-neutral-900 font-mono">৳{totalGrossRevenue.toLocaleString()}</p>
-            <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-emerald-600">
-              <TrendingUp className="size-3.5" />
-              +2.4%
-            </span>
           </div>
           <p className="text-[11px] text-neutral-400 mt-1">From confirmed client orders</p>
         </div>
@@ -528,245 +334,6 @@ export default function AdminDashboardPage() {
 
       </div>
 
-
-      {/* 3. MIDDLE SECTION: Revenue Chart + Social Impressions Breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-
-        {/* LEFT 2/3 COLUMN: Total Revenue Interactive Dual-Line Chart */}
-        <div className="lg:col-span-2 border border-neutral-200 bg-white p-5 font-sans rounded-none shadow-none flex flex-col justify-between relative">
-          
-          {/* Chart Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <div>
-              <p className="text-xs uppercase font-medium text-neutral-500">Total Revenue</p>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-2xl font-bold text-neutral-900 font-mono">
-                  $38,274
-                </span>
-                <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-emerald-600">
-                  <TrendingUp className="size-3.5" />
-                  +1.3%
-                </span>
-              </div>
-            </div>
-
-            {/* Chart Legend */}
-            <div className="flex items-center gap-4 text-xs font-medium text-neutral-600">
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-none bg-emerald-500" />
-                <span>Revenue</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-none bg-amber-500" />
-                <span>Expense</span>
-              </div>
-            </div>
-          </div>
-
-          {/* SVG Line Chart Canvas */}
-          <div className="relative w-full h-[240px] flex items-end">
-
-            {/* Y-Axis Grid Lines & Labels */}
-            <div className="absolute inset-0 flex flex-col justify-between text-[11px] font-mono text-neutral-400 pointer-events-none">
-              <div className="border-b border-dashed border-neutral-200 pb-1">45k</div>
-              <div className="border-b border-dashed border-neutral-200 pb-1">32k</div>
-              <div className="border-b border-dashed border-neutral-200 pb-1">24k</div>
-              <div className="border-b border-dashed border-neutral-200 pb-1">16k</div>
-              <div className="border-b border-dashed border-neutral-200 pb-1">0</div>
-            </div>
-
-            {/* SVG Line Paths with Curve Area Fill */}
-            <svg className="w-full h-[190px] overflow-visible z-10" viewBox="0 0 700 190" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
-                  <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
-
-              {/* Dotted Vertical Guide line for hovered day */}
-              <line x1="690" y1="0" x2="690" y2="190" stroke="#d4d4d4" strokeDasharray="3 3" strokeWidth="1.5" />
-
-              {/* Area Gradient Fill under Revenue curve */}
-              <path
-                d="M 10 155 Q 110 115, 210 45 T 350 75 T 490 55 T 690 10 L 690 190 L 10 190 Z"
-                fill="url(#revenueGradient)"
-              />
-
-              {/* Expense Line Path (Orange/Amber) */}
-              <path
-                d="M 10 115 Q 110 75, 210 125 T 350 105 T 490 125 T 690 155"
-                fill="none"
-                stroke="#f59e0b"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              />
-
-              {/* Revenue Line Path (Emerald Green) */}
-              <path
-                d="M 10 155 Q 110 115, 210 45 T 350 75 T 490 55 T 690 10"
-                fill="none"
-                stroke="#10b981"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              />
-
-              {/* Data points on 19 Jul */}
-              <circle cx="690" cy="10" r="5" fill="#10b981" stroke="#ffffff" strokeWidth="2" />
-              <circle cx="690" cy="155" r="5" fill="#f59e0b" stroke="#ffffff" strokeWidth="2" />
-            </svg>
-
-            {/* Hover Tooltip Card */}
-            <div
-              className="absolute right-[5px] top-[10%] bg-white border border-neutral-300 shadow-md p-3 z-20 font-sans rounded-none"
-              style={{ width: "160px" }}
-            >
-              <div className="text-xs font-bold text-neutral-900 border-b border-neutral-100 pb-1 mb-1.5">
-                19 Jul, 2026
-              </div>
-              <div className="text-[12px] text-neutral-600 flex justify-between items-center font-mono">
-                <span className="text-neutral-500 font-sans">Revenue:</span>
-                <span className="font-bold text-emerald-600">$26,532</span>
-              </div>
-              <div className="text-[12px] text-neutral-600 flex justify-between items-center font-mono mt-0.5">
-                <span className="text-neutral-500 font-sans">Expense:</span>
-                <span className="font-bold text-amber-600">$20,341</span>
-              </div>
-            </div>
-          </div>
-
-          {/* X-Axis Date Labels */}
-          <div className="flex justify-between text-xs text-neutral-500 font-mono mt-4 pt-2 border-t border-neutral-100">
-            {REVENUE_CHART_DATA.map((item) => (
-              <span
-                key={item.day}
-                onMouseEnter={() => setHoveredDataPoint(item)}
-                className={`cursor-pointer transition-colors ${item.day === "19 Jul" ? "text-black font-bold border-b border-black" : "hover:text-black"}`}
-              >
-                {item.day}
-              </span>
-            ))}
-          </div>
-
-        </div>
-
-        {/* RIGHT 1/3 COLUMN: Total Impressions & Social Breakdown */}
-        <div className="border border-neutral-200 bg-white p-5 font-sans rounded-none shadow-none flex flex-col justify-between">
-          <div>
-            <p className="text-xs uppercase font-medium text-neutral-500">Total Impressions</p>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-2xl font-bold text-neutral-900 font-mono">
-                275k
-              </span>
-              <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-emerald-600">
-                <TrendingUp className="size-3.5" />
-                +1.3%
-              </span>
-            </div>
-
-            {/* Social Proportion Segmented Color Bar */}
-            <div className="mt-4 flex h-3 w-full rounded-none overflow-hidden gap-0.5 border border-neutral-100">
-              <div className="bg-blue-600 h-full" style={{ width: "46%" }} title="Facebook (46%)" />
-              <div className="bg-rose-500 h-full" style={{ width: "22%" }} title="Instagram (22%)" />
-              <div className="bg-amber-400 h-full" style={{ width: "8%" }} title="X (8%)" />
-              <div className="bg-indigo-600 h-full" style={{ width: "6%" }} title="LinkedIn (6%)" />
-              <div className="bg-purple-600 h-full" style={{ width: "3%" }} title="Threads (3%)" />
-              <div className="bg-neutral-200 h-full" style={{ width: "15%" }} title="Direct (15%)" />
-            </div>
-
-            {/* Social Channels Legend */}
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-[11px] text-neutral-500 font-medium">
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-none bg-blue-600" /> Facebook</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-none bg-rose-500" /> Instagram</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-none bg-amber-400" /> X</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-none bg-indigo-600" /> LinkedIn</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-none bg-purple-600" /> Threads</span>
-            </div>
-          </div>
-
-          {/* Social Channels List with User-Uploaded Brand Images */}
-          <div className="mt-6 flex flex-col gap-3.5 border-t border-neutral-100 pt-4">
-            
-            {/* Facebook */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <img
-                  src="/images/social/facebook.png"
-                  alt="Facebook"
-                  className="w-7 h-7 rounded-full object-cover shrink-0"
-                />
-                <span className="text-xs font-semibold text-neutral-800">Facebook</span>
-              </div>
-              <div className="text-xs text-neutral-500 font-mono">
-                <span className="font-bold text-neutral-900">162.4k</span> <span className="text-neutral-400">(46%)</span>
-              </div>
-            </div>
-
-            {/* Instagram */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <img
-                  src="/images/social/instagram.png"
-                  alt="Instagram"
-                  className="w-7 h-7 rounded-full object-cover shrink-0"
-                />
-                <span className="text-xs font-semibold text-neutral-800">Instagram</span>
-              </div>
-              <div className="text-xs text-neutral-500 font-mono">
-                <span className="font-bold text-neutral-900">32.6K</span> <span className="text-neutral-400">(22%)</span>
-              </div>
-            </div>
-
-            {/* X (Twitter) */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <img
-                  src="/images/social/x.png"
-                  alt="X"
-                  className="w-7 h-7 rounded-full object-cover shrink-0"
-                />
-                <span className="text-xs font-semibold text-neutral-800">X</span>
-              </div>
-              <div className="text-xs text-neutral-500 font-mono">
-                <span className="font-bold text-neutral-900">12.7K</span> <span className="text-neutral-400">(8%)</span>
-              </div>
-            </div>
-
-            {/* LinkedIn */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <img
-                  src="/images/social/linkedin.png"
-                  alt="LinkedIn"
-                  className="w-7 h-7 rounded-full object-cover shrink-0"
-                />
-                <span className="text-xs font-semibold text-neutral-800">LinkedIn</span>
-              </div>
-              <div className="text-xs text-neutral-500 font-mono">
-                <span className="font-bold text-neutral-900">4.9K</span> <span className="text-neutral-400">(6%)</span>
-              </div>
-            </div>
-
-            {/* Threads */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <img
-                  src="/images/social/threads.png"
-                  alt="Threads"
-                  className="w-7 h-7 rounded-full object-cover shrink-0"
-                />
-                <span className="text-xs font-semibold text-neutral-800">Threads</span>
-              </div>
-              <div className="text-xs text-neutral-500 font-mono">
-                <span className="font-bold text-neutral-900">1.8K</span> <span className="text-neutral-400">(3%)</span>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
 
       {/* Side Slide-Over Filter Drawer Modal */}
       {isFilterDrawerOpen && (
@@ -902,7 +469,7 @@ export default function AdminDashboardPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredOrders.map((ord) => {
+                paginatedOrders.map((ord) => {
                   const isSelected = selectedIds.includes(ord.id);
                   const itemCount = ord.items?.length || 1;
 
@@ -997,41 +564,31 @@ export default function AdminDashboardPage() {
             <div className="flex items-center gap-1">
               <button
                 type="button"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(currentPage - 1)}
+                disabled={safeCurrentPage <= 1}
+                onClick={() => setCurrentPage(Math.max(1, safeCurrentPage - 1))}
                 className="p-1.5 border border-neutral-200 rounded-none hover:bg-neutral-50 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               >
                 <ChevronLeft className="size-3.5" />
               </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pNum) => (
+                <button
+                  key={pNum}
+                  type="button"
+                  onClick={() => setCurrentPage(pNum)}
+                  className={`px-2.5 py-1 font-medium rounded-none text-xs transition-colors ${
+                    pNum === safeCurrentPage
+                      ? "bg-black text-white"
+                      : "hover:bg-neutral-100 text-neutral-600"
+                  }`}
+                >
+                  {pNum}
+                </button>
+              ))}
               <button
                 type="button"
-                className="px-2.5 py-1 bg-black text-white font-medium rounded-none text-xs"
-              >
-                1
-              </button>
-              <button
-                type="button"
-                className="px-2.5 py-1 hover:bg-neutral-100 text-neutral-600 font-medium rounded-none text-xs transition-colors"
-              >
-                2
-              </button>
-              <span className="px-1 text-neutral-400">...</span>
-              <button
-                type="button"
-                className="px-2.5 py-1 hover:bg-neutral-100 text-neutral-600 font-medium rounded-none text-xs transition-colors"
-              >
-                12
-              </button>
-              <button
-                type="button"
-                className="px-2.5 py-1 hover:bg-neutral-100 text-neutral-600 font-medium rounded-none text-xs transition-colors"
-              >
-                13
-              </button>
-              <button
-                type="button"
-                onClick={() => setCurrentPage(currentPage + 1)}
-                className="p-1.5 border border-neutral-200 rounded-none hover:bg-neutral-50 cursor-pointer"
+                disabled={safeCurrentPage >= totalPages}
+                onClick={() => setCurrentPage(Math.min(totalPages, safeCurrentPage + 1))}
+                className="p-1.5 border border-neutral-200 rounded-none hover:bg-neutral-50 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               >
                 <ChevronRight className="size-3.5" />
               </button>

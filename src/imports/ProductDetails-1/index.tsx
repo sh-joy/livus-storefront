@@ -391,7 +391,7 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
             {/* Header Title & Price */}
             <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full">
               <div className="[word-break:break-word] content-stretch flex flex-col gap-[16px] max-md:gap-[10px] items-start relative shrink-0 w-full">
-                <p
+                <h1
                   className="font-serif font-semibold relative shrink-0 text-[#1c1c1c]"
                   style={{
                     fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
@@ -401,7 +401,7 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
                   }}
                 >
                   {productName}
-                </p>
+                </h1>
                 <div className="content-stretch flex flex-wrap font-sans gap-[8px] items-start leading-[24px] relative shrink-0 whitespace-nowrap">
                   <p className="relative shrink-0 text-[#1c1c1c] text-[24px] font-medium">
                     {priceBdt}

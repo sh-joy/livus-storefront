@@ -193,7 +193,15 @@ export const storeSettings = pgTable('store_settings', {
   defaultDeliveryChargeBdt: integer('default_delivery_charge_bdt').default(150).notNull(),
   bKashMerchantNumber: text('bkash_merchant_number').default('').notNull(),
   nagadMerchantNumber: text('nagad_merchant_number').default('').notNull(),
+  productTypes: text('product_types'),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// 16. Rate Limits (Vercel serverless sliding rate limiter)
+export const rateLimits = pgTable('rate_limits', {
+  key: text('key').primaryKey(),
+  count: integer('count').default(1).notNull(),
+  resetAt: timestamp('reset_at').notNull(),
 });
 
 // Drizzle Relational Mappings

@@ -268,8 +268,11 @@ export async function cancelCustomerOrderAction(orderIdOrNumber: string, guestPh
     const cleanKey = (orderIdOrNumber || '').trim();
     if (!cleanKey) return { success: false, message: 'Order reference is required.' };
 
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanKey);
     const ord = await db.query.orders.findFirst({
-      where: or(eq(orders.id, cleanKey), eq(orders.orderNumber, cleanKey.toUpperCase())),
+      where: isUuid
+        ? or(eq(orders.id, cleanKey), eq(orders.orderNumber, cleanKey.toUpperCase()))
+        : eq(orders.orderNumber, cleanKey.toUpperCase()),
       with: { items: true },
     });
 

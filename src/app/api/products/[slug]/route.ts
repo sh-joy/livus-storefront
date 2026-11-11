@@ -21,7 +21,7 @@ export async function GET(
         },
       });
 
-      if (product) {
+      if (product && product.isActive) {
         return NextResponse.json({ success: true, product });
       }
     }
@@ -29,21 +29,9 @@ export async function GET(
     console.error(`Error fetching product [${slug}] from DB:`, error);
   }
 
-  // Fallback default response for oakwood-long-sleeve
-  return NextResponse.json({
-    success: true,
-    product: {
-      id: 'oakwood-long-sleeve',
-      name: 'Oakwood Long sleeve',
-      slug: 'oakwood-long-sleeve',
-      description: 'Ultralight recycled mesh long sleeve in race fit with bonded seams and a silicone logo.',
-      priceBdt: 899,
-      originalPriceBdt: 1199,
-      variants: [
-        { name: 'Yellow', isLowStock: true },
-        { name: 'Black', isLowStock: false },
-        { name: 'Grey', isLowStock: false },
-      ],
-    },
-  });
+  // H7: Unknown slugs or inactive products must return 404
+  return NextResponse.json(
+    { success: false, message: 'Product not found' },
+    { status: 404 }
+  );
 }

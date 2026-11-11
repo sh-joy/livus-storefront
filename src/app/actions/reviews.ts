@@ -52,6 +52,28 @@ export async function fetchProductReviewsAction(productId: string): Promise<Prod
 
     if (rows.length === 0) return emptySummary;
 
+    // E7: Check delivered orders for this product to grant "Verified Buyer" only to real buyers
+    const verifiedBuyerEmails = new Set<string>();
+    try {
+      const deliveredRows = await db
+        .select({ email: orders.email })
+        .from(orders)
+        .innerJoin(orderItems, eq(orderItems.orderId, orders.id))
+        .where(
+          and(
+            eq(orderItems.productId, productId),
+            eq(orders.status, 'Delivered')
+          )
+        );
+      for (const row of deliveredRows) {
+        if (row.email) {
+          verifiedBuyerEmails.add(row.email.trim().toLowerCase());
+        }
+      }
+    } catch (err) {
+      console.warn('Verified buyer lookup error:', err);
+    }
+
     const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
     let sum = 0;
 
@@ -60,16 +82,21 @@ export async function fetchProductReviewsAction(productId: string): Promise<Prod
       distribution[ratingKey] = (distribution[ratingKey] || 0) + 1;
       sum += r.rating;
 
+      const isVerifiedBuyer = Boolean(
+        r.customerEmail && verifiedBuyerEmails.has(r.customerEmail.trim().toLowerCase())
+      );
+
       return {
         id: r.id,
         productId: r.productId,
         customerName: r.customerName,
-        customerEmail: r.customerEmail,
+        customerEmail: undefined, // C4: NEVER return reviewer emails to the public browser
         rating: r.rating,
         headline: r.headline,
         comment: r.comment,
         status: r.status as 'Pending' | 'Approved' | 'Rejected',
         createdAt: r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Recently',
+        isVerifiedBuyer,
       };
     });
 

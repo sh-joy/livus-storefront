@@ -154,64 +154,64 @@ export async function placeOrderAction(data: CheckoutFormValues & { promoCode?: 
     return { success: false, message: 'Street address is required for delivery.' };
   }
 
-  // 3. Take the stock first atomically so two shoppers cannot buy the last unit
+  // E1 & P0.2 & P0.3: Enforce configured merchant numbers & unique TrxID check BEFORE taking stock
+  const storeSettingsRow = await db.query.storeSettings.findFirst({ where: eq(storeSettings.id, 'general') });
+
+  let paymentMethodLabel = 'Cash on Delivery';
+  let paymentStatusLabel = 'Unpaid (COD)';
+  let verifiedTrxId: string | null = null;
+  let verifiedSenderPhone: string | null = null;
+
+  if (payload.paymentMethod === 'bkash') {
+    const configuredNumber = (storeSettingsRow?.bKashMerchantNumber || '').trim();
+    if (!/^01[3-9]\d{8}$/.test(configuredNumber)) {
+      return { success: false, message: 'bKash payments are currently unavailable. Please choose Cash on Delivery.' };
+    }
+    const cleanTrx = (payload.trxId || '').trim().toUpperCase();
+    if (!cleanTrx || !/^[A-Za-z0-9]{8,16}$/.test(cleanTrx)) {
+      return { success: false, message: 'Please provide a valid 8-16 character alphanumeric bKash Transaction ID (TrxID).' };
+    }
+    const existingTrx = await db.query.orders.findFirst({
+      where: eq(orders.paymentTrxId, cleanTrx),
+    });
+    if (existingTrx) {
+      return { success: false, message: 'This Transaction ID has already been submitted for another order. Please check and try again.' };
+    }
+    verifiedTrxId = cleanTrx;
+    verifiedSenderPhone = payload.senderPhone ? payload.senderPhone.trim().replace(/\D/g, '') : null;
+    paymentMethodLabel = 'bKash (Manual)';
+    paymentStatusLabel = 'Awaiting Verification';
+  } else if (payload.paymentMethod === 'nagad') {
+    const configuredNumber = (storeSettingsRow?.nagadMerchantNumber || '').trim();
+    if (!/^01[3-9]\d{8}$/.test(configuredNumber)) {
+      return { success: false, message: 'Nagad payments are currently unavailable. Please choose Cash on Delivery.' };
+    }
+    const cleanTrx = (payload.trxId || '').trim().toUpperCase();
+    if (!cleanTrx || !/^[A-Za-z0-9]{8,16}$/.test(cleanTrx)) {
+      return { success: false, message: 'Please provide a valid 8-16 character alphanumeric Nagad Transaction ID (TrxID).' };
+    }
+    const existingTrx = await db.query.orders.findFirst({
+      where: eq(orders.paymentTrxId, cleanTrx),
+    });
+    if (existingTrx) {
+      return { success: false, message: 'This Transaction ID has already been submitted for another order. Please check and try again.' };
+    }
+    verifiedTrxId = cleanTrx;
+    verifiedSenderPhone = payload.senderPhone ? payload.senderPhone.trim().replace(/\D/g, '') : null;
+    paymentMethodLabel = 'Nagad (Manual)';
+    paymentStatusLabel = 'Awaiting Verification';
+  } else if (payload.paymentMethod === 'online') {
+    paymentMethodLabel = 'Online Payment';
+    paymentStatusLabel = 'Awaiting Payment (Online)';
+  }
+
+  // 3. Take the stock atomically only AFTER all payment validations pass
   const reserved = await reserveStock(quote.lines);
   if (!reserved.ok) return { success: false, message: reserved.message };
   const reservedRows = quote.lines.filter((l) => l.stockRowId).map((l) => ({ id: l.stockRowId!, qty: l.quantity }));
 
   try {
     const orderNum = await generateOrderNumber();
-
-    // P0.2 & P0.3: Enforce configured merchant numbers & unique TrxID check
-    const storeSettingsRow = await db.query.storeSettings.findFirst({ where: eq(storeSettings.id, 'general') });
-
-    let paymentMethodLabel = 'Cash on Delivery';
-    let paymentStatusLabel = 'Unpaid (COD)';
-    let verifiedTrxId: string | null = null;
-    let verifiedSenderPhone: string | null = null;
-
-    if (payload.paymentMethod === 'bkash') {
-      const configuredNumber = (storeSettingsRow?.bKashMerchantNumber || '').trim();
-      if (!/^01[3-9]\d{8}$/.test(configuredNumber)) {
-        return { success: false, message: 'bKash payments are currently unavailable. Please choose Cash on Delivery.' };
-      }
-      const cleanTrx = (payload.trxId || '').trim().toUpperCase();
-      if (!cleanTrx || !/^[A-Za-z0-9]{8,16}$/.test(cleanTrx)) {
-        return { success: false, message: 'Please provide a valid 8-16 character alphanumeric bKash Transaction ID (TrxID).' };
-      }
-      const existingTrx = await db.query.orders.findFirst({
-        where: eq(orders.paymentTrxId, cleanTrx),
-      });
-      if (existingTrx) {
-        return { success: false, message: 'This Transaction ID has already been submitted for another order. Please check and try again.' };
-      }
-      verifiedTrxId = cleanTrx;
-      verifiedSenderPhone = payload.senderPhone ? payload.senderPhone.trim().replace(/\D/g, '') : null;
-      paymentMethodLabel = 'bKash (Manual)';
-      paymentStatusLabel = 'Awaiting Verification';
-    } else if (payload.paymentMethod === 'nagad') {
-      const configuredNumber = (storeSettingsRow?.nagadMerchantNumber || '').trim();
-      if (!/^01[3-9]\d{8}$/.test(configuredNumber)) {
-        return { success: false, message: 'Nagad payments are currently unavailable. Please choose Cash on Delivery.' };
-      }
-      const cleanTrx = (payload.trxId || '').trim().toUpperCase();
-      if (!cleanTrx || !/^[A-Za-z0-9]{8,16}$/.test(cleanTrx)) {
-        return { success: false, message: 'Please provide a valid 8-16 character alphanumeric Nagad Transaction ID (TrxID).' };
-      }
-      const existingTrx = await db.query.orders.findFirst({
-        where: eq(orders.paymentTrxId, cleanTrx),
-      });
-      if (existingTrx) {
-        return { success: false, message: 'This Transaction ID has already been submitted for another order. Please check and try again.' };
-      }
-      verifiedTrxId = cleanTrx;
-      verifiedSenderPhone = payload.senderPhone ? payload.senderPhone.trim().replace(/\D/g, '') : null;
-      paymentMethodLabel = 'Nagad (Manual)';
-      paymentStatusLabel = 'Awaiting Verification';
-    } else if (payload.paymentMethod === 'online') {
-      paymentMethodLabel = 'Online Payment';
-      paymentStatusLabel = 'Awaiting Payment (Online)';
-    }
 
     const instructions = [
       payload.deliveryInstructions?.trim(),

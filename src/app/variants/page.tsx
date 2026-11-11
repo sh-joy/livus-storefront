@@ -1,6 +1,7 @@
 'use client';
 
 import React, { Suspense } from 'react';
+import { notFound } from 'next/navigation';
 import { SiteNav } from '@/figma-components/SiteNav';
 import { SiteFooter } from '@/figma-components/SiteFooter';
 import ProductDetails from '@/imports/ProductDetails';
@@ -201,6 +202,10 @@ function DesignVariantsContent() {
 }
 
 export default function DesignVariantsPage() {
+  if (process.env.NODE_ENV === 'production') {
+    notFound();
+  }
+
   return (
     <Suspense fallback={<div className="w-full min-h-screen bg-neutral-900" />}>
       <DesignVariantsContent />

@@ -117,18 +117,19 @@ export function CheckoutPage() {
   const [errors, setErrors]     = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [storeSettingsData, setStoreSettingsData] = useState<{
-    bkashMerchantNumber?: string;
+    bKashMerchantNumber?: string;
     nagadMerchantNumber?: string;
     freeShippingThresholdBdt?: number;
   } | null>(null);
 
+  const bkashNumber = storeSettingsData?.bKashMerchantNumber || (storeSettingsData as any)?.bkashMerchantNumber || '';
+  const nagadNumber = storeSettingsData?.nagadMerchantNumber || '';
+
   const isBkashConfigured = Boolean(
-    storeSettingsData?.bkashMerchantNumber &&
-    /^01[3-9]\d{8}$/.test(storeSettingsData.bkashMerchantNumber.trim())
+    bkashNumber && /^01[3-9]\d{8}$/.test(bkashNumber.trim())
   );
   const isNagadConfigured = Boolean(
-    storeSettingsData?.nagadMerchantNumber &&
-    /^01[3-9]\d{8}$/.test(storeSettingsData.nagadMerchantNumber.trim())
+    nagadNumber && /^01[3-9]\d{8}$/.test(nagadNumber.trim())
   );
 
   const cartItems = useCartStore((state) => state.items);
@@ -683,11 +684,11 @@ export function CheckoutPage() {
                   <div className="p-4 bg-[#fff5f7] border border-[#f8c5d2] flex flex-col gap-3 font-sans">
                     <div className="flex items-center justify-between">
                       <span className="font-semibold text-xs text-[#a1113b] uppercase tracking-wider">bKash Manual Payment</span>
-                      <span className="text-xs bg-[#d12053] text-white px-2 py-0.5 font-mono">{storeSettingsData?.bkashMerchantNumber || ''}</span>
+                      <span className="text-xs bg-[#d12053] text-white px-2 py-0.5 font-mono">{bkashNumber}</span>
                     </div>
                     <p className="text-xs text-neutral-700 leading-relaxed">
                       1. Open your bKash app or dial *247#<br/>
-                      2. Send Money / Make Payment of <strong>৳{totalVal.toFixed(0)} BDT</strong> to <strong>{storeSettingsData?.bkashMerchantNumber || ''}</strong><br/>
+                      2. Send Money / Make Payment of <strong>৳{totalVal.toFixed(0)} BDT</strong> to <strong>{bkashNumber}</strong><br/>
                       3. Enter the <strong>Transaction ID (TrxID)</strong> from your SMS receipt below to verify order.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3 pt-1">

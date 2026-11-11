@@ -14,6 +14,13 @@ export const auth = betterAuth({
     "http://127.0.0.1:3000",
     "https://my-store-flax.vercel.app",
     "https://my-store-nfejqgo12-shamimhossein70-3034s-projects.vercel.app",
+    // Every preview deployment of THIS Vercel project (scoped to your team, so other people's
+    // *.vercel.app sites are still NOT trusted).
+    "https://my-store-*-shamimhossein70-3034s-projects.vercel.app",
+    // URLs Vercel injects for the current deployment (production, branch and per-commit previews).
+    ...[process.env.VERCEL_URL, process.env.VERCEL_BRANCH_URL, process.env.VERCEL_PROJECT_PRODUCTION_URL]
+      .filter((u): u is string => !!u)
+      .map((u) => `https://${u}`),
     ...(process.env.NEXT_PUBLIC_APP_URL ? [process.env.NEXT_PUBLIC_APP_URL] : []),
     // Local dev: allow phones/tablets on the same Wi-Fi (e.g. http://192.168.1.20:3000)
     ...(process.env.NODE_ENV !== "production"

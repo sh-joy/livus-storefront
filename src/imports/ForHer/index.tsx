@@ -24,7 +24,7 @@ function Frame7() {
 function Frame5() {
   return (
     <div className="content-stretch flex flex-[1_0_0] items-end justify-between min-w-px relative max-md:flex-col max-md:items-start max-md:gap-[16px]">
-      <p className="[word-break:break-word] font-serif font-bold leading-[110px] max-md:leading-[64px] relative shrink-0 text-[110px] max-md:text-[64px] text-black tracking-[-3.3px] max-md:tracking-[-1.5px] whitespace-nowrap">For Her.</p>
+      <h1 className="[word-break:break-word] font-serif font-bold leading-[110px] max-md:leading-[64px] relative shrink-0 text-[110px] max-md:text-[64px] text-black tracking-[-3.3px] max-md:tracking-[-1.5px] whitespace-nowrap">For Her.</h1>
       <Frame7 />
     </div>
   );

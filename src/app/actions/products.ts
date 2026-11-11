@@ -552,11 +552,11 @@ export async function getProducts(catSlug?: string): Promise<ProductItem[]> {
 
   if (slug === "for-him") {
     filtered = rows.filter(
-      r => r.categorySlug === "for-him" || (r.collectionTag || "").toLowerCase() === "for-him" || (r.collectionTag || "").toLowerCase() === "minimal"
+      r => r.categorySlug === "for-him" || (r.collectionTag || "").toLowerCase() === "for-him"
     );
   } else if (slug === "for-her") {
     filtered = rows.filter(
-      r => r.categorySlug === "for-her" || (r.collectionTag || "").toLowerCase() === "for-her" || (r.collectionTag || "").toLowerCase() === "divine" || (r.collectionTag || "").toLowerCase() === "floral"
+      r => r.categorySlug === "for-her" || (r.collectionTag || "").toLowerCase() === "for-her"
     );
   } else if (slug === "unisex") {
     filtered = rows.filter(

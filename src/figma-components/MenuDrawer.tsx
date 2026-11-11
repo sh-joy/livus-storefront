@@ -15,8 +15,8 @@ const NAV_LINKS = [
   { label: "Gift Card", path: "/all-products" },
   { label: "Search", path: "/search" },
   { label: "My Account", path: "/profile" },
-  { label: "About", path: "/" },
-  { label: "Contact", path: "/" },
+  { label: "About", path: "/about" },
+  { label: "Contact", path: "/contact" },
 ];
 
 export function MenuDrawer() {

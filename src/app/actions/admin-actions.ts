@@ -142,31 +142,63 @@ export async function fetchAdminCategories() {
   try {
     if (db) {
       const list = await db.select().from(categories).orderBy(desc(categories.createdAt));
-      // Filter out gender items (For Him, For Her, Unisex) from aesthetic collection categories
-      const collectionList = list.filter(c => 
-        !["for him", "for her", "unisex", "unisex / minimal"].includes(c.name.toLowerCase().trim())
-      );
-
-      if (collectionList.length > 0) {
-        return collectionList.map(c => ({
-          id: c.id,
-          name: c.name,
-          slug: c.slug,
-          description: c.description || 'Aesthetic collection tag',
-        }));
-      }
+      return list.map(c => ({
+        id: c.id,
+        name: c.name,
+        slug: c.slug,
+        description: c.description || 'Store category',
+      }));
     }
   } catch (error) {
     console.error('Error fetching admin categories:', error);
   }
 
-  return [
-    { id: "cat-min", name: "Minimal", slug: "minimal", description: "Clean minimalist aesthetic apparel" },
-    { id: "cat-div", name: "Divine", slug: "divine", description: "High-fashion luxury aesthetic" },
-    { id: "cat-cas", name: "Casual", slug: "casual", description: "Everyday streetwear aesthetic" },
-    { id: "cat-gam", name: "Gaming", slug: "gaming", description: "Esports & geometric performance apparel" },
-    { id: "cat-flo", name: "Floral", slug: "floral", description: "Botanical and nature pattern aesthetic" },
-  ];
+  return [];
+}
+
+const DEFAULT_PRODUCT_TYPES = [
+  "Shirt",
+  "Pant",
+  "Two Piece",
+  "Jersey",
+  "Hoodie",
+  "Jacket",
+  "Shorts",
+  "Casual",
+  "Other",
+];
+
+export async function fetchAdminProductTypesAction(): Promise<string[]> {
+  await requireAdmin();
+  try {
+    if (!db) return DEFAULT_PRODUCT_TYPES;
+    const settings = await db.query.storeSettings.findFirst({ where: eq(storeSettings.id, 'general') });
+    if (settings?.productTypes) {
+      const parsed = JSON.parse(settings.productTypes);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (err) {
+    console.warn('Failed to fetch product types:', err);
+  }
+  return DEFAULT_PRODUCT_TYPES;
+}
+
+export async function updateAdminProductTypesAction(types: string[]) {
+  await requireAdmin();
+  try {
+    if (!db) return { success: false, message: 'Database not initialized' };
+    await db.update(storeSettings).set({
+      productTypes: JSON.stringify(types),
+      updatedAt: new Date(),
+    }).where(eq(storeSettings.id, 'general'));
+
+    revalidatePath('/admin/categories');
+    revalidatePath('/admin/products/new');
+    return { success: true };
+  } catch (err) {
+    console.error('Failed to update product types:', err);
+    return { success: false, message: 'Failed to update product types' };
+  }
 }
 
 export async function createAdminCategoryAction(data: { name: string; slug: string; description?: string }) {
@@ -409,22 +441,31 @@ export async function updateOrderStatusAction(orderId: string, newStatus: string
       newPaymentStatus = 'Cancelled';
     }
 
-    // P0.6: Re-opening a cancelled order must safely re-reserve stock first
-    if (prevStatus === 'Cancelled' && newStatus !== 'Cancelled' && existing.items && existing.items.length > 0) {
-      const quote = await quoteOrder(
-        existing.items.map((i) => ({
-          productId: i.productId,
-          variantName: i.variantName || undefined,
-          size: i.size || undefined,
-          quantity: i.quantity,
-        }))
-      );
-      if (!quote.ok) {
-        return { success: false, message: `Cannot re-open order: ${quote.message}` };
+    // P0.6 & E5: Re-opening a cancelled order must safely re-reserve stock and reset payment status
+    if (prevStatus === 'Cancelled' && newStatus !== 'Cancelled') {
+      const method = (existing.paymentMethod || '').toLowerCase();
+      if (method.includes('bkash') || method.includes('nagad')) {
+        newPaymentStatus = 'Awaiting Verification';
+      } else if (method.includes('cash')) {
+        newPaymentStatus = 'Unpaid (COD)';
       }
-      const reserved = await reserveStock(quote.quote.lines);
-      if (!reserved.ok) {
-        return { success: false, message: `Cannot re-open order: ${reserved.message}` };
+
+      if (existing.items && existing.items.length > 0) {
+        const quote = await quoteOrder(
+          existing.items.map((i) => ({
+            productId: i.productId,
+            variantName: i.variantName || undefined,
+            size: i.size || undefined,
+            quantity: i.quantity,
+          }))
+        );
+        if (!quote.ok) {
+          return { success: false, message: `Cannot re-open order: ${quote.message}` };
+        }
+        const reserved = await reserveStock(quote.quote.lines);
+        if (!reserved.ok) {
+          return { success: false, message: `Cannot re-open order: ${reserved.message}` };
+        }
       }
     }
 
@@ -479,35 +520,60 @@ export async function updateOrderStatusAction(orderId: string, newStatus: string
 }
 
 /**
- * P0.3: Explicit admin verification for manual mobile wallet payments (bKash / Nagad)
+ * P0.3 & E6: Explicit admin verification for manual mobile wallet payments (bKash / Nagad)
  */
-export async function verifyOrderPaymentAction(orderId: string, action: 'verify' | 'reject') {
-  await requireAdmin();
+export async function verifyOrderPaymentAction(orderId: string, action: 'verify' | 'reject', cancelOrder?: boolean) {
+  const admin = await requireAdmin();
   try {
     if (!db) return { success: false, message: 'Database not initialized' };
 
-    const ord = await db.query.orders.findFirst({ where: eq(orders.id, orderId) });
+    const ord = await db.query.orders.findFirst({
+      where: eq(orders.id, orderId),
+      with: { items: true },
+    });
     if (!ord) return { success: false, message: 'Order not found' };
 
     const method = (ord.paymentMethod || '').toLowerCase();
-    let newPaymentStatus: string;
-
-    if (action === 'verify') {
-      if (method.includes('bkash')) {
-        newPaymentStatus = 'Paid (bKash Verified)';
-      } else if (method.includes('nagad')) {
-        newPaymentStatus = 'Paid (Nagad Verified)';
-      } else {
-        newPaymentStatus = 'Paid (Verified)';
-      }
-    } else {
-      newPaymentStatus = 'Payment Failed / Rejected';
+    // E6: Restrict payment verification exclusively to bKash and Nagad orders
+    if (!method.includes('bkash') && !method.includes('nagad')) {
+      return {
+        success: false,
+        message: 'Payment verification is only permitted for bKash or Nagad manual mobile wallet orders. Cash on Delivery is collected upon delivery.',
+      };
     }
 
-    await db.update(orders).set({ paymentStatus: newPaymentStatus }).where(eq(orders.id, orderId));
+    console.log(`[AUDIT] Order payment ${action} for ${ord.orderNumber} by ${admin.email} (role: ${admin.role}) at ${new Date().toISOString()}`);
+
+    let newPaymentStatus: string;
+    if (action === 'verify') {
+      newPaymentStatus = method.includes('bkash') ? 'Paid (bKash Verified)' : 'Paid (Nagad Verified)';
+      await db.update(orders).set({ paymentStatus: newPaymentStatus }).where(eq(orders.id, orderId));
+    } else {
+      newPaymentStatus = 'Payment Failed / Rejected';
+      if (cancelOrder) {
+        // Release stock and cancel order
+        if (ord.items && ord.items.length > 0) {
+          await restoreStockForOrderItems(
+            ord.items.map((i) => ({
+              productId: i.productId,
+              variantName: i.variantName,
+              size: i.size,
+              quantity: i.quantity,
+            }))
+          );
+        }
+        await db.update(orders).set({
+          status: 'Cancelled',
+          paymentStatus: newPaymentStatus,
+        }).where(eq(orders.id, orderId));
+      } else {
+        await db.update(orders).set({ paymentStatus: newPaymentStatus }).where(eq(orders.id, orderId));
+      }
+    }
 
     revalidatePath('/admin/orders');
     revalidatePath('/admin');
+    revalidatePath('/admin/analytics');
     return { success: true, message: `Payment status marked as ${newPaymentStatus}` };
   } catch (err) {
     console.error('Failed to verify order payment:', err);
@@ -1376,14 +1442,15 @@ export async function fetchAdminStoreSettingsAction() {
         vatPercent: 10,
         freeShippingThresholdBdt: 2500,
         defaultDeliveryChargeBdt: 150,
-        bKashMerchantNumber: '01711000000',
-        nagadMerchantNumber: '01811000000',
+        bKashMerchantNumber: '',
+        nagadMerchantNumber: '',
       }).returning();
       settings = created;
     }
 
     const regions = await db.select().from(shippingRegions).orderBy(shippingRegions.regionName);
-    return { settings, regions };
+    const admin = await requireAdmin();
+    return { settings, regions, currentUserRole: admin.role };
   } catch (err) {
     console.error('Failed to fetch admin store settings:', err);
     return null;
@@ -1401,9 +1468,26 @@ export async function updateAdminStoreSettingsAction(data: {
   bKashMerchantNumber?: string;
   nagadMerchantNumber?: string;
 }) {
-  await requireAdmin();
+  const admin = await requireAdmin();
   try {
     if (!db) return { success: false, message: 'Database not initialized' };
+
+    // Fetch existing settings to check if financial merchant numbers are being altered
+    const existing = await db.query.storeSettings.findFirst({ where: eq(storeSettings.id, 'general') });
+    const isBkashChanged = data.bKashMerchantNumber !== undefined && (data.bKashMerchantNumber || '') !== (existing?.bKashMerchantNumber || '');
+    const isNagadChanged = data.nagadMerchantNumber !== undefined && (data.nagadMerchantNumber || '') !== (existing?.nagadMerchantNumber || '');
+
+    // C2: Only superadmin can modify bKash and Nagad payment numbers
+    if ((isBkashChanged || isNagadChanged) && admin.role !== 'superadmin') {
+      return {
+        success: false,
+        message: 'Security policy violation: Only a superadmin can modify bKash and Nagad payment numbers.',
+      };
+    }
+
+    if (isBkashChanged || isNagadChanged) {
+      console.log(`[AUDIT] Payment merchant numbers updated by ${admin.email} (role: ${admin.role}) at ${new Date().toISOString()}: bKash="${data.bKashMerchantNumber}", Nagad="${data.nagadMerchantNumber}"`);
+    }
 
     if (data.bKashMerchantNumber && data.bKashMerchantNumber.trim() && !/^01[3-9]\d{8}$/.test(data.bKashMerchantNumber.trim())) {
       return { success: false, message: 'Please enter a valid 11-digit Bangladeshi mobile number for bKash (e.g. 01712345678).' };

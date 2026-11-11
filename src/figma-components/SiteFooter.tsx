@@ -50,13 +50,19 @@ export function SiteFooter({ variant = "light" }: SiteFooterProps) {
   const navLinks = [
     { label: "Home", path: "/" },
     { label: "Collections", path: "/for-him" },
+    { label: "All Products", path: "/all-products" },
+    { label: "About Us", path: "/about" },
+    { label: "Contact", path: "/contact" },
     { label: "Profile", path: "/profile" },
+    { label: "Privacy Policy", path: "/privacy" },
+    { label: "Terms of Service", path: "/terms" },
+    { label: "Shipping & Returns", path: "/shipping-returns" },
   ];
 
   const socialLinks = [
-    { label: "Facebook", href: "https://www.facebook.com/" },
-    { label: "Instagram", href: "https://www.instagram.com/" },
-    { label: "Contact Us", href: "mailto:hello@livus.com" },
+    { label: "Facebook", href: "https://www.facebook.com/livus.bd" },
+    { label: "Instagram", href: "https://www.instagram.com/livus.atelier" },
+    { label: "Contact Us", href: "/contact" },
   ];
 
   return (

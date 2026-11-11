@@ -26,9 +26,9 @@ function Frame7({ subtitle }: { subtitle?: string }) {
 function Frame5({ title, subtitle }: { title?: string; subtitle?: string }) {
   return (
     <div className="content-stretch flex flex-[1_0_0] items-end justify-between min-w-px relative max-md:flex-col max-md:items-start max-md:gap-[16px]">
-      <p className="[word-break:break-word] font-serif font-semibold leading-[110px] max-md:leading-[64px] relative shrink-0 text-[110px] max-md:text-[64px] text-black tracking-[-3.3px] max-md:tracking-[-1.5px] whitespace-nowrap" style={{ fontWeight: 600 }}>
+      <h1 className="[word-break:break-word] font-serif font-semibold leading-[110px] max-md:leading-[64px] relative shrink-0 text-[110px] max-md:text-[64px] text-black tracking-[-3.3px] max-md:tracking-[-1.5px] whitespace-nowrap" style={{ fontWeight: 600 }}>
         {title || "For Him."}
-      </p>
+      </h1>
       <Frame7 subtitle={subtitle} />
     </div>
   );

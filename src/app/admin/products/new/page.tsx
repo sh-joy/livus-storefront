@@ -14,7 +14,7 @@ import {
   getProductByIdAction,
   getCategoriesAction
 } from "@/app/actions/products";
-import { fetchAdminCategories } from "@/app/actions/admin-actions";
+import { fetchAdminCategories, fetchAdminProductTypesAction } from "@/app/actions/admin-actions";
 import { generateCleanSku } from "@/lib/utils";
 import {
   Plus,
@@ -334,17 +334,12 @@ function ProductFormContent() {
         }
       } catch (e) {}
 
-      if (typeof window !== "undefined") {
-        const storedTypes = localStorage.getItem("my_store_product_types");
-        if (storedTypes) {
-          try {
-            const parsed = JSON.parse(storedTypes);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              setProductTypeOptions(parsed);
-            }
-          } catch (e) {}
+      try {
+        const dbTypes = await fetchAdminProductTypesAction();
+        if (dbTypes && dbTypes.length > 0) {
+          setProductTypeOptions(dbTypes);
         }
-      }
+      } catch (e) {}
     }
     loadCategories();
   }, []);

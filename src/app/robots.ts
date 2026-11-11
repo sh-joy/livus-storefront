@@ -18,6 +18,8 @@ export default function robots(): MetadataRoute.Robots {
           '/signin',
           '/signup',
           '/forgot-password',
+          '/variants',
+          '/design-system',
         ],
       },
     ],

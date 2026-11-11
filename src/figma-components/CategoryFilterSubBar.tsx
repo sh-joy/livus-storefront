@@ -15,6 +15,7 @@ export interface CategoryFilterSubBarProps {
   selectedSize: string;
   onSizeChange: (size: string) => void;
   hideGenderFilter?: boolean;
+  hideProductCount?: boolean;
   categoriesList?: Array<{ id: string; name: string; slug: string }>;
   availableTags?: string[];
 }
@@ -30,6 +31,7 @@ export function CategoryFilterSubBar({
   selectedSize,
   onSizeChange,
   hideGenderFilter = false,
+  hideProductCount = false,
   categoriesList,
   availableTags = [],
 }: CategoryFilterSubBarProps) {
@@ -213,9 +215,11 @@ export function CategoryFilterSubBar({
             );
           })}
         </div>
-        <p className="t-small m-0 px-[var(--lv-gutter)] sm:px-0 uppercase tracking-[0.08em] text-neutral-500 whitespace-nowrap">
-          {totalCount} {totalCount === 1 ? 'product' : 'products'}
-        </p>
+        {!hideProductCount && (
+          <p className="t-small m-0 px-[var(--lv-gutter)] sm:px-0 uppercase tracking-[0.08em] text-neutral-500 whitespace-nowrap">
+            {totalCount} {totalCount === 1 ? 'product' : 'products'}
+          </p>
+        )}
       </div>
 
       {openFilter && menuPos && (

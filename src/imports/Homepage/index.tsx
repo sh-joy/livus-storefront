@@ -185,10 +185,10 @@ function Frame20({
 
 function Frame7({ text }: { text?: string }) {
   return (
-    <div className="relative shrink-0 w-full px-[var(--lv-gutter)] pb-[clamp(20px,2.5vw,32px)]">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between md:gap-10">
+    <div className="relative shrink-0 w-full px-[var(--lv-gutter)] pb-[clamp(16px,2vw,24px)]">
+      <div className="flex flex-col gap-2 max-w-[640px]">
         <h2 className="t-h2 m-0">Explore the collection</h2>
-        <p className="t-lead m-0 max-w-[440px] md:text-right md:pb-1">
+        <p className="t-lead m-0 text-[#4a4a4a]">
           {text || "Our most-loved jerseys, shirts and everyday athletic wear right now. New styles land with every drop."}
         </p>
       </div>
@@ -727,6 +727,7 @@ export default function Homepage({
       <Frame7 text={collectionText} />
       <CategoryFilterSubBar
         totalCount={shownProducts.length}
+        hideProductCount={true}
         sortOption={sortOption}
         onSortChange={setSortOption}
         selectedGender={selectedGender}

@@ -41,7 +41,7 @@ export const DEFAULT_FAQS: FaqItem[] = [
   },
   {
     q: 'How much does delivery cost?',
-    a: 'Delivery starts from ৳150 and depends on your district. You always see the exact charge at checkout before you confirm. Orders of ৳2,500 or more get free delivery.',
+    a: 'Delivery starts from ৳150 and depends on your district. You always see the exact charge at checkout before you confirm.',
   },
   {
     q: 'How long does delivery take?',
@@ -129,10 +129,9 @@ export async function getPolicyContext(): Promise<PolicyContext> {
   return { storeName, supportEmail, supportPhone, deliveryFeeBdt, freeDeliveryOverBdt };
 }
 
-/** Default product-page shipping text, built from the current fees and free-delivery setting. */
+/** Default product-page shipping text, built from the current delivery fee. Offers (free delivery etc.) are never written here. */
 export async function defaultShippingText(): Promise<string> {
   let fee = 150;
-  let freeOver = 0;
   try {
     const { db } = await import('@/db');
     const { storeSettings } = await import('@/db/schema');
@@ -140,7 +139,6 @@ export async function defaultShippingText(): Promise<string> {
       const s = await db.query.storeSettings.findFirst({ where: eq(storeSettings.id, 'general') });
       if (s) {
         fee = s.defaultDeliveryChargeBdt ?? fee;
-        freeOver = s.freeShippingThresholdBdt ?? 0;
       }
     }
   } catch {
@@ -148,7 +146,6 @@ export async function defaultShippingText(): Promise<string> {
   }
   return [
     `**Nationwide delivery:** 2–3 working days inside Dhaka and 3–5 working days across the rest of Bangladesh. Delivery starts from ৳${fee} and the exact charge is shown at checkout.`,
-    freeOver > 0 ? `**Free delivery:** on orders of ৳${freeOver.toLocaleString()} or more.` : '',
     '**Easy 7-day exchange:** size or fit not right? Exchange unworn items with the original tags within 7 days.',
   ]
     .filter(Boolean)

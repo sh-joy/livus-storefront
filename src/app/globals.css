@@ -138,22 +138,31 @@ thead[data-slot="table-header"] tr {
   animation-play-state: paused;
 }
 
-/* Custom Scrollbars */
-::-webkit-scrollbar {
+/* Scrollbars: hidden everywhere on the storefront (page, cart, menu, popup, dropdowns).
+   Scrolling still works by wheel, trackpad and touch. Admin keeps a thin scrollbar for wide tables. */
+html:not(:has(.admin-portal)),
+html:not(:has(.admin-portal)) * {
+  scrollbar-width: none;
+}
+html:not(:has(.admin-portal))::-webkit-scrollbar,
+html:not(:has(.admin-portal)) *::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+html:has(.admin-portal) ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
-
-::-webkit-scrollbar-track {
+html:has(.admin-portal) ::-webkit-scrollbar-track {
   background: transparent;
 }
-
-::-webkit-scrollbar-thumb {
+html:has(.admin-portal) ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 0px;
 }
-
-::-webkit-scrollbar-thumb:hover {
+html:has(.admin-portal) ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
 

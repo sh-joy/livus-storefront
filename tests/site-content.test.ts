@@ -41,7 +41,7 @@ describe('Site Content & Policy Defaults', () => {
 
     const shipping = shippingReturnsText(ctx);
     expect(shipping).toContain('৳150');
-    expect(shipping).toContain('৳2,500');
+    expect(shipping).not.toMatch(/free delivery/i); // offers never go in policy text
     expect(shipping).toContain('**Delivery**');
 
     const cookies = cookiesPolicyText(ctx);

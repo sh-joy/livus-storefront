@@ -47,6 +47,31 @@ export function RichText({ text }: { text: string }) {
             </ul>
           );
         }
+
+        // Section heading: line wrapped entirely in **...**
+        const headingMatch = lines.length > 0 && lines[0].trim().match(/^\*\*([^*]+)\*\*$/);
+        if (headingMatch) {
+          const headingText = headingMatch[1];
+          const remainingLines = lines.slice(1);
+          return (
+            <div key={bi} className="flex flex-col gap-2 pt-3">
+              <h2 className="text-[18px] md:text-[19px] font-semibold text-[#0d0d0d] m-0 tracking-tight leading-snug">
+                {headingText}
+              </h2>
+              {remainingLines.length > 0 && (
+                <p className="m-0">
+                  {remainingLines.map((l, li) => (
+                    <span key={li}>
+                      {li > 0 && <br />}
+                      {inline(l)}
+                    </span>
+                  ))}
+                </p>
+              )}
+            </div>
+          );
+        }
+
         return (
           <p key={bi} className="m-0">
             {lines.map((l, li) => (

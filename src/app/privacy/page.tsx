@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { InfoPage } from '@/components/storefront/InfoPage';
+import { InfoPage, extractLastUpdated } from '@/components/storefront/InfoPage';
 import { RichText } from '@/components/storefront/RichText';
 import { getSiteContentAction } from '@/app/actions/site-content';
 
@@ -13,10 +13,11 @@ export const revalidate = 60;
 
 export default async function PrivacyPage() {
   const content = await getSiteContentAction('privacy_page');
+  const { date, cleanText } = extractLastUpdated(content);
 
   return (
-    <InfoPage title="Privacy Policy">
-      <RichText text={content} />
+    <InfoPage title="Privacy Policy" date={date}>
+      <RichText text={cleanText} />
     </InfoPage>
   );
 }

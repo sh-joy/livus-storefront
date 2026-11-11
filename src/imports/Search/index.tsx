@@ -33,7 +33,7 @@ function Frame24() {
       <p className="font-sans font-medium relative shrink-0 text-[#1c1c1c] text-[20px]" style={{ fontVariationSettings: '"wdth" 100, "wght" 500' }}>
         ৳899 BDT
       </p>
-      <p className="[text-decoration-skip-ink:none] [text-underline-position:from-font] decoration-from-font decoration-solid font-['Barlow Semi Condensed:Regular','Noto_Sans_Bengali:Regular',sans-serif] line-through relative shrink-0 text-[#666666] text-[18px] font-normal font-medium" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
+      <p className="[text-decoration-skip-ink:none] [text-underline-position:from-font] decoration-from-font decoration-solid font-['Overused Grotesk:Regular','Noto_Sans_Bengali:Regular',sans-serif] line-through relative shrink-0 text-[#666666] text-[18px] font-normal font-medium" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
         ৳1199 BDT
       </p>
     </div>
@@ -43,7 +43,7 @@ function Frame24() {
 function Frame7() {
   return (
     <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] h-[56px] items-start leading-[24px] px-[8px] relative shrink-0 w-[436px] whitespace-nowrap">
-      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-[-0.4px]">OWAYO - CROSS FADE</p>
+      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-normal">OWAYO - CROSS FADE</p>
       <Frame24 />
     </div>
   );
@@ -61,7 +61,7 @@ function Frame13() {
 function Frame8() {
   return (
     <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] h-[56px] items-start leading-[24px] px-[8px] relative shrink-0 text-[#1c1c1c] w-[436px] whitespace-nowrap">
-      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-[-0.4px]">OWAYO - CROSS FADE</p>
+      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-normal">OWAYO - CROSS FADE</p>
       <div className="content-stretch flex gap-[8px] items-start relative shrink-0">
         <p className="font-sans font-medium relative shrink-0 text-[#1c1c1c] text-[20px]">
           ৳899 BDT
@@ -88,7 +88,7 @@ function Frame14() {
 function Frame9() {
   return (
     <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] h-[56px] items-start leading-[24px] px-[8px] relative shrink-0 text-[#1c1c1c] w-[436px] whitespace-nowrap">
-      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-[-0.4px]">OWAYO - CROSS FADE</p>
+      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-normal">OWAYO - CROSS FADE</p>
       <div className="content-stretch flex gap-[8px] items-start relative shrink-0">
         <p className="font-sans font-medium relative shrink-0 text-[#1c1c1c] text-[20px]">
           ৳899 BDT
@@ -328,7 +328,7 @@ function Frame189Status2() {
           placeholder="Search by keyword"
           className="font-sans leading-[28px] text-[#1c1c1c] text-[17px] outline-none border-none bg-transparent flex-1 placeholder:text-[#404040] pr-[16px]"
           style={{
-            fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+            fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
             fontSize: "17px",
             color: "#1c1c1c",
           }}

@@ -125,7 +125,7 @@ vi.mock('@/db', () => ({
   },
 }));
 
-import { quoteOrder, validatePromoCode } from '@/lib/order-pricing';
+import { quoteOrder, validatePromoCode, computeOrderCharges } from '@/lib/order-pricing';
 import { db } from '@/db';
 
 describe('Order Pricing Math (Track 1 & Track 4)', () => {
@@ -320,6 +320,27 @@ describe('Order Pricing Math (Track 1 & Track 4)', () => {
       (db.query.promoCodes.findFirst as any).mockResolvedValue(null);
       const res = await validatePromoCode('DOESNOTEXIST', 3000);
       expect(res.ok).toBe(false);
+    });
+  });
+
+  describe('Free delivery switch (Admin → Settings)', () => {
+    it('gives free delivery at or above the threshold', async () => {
+      const c = await computeOrderCharges(3000, 0);
+      expect(c.freeShippingEligible).toBe(true);
+      expect(c.deliveryChargeBdt).toBe(0);
+      expect(c.amountNeededForFreeShippingBdt).toBe(0);
+    });
+
+    it('threshold 0 switches the offer off: delivery is always charged and no "add more" hint', async () => {
+      (db.query.storeSettings.findFirst as any).mockResolvedValue({
+        vatPercent: 10,
+        defaultDeliveryChargeBdt: 150,
+        freeShippingThresholdBdt: 0,
+      });
+      const c = await computeOrderCharges(10000, 0);
+      expect(c.freeShippingEligible).toBe(false);
+      expect(c.deliveryChargeBdt).toBe(150);
+      expect(c.amountNeededForFreeShippingBdt).toBe(0);
     });
   });
 });

@@ -18,7 +18,7 @@ function Frame6() {
 function Frame12() {
   return (
     <div className="[word-break:break-word] content-stretch flex flex-col gap-[12px] items-start relative shrink-0 whitespace-nowrap">
-      <p className="font-serif font-semibold leading-[56px] relative shrink-0 text-[48px] text-white tracking-[-1.44px]">Sign in</p>
+      <p className="font-serif font-semibold leading-[56px] relative shrink-0 text-[48px] text-white tracking-normal">Sign in</p>
       <p className="font-sans leading-[24px] not-italic relative shrink-0 text-[#ccc] text-[18px]">Please provide your credentials to proceed</p>
     </div>
   );

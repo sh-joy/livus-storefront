@@ -46,85 +46,64 @@ export default function OrderConfirmed() {
     return () => { isCancelled = true; };
   }, [rawOrderParam]);
 
+  // The order number comes back in the confirmation link; only show it if it looks like one of ours.
+  const displayOrderNumber = orderData?.orderNumber || (/^LIV-\d{4,10}$/i.test(rawOrderParam) ? rawOrderParam.toUpperCase() : "");
+
+  const rows: Array<[string, string]> = orderData?.authorized
+    ? ([
+        orderData.location ? ["Delivery to", orderData.location] : null,
+        orderData.paymentMethod ? ["Payment", orderData.paymentMethod] : null,
+        typeof orderData.totalAmount === "number" ? ["Total", `৳${orderData.totalAmount.toLocaleString()} BDT`] : null,
+      ].filter(Boolean) as Array<[string, string]>)
+    : [];
+
   return (
-    <div className="bg-white content-stretch flex flex-col items-center relative size-full min-h-screen" data-name="Order Confirmed">
+    <div className="bg-white flex flex-col min-h-[100dvh] w-full" data-name="Order Confirmed">
       <SiteNav />
 
-      <div className="w-full flex-1 flex flex-col items-center justify-center py-[100px] px-[24px] text-center max-w-[650px] mx-auto">
-        {/* Heading */}
-        <h1 className="font-serif font-semibold text-[36px] leading-[44px] text-[#1c1c1c] mb-3">
-          Order Placed Successfully!
-        </h1>
+      <main className="w-full flex-1 flex flex-col items-center justify-center px-[var(--lv-gutter)] py-[clamp(32px,5vw,72px)] text-center">
+        <div className="w-full max-w-[560px] flex flex-col items-center">
+          <h1 className="t-h2 m-0">Thank you for your order</h1>
+          <p className="t-lead mt-5 mb-0">
+            Your order has been placed. Our team will confirm it by phone and dispatch it within 2–3 working days.
+          </p>
 
-        <p className="font-sans text-[17px] leading-[26px] text-neutral-600 mb-8 max-w-[560px]">
-          Thank you for choosing <span className="font-semibold text-neutral-900">LIVUS</span>. Your order has been registered in our system. Our team will verify your details before dispatching within 2–3 working days.
-        </p>
-
-        {loading ? (
-          <div className="w-full bg-neutral-50/60 border border-neutral-200 rounded-none p-8 mb-8 text-center font-sans text-neutral-400 text-sm">
-            Verifying order details...
-          </div>
-        ) : orderData?.authorized ? (
-          /* Server-verified Order Details Card (SQA M5) */
-          <div className="w-full bg-neutral-50/60 border border-neutral-200 rounded-none p-6 mb-8 text-left flex flex-col gap-3 font-sans">
-            {/* Order ID */}
-            <div className="flex justify-between items-center pb-3 border-b border-neutral-200">
-              <span className="text-[#666666] font-normal text-[16px]">Order ID:</span>
-              <span className="font-medium text-[16px] text-neutral-900">{orderData.orderNumber}</span>
-            </div>
-
-            {/* Location */}
-            {orderData.location && (
-              <div className="flex justify-between items-center pb-3 border-b border-neutral-200">
-                <span className="text-[#666666] font-normal text-[16px]">Location:</span>
-                <span className="font-medium text-[16px] text-neutral-900 truncate max-w-[280px] text-right">{orderData.location}</span>
+          {displayOrderNumber && (
+            <div className="w-full mt-9 border border-[var(--lv-line)]">
+              <div className="px-6 py-6 flex flex-col items-center gap-1">
+                <span className="t-eyebrow text-[var(--lv-ink-muted)]">Order number</span>
+                <span className="t-h3 m-0 tracking-[0.04em]">{displayOrderNumber}</span>
+                <span className="t-small text-[var(--lv-ink-muted)]">Keep this number to track your order or contact support.</span>
               </div>
-            )}
-
-            {/* Payment Method */}
-            <div className="flex justify-between items-center pb-3 border-b border-neutral-200">
-              <span className="text-[#666666] font-normal text-[16px]">Payment Method:</span>
-              <span className="font-medium text-[16px] text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-none border border-emerald-200">
-                {orderData.paymentMethod}
-              </span>
+              {loading ? (
+                <p className="t-small m-0 px-6 py-4 border-t border-[var(--lv-line)] text-[var(--lv-ink-muted)]">Loading order details…</p>
+              ) : (
+                rows.length > 0 && (
+                  <dl className="m-0 border-t border-[var(--lv-line)] text-left">
+                    {rows.map(([k, v]) => (
+                      <div key={k} className="flex items-center justify-between gap-4 px-6 py-3 border-b last:border-b-0 border-[var(--lv-line)]">
+                        <dt className="t-body text-[var(--lv-ink-muted)]">{k}</dt>
+                        <dd className="t-body m-0 text-right text-[#0d0d0d]">{v}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                )
+              )}
             </div>
+          )}
 
-            {/* Total Amount (Server-calculated, never from URL) */}
-            <div className="flex justify-between items-center pt-1">
-              <span className="text-[#666666] font-normal text-[16px]">Total Amount:</span>
-              <span className="font-medium text-[16px] text-neutral-900">৳{orderData.totalAmount?.toLocaleString()} BDT</span>
-            </div>
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto mt-9">
+            <Link href={displayOrderNumber ? `/profile?order=${encodeURIComponent(displayOrderNumber)}` : "/profile"} className="lv-btn lv-btn--solid">
+              Track my order
+            </Link>
+            <Link href="/all-products" className="lv-btn lv-btn--outline">
+              Continue shopping
+            </Link>
           </div>
-        ) : (
-          /* Secure Fallback for unauthorized visitors or direct URL visits without session/cookie */
-          <div className="w-full bg-neutral-50/60 border border-neutral-200 rounded-none p-6 mb-8 text-center flex flex-col gap-2 font-sans">
-            <p className="text-[#1c1c1c] font-medium text-[16px]">
-              Order Confirmed
-            </p>
-            <p className="text-neutral-500 text-[14px] leading-[22px]">
-              Thank you! Detailed receipt information is sent directly to your email and phone SMS. If you have an account with us, you can also view all your order details and live tracking anytime in your profile.
-            </p>
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
-          <Link
-            href="/profile"
-            className="bg-[#050505] text-white py-[12px] px-[20px] text-[17px] font-normal uppercase tracking-[0.5px] cursor-pointer hover:bg-neutral-800 transition-colors text-center text-decoration-none"
-          >
-            VIEW MY ORDERS
-          </Link>
-          <Link
-            href="/all-products"
-            className="border border-[#050505] text-[#050505] py-[12px] px-[20px] text-[17px] font-normal uppercase tracking-[0.5px] cursor-pointer hover:bg-neutral-100 transition-colors text-center text-decoration-none"
-          >
-            CONTINUE SHOPPING
-          </Link>
         </div>
-      </div>
+      </main>
 
-      <SiteFooter />
+      <SiteFooter compact />
     </div>
   );
 }

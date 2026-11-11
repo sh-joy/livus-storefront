@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
@@ -43,6 +44,7 @@ export default function AdminSettingsPage() {
   const [currency, setCurrency] = useState("BDT");
   const [vatPercent, setVatPercent] = useState("10");
   const [freeShippingThreshold, setFreeShippingThreshold] = useState("2500");
+  const [freeShippingOn, setFreeShippingOn] = useState(true);
   const [defaultDeliveryCharge, setDefaultDeliveryCharge] = useState("150");
   const [bkashMerchantNumber, setBkashMerchantNumber] = useState("");
   const [nagadMerchantNumber, setNagadMerchantNumber] = useState("");
@@ -113,7 +115,11 @@ export default function AdminSettingsPage() {
         if (data.settings.supportPhone) setSupportPhone(data.settings.supportPhone);
         if (data.settings.currency) setCurrency(data.settings.currency);
         if (data.settings.vatPercent !== undefined) setVatPercent(data.settings.vatPercent.toString());
-        if (data.settings.freeShippingThresholdBdt !== undefined) setFreeShippingThreshold(data.settings.freeShippingThresholdBdt.toString());
+        if (data.settings.freeShippingThresholdBdt !== undefined) {
+          const t = Number(data.settings.freeShippingThresholdBdt) || 0;
+          setFreeShippingOn(t > 0);
+          setFreeShippingThreshold(t > 0 ? String(t) : "2500");
+        }
         if (data.settings.defaultDeliveryChargeBdt !== undefined) setDefaultDeliveryCharge(data.settings.defaultDeliveryChargeBdt.toString());
         setBkashMerchantNumber(data.settings.bKashMerchantNumber || "");
         setNagadMerchantNumber(data.settings.nagadMerchantNumber || "");
@@ -147,7 +153,8 @@ export default function AdminSettingsPage() {
         supportPhone,
         currency,
         vatPercent: parseInt(vatPercent) || 10,
-        freeShippingThresholdBdt: parseInt(freeShippingThreshold) || 2500,
+        // 0 = free delivery offer switched off
+        freeShippingThresholdBdt: freeShippingOn ? Math.max(1, parseInt(freeShippingThreshold) || 2500) : 0,
         defaultDeliveryChargeBdt: parseInt(defaultDeliveryCharge) || 150,
         bKashMerchantNumber: bkashMerchantNumber,
         nagadMerchantNumber: nagadMerchantNumber,
@@ -752,10 +759,15 @@ export default function AdminSettingsPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-medium text-foreground uppercase tracking-wider block mb-1">
-                  Free Shipping Threshold (BDT)
+                <label className="text-xs font-medium text-foreground uppercase tracking-wider flex items-center justify-between gap-2 mb-1">
+                  <span>Free delivery over (BDT)</span>
+                  <span className="flex items-center gap-1.5 normal-case tracking-normal font-normal text-muted-foreground">
+                    <Switch checked={freeShippingOn} onCheckedChange={(v) => setFreeShippingOn(Boolean(v))} aria-label="Offer free delivery" />
+                    {freeShippingOn ? "On" : "Off"}
+                  </span>
                 </label>
-                <Input type="number" value={freeShippingThreshold} onChange={(e) => setFreeShippingThreshold(e.target.value)} className="rounded-none" />
+                <Input type="number" min={1} disabled={!freeShippingOn} value={freeShippingThreshold} onChange={(e) => setFreeShippingThreshold(e.target.value)} className="rounded-none" />
+                <p className="text-[11px] text-muted-foreground mt-1">When off, every order pays delivery and the &quot;add ৳… for free delivery&quot; hints are hidden.</p>
               </div>
               <div>
                 <label className="text-xs font-medium text-foreground uppercase tracking-wider block mb-1">

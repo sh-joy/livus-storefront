@@ -60,7 +60,7 @@ export function InputField({
           top: isFloating ? "0px" : "18px",
           transform: isFloating ? "scale(0.82)" : "scale(1)",
           color: error ? "#d4183d" : isFloating ? activeColor : mutedColor,
-          fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+          fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
           fontSize: "16px",
           lineHeight: "22px",
           fontWeight: isFloating ? 500 : 400,
@@ -101,7 +101,7 @@ export function InputField({
             fontSize: "16px",
             lineHeight: "22px",
             color: activeColor,
-            fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+            fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
             letterSpacing: "0.17px",
             fontWeight: 400,
             background: "transparent",
@@ -117,7 +117,7 @@ export function InputField({
       {error && (
         <p
           style={{
-            fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+            fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
             fontSize: "12px",
             lineHeight: "16px",
             color: "#d4183d",

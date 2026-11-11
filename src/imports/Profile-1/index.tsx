@@ -168,8 +168,8 @@ function Frame189Status() {
 function Frame36() {
   return (
     <div className="content-stretch flex flex-col gap-[4px] items-start justify-center not-italic relative shrink-0">
-      <p className="font-sans relative shrink-0 text-[18px] tracking-[-0.36px]">Order #54657342</p>
-      <p className="font-sans relative shrink-0 text-[17px] tracking-[-0.085px]">June 23, 2026 at 23:34</p>
+      <p className="font-sans relative shrink-0 text-[18px] tracking-normal">Order #54657342</p>
+      <p className="font-sans relative shrink-0 text-[17px] tracking-normal">June 23, 2026 at 23:34</p>
     </div>
   );
 }
@@ -177,10 +177,10 @@ function Frame36() {
 function Frame37() {
   return (
     <div className="content-stretch flex flex-col gap-[4px] items-end relative shrink-0">
-      <p className="font-['Barlow Semi Condensed:Medium','Noto_Sans_Bengali:Medium',sans-serif] relative shrink-0 text-[18px]" style={{ fontVariationSettings: '"wdth" 100, "wght" 500' }}>
+      <p className="font-['Overused Grotesk:Medium','Noto_Sans_Bengali:Medium',sans-serif] relative shrink-0 text-[18px]" style={{ fontVariationSettings: '"wdth" 100, "wght" 500' }}>
         ৳899 BDT
       </p>
-      <p className="font-sans not-italic relative shrink-0 text-[17px] tracking-[-0.085px]">Out for delivery</p>
+      <p className="font-sans not-italic relative shrink-0 text-[17px] tracking-normal">Out for delivery</p>
     </div>
   );
 }
@@ -198,7 +198,7 @@ function Frame9() {
   return (
     <div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
       <p className="font-sans not-italic relative shrink-0">1x NIXON - TIME TELLER (L)</p>
-      <p className="font-['Barlow Semi Condensed:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
+      <p className="font-['Overused Grotesk:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
         ৳ 1790.00
       </p>
     </div>
@@ -209,7 +209,7 @@ function Frame11() {
   return (
     <div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
       <p className="font-sans not-italic relative shrink-0">2x CASIO - G-SHOCK DW5600</p>
-      <p className="font-['Barlow Semi Condensed:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
+      <p className="font-['Overused Grotesk:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
         ৳ 3500.00
       </p>
     </div>
@@ -220,7 +220,7 @@ function Frame12() {
   return (
     <div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
       <p className="font-sans not-italic relative shrink-0">1x SEIKO - PRESAGE AUTOMATIC</p>
-      <p className="font-['Barlow Semi Condensed:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
+      <p className="font-['Overused Grotesk:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
         ৳ 7850.00
       </p>
     </div>
@@ -231,7 +231,7 @@ function Frame10() {
   return (
     <div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
       <p className="font-sans not-italic relative shrink-0">VAT</p>
-      <p className="font-['Barlow Semi Condensed:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
+      <p className="font-['Overused Grotesk:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
         ৳ 90.00
       </p>
     </div>
@@ -242,7 +242,7 @@ function Frame13() {
   return (
     <div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
       <p className="font-sans not-italic relative shrink-0">Delivery Charge</p>
-      <p className="font-['Barlow Semi Condensed:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
+      <p className="font-['Overused Grotesk:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
         ৳ 150.00
       </p>
     </div>
@@ -251,7 +251,7 @@ function Frame13() {
 
 function Frame42() {
   return (
-    <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] items-start leading-[24px] relative shrink-0 text-[#1c1c1c] text-[17px] tracking-[-0.34px] w-full whitespace-nowrap">
+    <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] items-start leading-[24px] relative shrink-0 text-[#1c1c1c] text-[17px] tracking-normal w-full whitespace-nowrap">
       <Frame9 />
       <Frame11 />
       <Frame12 />
@@ -283,8 +283,8 @@ function Frame8() {
 function Frame39() {
   return (
     <div className="content-stretch flex flex-col gap-[4px] items-start justify-center not-italic relative shrink-0">
-      <p className="font-sans relative shrink-0 text-[18px] tracking-[-0.36px]">Order #83927465</p>
-      <p className="font-sans relative shrink-0 text-[17px] tracking-[-0.085px]">July 15, 2026 at 14:22</p>
+      <p className="font-sans relative shrink-0 text-[18px] tracking-normal">Order #83927465</p>
+      <p className="font-sans relative shrink-0 text-[17px] tracking-normal">July 15, 2026 at 14:22</p>
     </div>
   );
 }
@@ -292,10 +292,10 @@ function Frame39() {
 function Frame44() {
   return (
     <div className="content-stretch flex flex-col gap-[4px] items-end relative shrink-0">
-      <p className="font-['Barlow Semi Condensed:Medium','Noto_Sans_Bengali:Medium',sans-serif] relative shrink-0 text-[18px]" style={{ fontVariationSettings: '"wdth" 100, "wght" 500' }}>
+      <p className="font-['Overused Grotesk:Medium','Noto_Sans_Bengali:Medium',sans-serif] relative shrink-0 text-[18px]" style={{ fontVariationSettings: '"wdth" 100, "wght" 500' }}>
         ৳1,250 BDT
       </p>
-      <p className="font-sans not-italic relative shrink-0 text-[17px] tracking-[-0.085px]">Delivered</p>
+      <p className="font-sans not-italic relative shrink-0 text-[17px] tracking-normal">Delivered</p>
     </div>
   );
 }
@@ -313,7 +313,7 @@ function Frame14() {
   return (
     <div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
       <p className="font-sans not-italic relative shrink-0">1x NIXON - TIME TELLER (L)</p>
-      <p className="font-['Barlow Semi Condensed:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
+      <p className="font-['Overused Grotesk:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
         ৳1,790.00
       </p>
     </div>
@@ -324,7 +324,7 @@ function Frame15() {
   return (
     <div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
       <p className="font-sans not-italic relative shrink-0">2x CASIO - G-SHOCK DW5600</p>
-      <p className="font-['Barlow Semi Condensed:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
+      <p className="font-['Overused Grotesk:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
         ৳3,500.00
       </p>
     </div>
@@ -335,7 +335,7 @@ function Frame16() {
   return (
     <div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
       <p className="font-sans not-italic relative shrink-0">1x SEIKO - PRESAGE AUTOMATIC</p>
-      <p className="font-['Barlow Semi Condensed:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
+      <p className="font-['Overused Grotesk:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
         ৳7,850.00
       </p>
     </div>
@@ -346,7 +346,7 @@ function Frame17() {
   return (
     <div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
       <p className="font-sans not-italic relative shrink-0">VAT</p>
-      <p className="font-['Barlow Semi Condensed:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
+      <p className="font-['Overused Grotesk:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
         ৳90.00
       </p>
     </div>
@@ -357,7 +357,7 @@ function Frame18() {
   return (
     <div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
       <p className="font-sans not-italic relative shrink-0">Delivery Charge</p>
-      <p className="font-['Barlow Semi Condensed:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
+      <p className="font-['Overused Grotesk:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
         ৳150.00
       </p>
     </div>
@@ -366,7 +366,7 @@ function Frame18() {
 
 function Frame45() {
   return (
-    <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] items-start leading-[24px] relative shrink-0 text-[#1c1c1c] text-[17px] tracking-[-0.34px] w-full whitespace-nowrap">
+    <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] items-start leading-[24px] relative shrink-0 text-[#1c1c1c] text-[17px] tracking-normal w-full whitespace-nowrap">
       <Frame14 />
       <Frame15 />
       <Frame16 />
@@ -451,7 +451,7 @@ function Frame4() {
 function Frame41() {
   return (
     <div className="content-stretch flex flex-col gap-[36px] items-center relative shrink-0 w-[1200px]">
-      <p className="[word-break:break-word] font-serif font-semibold leading-[56px] relative shrink-0 text-[#1a1a1a] text-[48px] tracking-[-1.44px] whitespace-nowrap">Profile</p>
+      <p className="[word-break:break-word] font-serif font-semibold leading-[56px] relative shrink-0 text-[#1a1a1a] text-[48px] tracking-normal whitespace-nowrap">Profile</p>
       <Frame4 />
     </div>
   );

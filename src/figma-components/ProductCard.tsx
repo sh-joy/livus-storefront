@@ -163,7 +163,7 @@ export function ProductCard({ product }: { product: any }) {
 
       {/* Details */}
       <div className="flex flex-col gap-2 max-md:gap-1 px-2 max-md:px-0">
-        <p className="text-[17px] font-normal text-black tracking-[-0.4px] group-hover:text-neutral-700 transition-colors">
+        <p className="text-[17px] font-normal text-black tracking-normal group-hover:text-neutral-700 transition-colors">
           {product.name}
         </p>
         <div className="flex gap-x-2 gap-y-0 items-center flex-wrap">

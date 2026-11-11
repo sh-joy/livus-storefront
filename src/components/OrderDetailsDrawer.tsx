@@ -52,6 +52,8 @@ export interface OrderDrawerRecord {
   totalAmount: number;
   paymentMethod: string;
   paymentStatus: string;
+  paymentTrxId?: string;
+  paymentSenderPhone?: string;
   status: string;
   createdAt: string;
   items: OrderDrawerItem[];
@@ -983,6 +985,21 @@ export function OrderDetailsDrawer({
                   {paymentStatus}
                 </span>
               </div>
+              {(order.paymentMethod?.toLowerCase().includes('bkash') || order.paymentMethod?.toLowerCase().includes('nagad')) && (
+                <div className="pt-2 border-t border-neutral-200 grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="block text-neutral-500">TrxID to check</span>
+                    <span className="font-mono font-semibold text-neutral-900 select-all">{order.paymentTrxId || '—'}</span>
+                  </div>
+                  <div>
+                    <span className="block text-neutral-500">Sent from</span>
+                    <span className="font-mono text-neutral-900 select-all">{order.paymentSenderPhone || 'Not given'}</span>
+                  </div>
+                  <p className="col-span-2 text-[11px] text-neutral-500">
+                    Find this TrxID in your {order.paymentMethod?.toLowerCase().includes('bkash') ? 'bKash' : 'Nagad'} app or statement and check the amount is ৳{order.totalAmount.toLocaleString()}, then verify.
+                  </p>
+                </div>
+              )}
               {(order.paymentMethod?.toLowerCase().includes('bkash') || order.paymentMethod?.toLowerCase().includes('nagad')) && (
                 <div className="pt-2 border-t border-neutral-200 flex items-center justify-end gap-2">
                   <Button

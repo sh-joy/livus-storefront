@@ -9,6 +9,11 @@ export function NavigationWrapper({ children }: { children: React.ReactNode }) {
   const handleClick = (e: React.MouseEvent) => {
     let el: HTMLElement | null = e.target as HTMLElement;
 
+    // Real links and anything inside a form (search box, its Search button, filters, inputs) handle
+    // their own clicks. Without this, a click in the search form matched the "Search" text of its
+    // wrapper and fired an extra router.push('/search'), wiping the query and reloading the page.
+    if (el?.closest?.('form, input, textarea, select, label, a[href]')) return;
+
     for (let i = 0; i < 10; i++) {
       if (!el) break;
 

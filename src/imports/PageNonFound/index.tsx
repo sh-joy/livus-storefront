@@ -12,7 +12,7 @@ function Frame14() {
 function Frame16() {
   return (
     <div className="[word-break:break-word] content-stretch flex flex-col gap-[24px] items-center relative shrink-0 w-full">
-      <p className="font-serif font-bold leading-[110px] relative shrink-0 text-[110px] text-black tracking-[-3.3px] whitespace-nowrap">404</p>
+      <p className="font-serif font-bold leading-[110px] relative shrink-0 text-[110px] text-black tracking-normal whitespace-nowrap">404</p>
       <Frame14 />
     </div>
   );

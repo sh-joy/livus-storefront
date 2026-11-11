@@ -4,9 +4,9 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { verifyOtpCodeAction, sendOtpVerificationAction } from '@/app/actions/auth-actions';
 import { SiteNav } from '@/figma-components/SiteNav';
-import { SiteFooter } from '@/figma-components/SiteFooter';
 import { InputField } from '@/figma-components/InputField';
 import { CheckCircle, Loader2 } from 'lucide-react';
+import { useSession } from '@/lib/auth-client';
 import signupPhoto from '@/imports/SignUp/147bb3d7a50a487cfcb2163c878fc1a5c25e19e6.png';
 
 function VerifyEmailForm() {
@@ -24,18 +24,28 @@ function VerifyEmailForm() {
   const [errorMessage, setErrorMessage] = useState('');
   const [isVerified, setIsVerified] = useState(false);
 
+  const { data: session } = useSession();
   useEffect(() => {
-    if (emailParam) setEmail(emailParam);
+    // Which account to verify: the link, else the email saved at sign-up in this browser, else the signed-in account.
+    let saved = '';
+    try { saved = localStorage.getItem('livus_pending_verify_email') || ''; } catch { /* storage blocked */ }
+    const resolved = emailParam || saved || session?.user?.email || '';
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (resolved) setEmail(resolved);
     if (initialCode) setOtpCode(initialCode);
-  }, [emailParam, initialCode]);
+  }, [emailParam, initialCode, session?.user?.email]);
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanEmail = email.trim();
     const cleanCode = otpCode.trim();
 
-    if (!cleanEmail || !cleanCode) {
-      setErrorMessage('Please enter both your email address and verification code.');
+    if (!cleanCode) {
+      setErrorMessage('Please enter the 6-digit code we sent you.');
+      return;
+    }
+    if (!cleanEmail) {
+      setErrorMessage('Please open the link in your verification email, or sign in again to get a new code.');
       return;
     }
 
@@ -47,6 +57,7 @@ function VerifyEmailForm() {
       const res = await verifyOtpCodeAction(cleanEmail, cleanCode);
       if (res.success) {
         setIsVerified(true);
+        try { localStorage.removeItem('livus_pending_verify_email'); } catch { /* ignore */ }
         setTimeout(() => {
           router.push('/profile');
         }, 1500);
@@ -62,7 +73,7 @@ function VerifyEmailForm() {
 
   const handleResendCode = async () => {
     if (!email) {
-      setErrorMessage('Please provide your email address to resend the code.');
+      setErrorMessage('Please sign in again and we will send you a new code.');
       return;
     }
 
@@ -89,18 +100,18 @@ function VerifyEmailForm() {
       <div style={{ width: "360px", maxWidth: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: "20px", padding: "40px 0" }}>
         <CheckCircle className="size-16 text-emerald-400" />
         <h2 style={{
-          fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
+          fontFamily: "'Overused Grotesk', sans-serif",
           fontSize: "42px",
           lineHeight: "48px",
           fontWeight: 600,
           color: "#ffffff",
-          letterSpacing: "-1.2px",
+          letterSpacing: "-0.045em",
           textTransform: "uppercase"
         }}>
           ACCOUNT VERIFIED!
         </h2>
         <p style={{
-          fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+          fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
           fontSize: "18px",
           color: "#cccccc",
           textAlign: "center"
@@ -116,12 +127,12 @@ function VerifyEmailForm() {
       {/* Heading + subtitle */}
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         <p style={{
-          fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
+          fontFamily: "'Overused Grotesk', sans-serif",
           fontSize: "48px", lineHeight: "56px", fontWeight: 600,
-          color: "#ffffff", letterSpacing: "-1.44px",
+          color: "#ffffff", letterSpacing: "-0.045em",
         }}>Verify Code</p>
         <p style={{
-          fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+          fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
           fontSize: "15px", lineHeight: "24px", color: "#cccccc", fontWeight: 400,
           whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis"
         }}>
@@ -143,15 +154,6 @@ function VerifyEmailForm() {
 
       {/* Input fields */}
       <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-        {!emailParam && (
-          <InputField
-            label="Email or Phone number"
-            type="text"
-            value={email}
-            onChange={setEmail}
-            variant="dark"
-          />
-        )}
 
         <InputField
           label="Verification code"
@@ -165,28 +167,21 @@ function VerifyEmailForm() {
 
       {/* VERIFY & CONTINUE Button matching SignIn / SignUp */}
       <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-        <div style={{ display: "inline-flex" }}>
+        <div className="w-full">
           <button
             type="submit"
             disabled={loading}
-            style={{
-              background: "#ffffff", border: "none", cursor: "pointer",
-              display: "flex", alignItems: "center", gap: "8px",
-              padding: "12px 24px",
-              fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
-              fontSize: "17px", lineHeight: "24px", color: "#000000", fontWeight: 400,
-              textTransform: "uppercase", letterSpacing: "1.2px"
-            }}
+            className="lv-btn lv-btn--light lv-btn--block disabled:opacity-60 disabled:cursor-wait"
           >
             {loading && <Loader2 className="w-4 h-4 animate-spin text-black" />}
-            <span>{loading ? "VERIFYING..." : "VERIFY & CONTINUE"}</span>
+            <span>{loading ? "Verifying…" : "Verify & continue"}</span>
           </button>
         </div>
       </div>
 
       {/* Resend Code Link Row matching SignIn / SignUp footer prompts */}
       <p style={{
-        fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+        fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
         fontSize: "15px", lineHeight: "24px", color: "#ffffff", fontWeight: 400,
         textTransform: "uppercase", display: "flex", alignItems: "center", justifyContent: "space-between"
       }}>
@@ -208,7 +203,7 @@ export default function VerifyEmailPage() {
   return (
     <div style={{ display: "flex", flexDirection: "column", background: "#fff" }}>
       <SiteNav variant="auth" />
-      <div style={{ position: "relative", display: "flex", width: "100%", minHeight: "100vh" }}>
+      <div style={{ position: "relative", display: "flex", width: "100%", minHeight: "100dvh" }}>
         {/* Left: 1.5 ratio Photo Panel */}
         <div className="max-md:!hidden" style={{
           flex: 1.5,
@@ -226,7 +221,7 @@ export default function VerifyEmailPage() {
         </div>
 
         {/* Right: 1.0 ratio Dark Form Panel */}
-        <div className="max-md:!px-[16px] max-md:!pt-[96px] max-md:!pb-[48px] max-md:!justify-start" style={{
+        <div className="max-md:!px-[16px] max-md:!py-[80px]" style={{
           flex: 1,
           minWidth: 0,
           background: "#0d0d0d",
@@ -242,7 +237,6 @@ export default function VerifyEmailPage() {
           </Suspense>
         </div>
       </div>
-      <SiteFooter />
     </div>
   );
 }

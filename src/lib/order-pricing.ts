@@ -38,6 +38,8 @@ export interface OrderQuote {
   vatBdt: number;
   vatPercent: number;
   deliveryChargeBdt: number;
+  /** What delivery would cost without the free-delivery offer (shown struck through when free). */
+  standardDeliveryChargeBdt: number;
   freeShippingThresholdBdt: number;
   freeShippingEligible: boolean;
   amountNeededForFreeShippingBdt: number;
@@ -230,6 +232,7 @@ export async function quoteOrder(
       vatBdt: charges.vatBdt,
       vatPercent: charges.vatPercent,
       deliveryChargeBdt: charges.deliveryChargeBdt,
+      standardDeliveryChargeBdt: charges.standardDeliveryChargeBdt,
       freeShippingThresholdBdt: charges.freeShippingThresholdBdt,
       freeShippingEligible: charges.freeShippingEligible,
       amountNeededForFreeShippingBdt: charges.amountNeededForFreeShippingBdt,
@@ -262,30 +265,31 @@ export async function computeOrderCharges(subtotalBdt: number, discountBdt: numb
   }
 
   const taxableBdt = Math.max(0, subtotalBdt - discountBdt);
-  const freeShippingEligible = taxableBdt >= freeShippingThreshold;
-  const amountNeededForFreeShippingBdt = freeShippingEligible ? 0 : Math.max(0, freeShippingThreshold - taxableBdt);
+  // A threshold of 0 means the free-delivery offer is switched off in Admin → Settings.
+  const freeShippingOffered = freeShippingThreshold > 0;
+  const freeShippingEligible = freeShippingOffered && taxableBdt >= freeShippingThreshold;
+  const amountNeededForFreeShippingBdt = !freeShippingOffered || freeShippingEligible ? 0 : Math.max(0, freeShippingThreshold - taxableBdt);
 
-  let deliveryChargeBdt = 0;
-  if (!freeShippingEligible) {
-    deliveryChargeBdt = defaultDelivery;
-    try {
-      if (divisionOrRegion && divisionOrRegion.trim()) {
-        const norm = (s: string) =>
-          s.toLowerCase().replace(/divisions?/g, '').replace('barishal', 'barisal').replace(/[^a-z]/g, '');
-        const searchKey = norm(divisionOrRegion);
-        const allRegions = await db.select().from(shippingRegions);
-        const match = searchKey
-          ? allRegions.find((r) => {
-              const reg = norm(r.regionName);
-              return reg === searchKey || reg.includes(searchKey) || searchKey.includes(reg);
-            })
-          : undefined;
-        if (match) deliveryChargeBdt = match.deliveryChargeBdt;
-      }
-    } catch {
-      deliveryChargeBdt = defaultDelivery;
+  // Region fee is always worked out, so the checkout can show it struck through when delivery is free.
+  let standardDeliveryChargeBdt = defaultDelivery;
+  try {
+    if (divisionOrRegion && divisionOrRegion.trim()) {
+      const norm = (s: string) =>
+        s.toLowerCase().replace(/divisions?/g, '').replace('barishal', 'barisal').replace(/[^a-z]/g, '');
+      const searchKey = norm(divisionOrRegion);
+      const allRegions = await db.select().from(shippingRegions);
+      const match = searchKey
+        ? allRegions.find((r) => {
+            const reg = norm(r.regionName);
+            return reg === searchKey || reg.includes(searchKey) || searchKey.includes(reg);
+          })
+        : undefined;
+      if (match) standardDeliveryChargeBdt = match.deliveryChargeBdt;
     }
+  } catch {
+    standardDeliveryChargeBdt = defaultDelivery;
   }
+  const deliveryChargeBdt = freeShippingEligible ? 0 : standardDeliveryChargeBdt;
 
   const vatBdt = Math.round((taxableBdt * vatPercent) / 100);
   const totalBdt = Math.max(0, taxableBdt + vatBdt + deliveryChargeBdt);
@@ -295,6 +299,7 @@ export async function computeOrderCharges(subtotalBdt: number, discountBdt: numb
     vatPercent,
     vatBdt,
     deliveryChargeBdt,
+    standardDeliveryChargeBdt,
     freeShippingThresholdBdt: freeShippingThreshold,
     freeShippingEligible,
     amountNeededForFreeShippingBdt,

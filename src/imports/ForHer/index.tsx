@@ -6,13 +6,12 @@ import Image from "next/image";
 import type { ProductItem } from '@/app/actions/products';
 import { ProductCard } from '@/figma-components/ProductCard';
 import { SiteNav } from '@/figma-components/SiteNav';
+import { CollectionHeader } from '@/components/storefront/CollectionHeader';
 import { SiteFooter } from '@/figma-components/SiteFooter';
 import { CategoryFilterSubBar } from '@/figma-components/CategoryFilterSubBar';
 import svgPaths from "./svg-uck01nnure";
-import imgImage116 from "./51a7c5c1b3c90011262f6626a7b3dfd1c5ae9543.png";
 import imgFrame1597881192 from "./21edf1b8dee7cef23ed2ec91e1a1b0550b6c38c9.png";
 import imgImage114 from "./71b3cd582dab7174e13346a8d88abe33548d2aa7.png";
-import { imgImage115 } from "./svg-ssppo";
 
 function Frame7() {
   return (
@@ -35,7 +34,7 @@ function Frame4() {
   return (
     <div className="relative shrink-0 w-full">
       <div className="flex flex-row items-center justify-center size-full">
-        <div className="content-stretch flex items-center justify-center pt-[clamp(32px,6vw,96px)] px-[var(--lv-gutter)] relative size-full">
+        <div className="content-stretch flex items-center justify-center pt-[clamp(24px,3.5vw,48px)] px-[var(--lv-gutter)] relative size-full">
           <Frame5 />
         </div>
       </div>
@@ -43,116 +42,8 @@ function Frame4() {
   );
 }
 
-function Livus() {
-  return (
-    <div className="absolute contents inset-[3.96%_2.34%_6.01%_2.6%]" data-name="LIVUS">
-      <div className="absolute inset-[3.96%_2.34%_6.01%_76.03%]" data-name="Vector">
-        <div className="absolute inset-[-0.15%_-0.33%]">
-          <svg className="block size-full" fill="none" height="685.336" preserveAspectRatio="none" viewBox="0 0 304.912 685.336" width="304.912">
-            <path d={svgPaths.p1dfd2380} fill="url(#paint0_linear_1_276)" id="Vector" stroke="url(#paint1_linear_1_276)" />
-            <defs>
-              <linearGradient gradientUnits="userSpaceOnUse" id="paint0_linear_1_276" x1="152.456" x2="152.456" y1="302.464" y2="857.254">
-                <stop stopColor="#E6E5E5" />
-                <stop offset="1" stopColor="white" stopOpacity="0" />
-              </linearGradient>
-              <linearGradient gradientUnits="userSpaceOnUse" id="paint1_linear_1_276" x1="152.456" x2="152.456" y1="121.026" y2="501.885">
-                <stop stopColor="#B3B3B3" />
-                <stop offset="1" stopColor="#626262" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-      </div>
-      <div className="absolute inset-[4.9%_25.16%_6.01%_53.2%]" data-name="Vector">
-        <div className="absolute inset-[-0.15%_-0.33%]">
-          <svg className="block size-full" fill="none" height="678.227" preserveAspectRatio="none" viewBox="0 0 304.912 678.227" width="304.912">
-            <path d={svgPaths.p3ba05f00} fill="url(#paint0_linear_1_264)" id="Vector" stroke="url(#paint1_linear_1_264)" />
-            <defs>
-              <linearGradient gradientUnits="userSpaceOnUse" id="paint0_linear_1_264" x1="152.456" x2="152.456" y1="299.328" y2="848.346">
-                <stop stopColor="#E6E5E5" />
-                <stop offset="1" stopColor="white" stopOpacity="0" />
-              </linearGradient>
-              <linearGradient gradientUnits="userSpaceOnUse" id="paint1_linear_1_264" x1="152.456" x2="152.456" y1="119.778" y2="496.674">
-                <stop stopColor="#B3B3B3" />
-                <stop offset="1" stopColor="#626262" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-      </div>
-      <div className="absolute inset-[4.9%_47.11%_6.95%_28.81%]" data-name="Vector">
-        <div className="absolute inset-[-0.15%_-0.34%]">
-          <svg className="block size-full" fill="none" height="671.117" preserveAspectRatio="none" viewBox="0 0 339.435 671.117" width="339.435">
-            <path d={svgPaths.p28d26700} fill="url(#paint0_linear_1_262)" id="Vector" stroke="url(#paint1_linear_1_262)" />
-            <defs>
-              <linearGradient gradientUnits="userSpaceOnUse" id="paint0_linear_1_262" x1="169.717" x2="169.717" y1="296.191" y2="839.437">
-                <stop stopColor="#E6E5E5" />
-                <stop offset="1" stopColor="white" stopOpacity="0" />
-              </linearGradient>
-              <linearGradient gradientUnits="userSpaceOnUse" id="paint1_linear_1_262" x1="169.717" x2="169.717" y1="118.529" y2="491.463">
-                <stop stopColor="#B3B3B3" />
-                <stop offset="1" stopColor="#626262" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-      </div>
-      <div className="absolute inset-[4.9%_72.08%_6.95%_21.15%]" data-name="Vector">
-        <div className="absolute inset-[-0.15%_-1.05%]">
-          <svg className="block size-full" fill="none" height="671.117" preserveAspectRatio="none" viewBox="0 0 96.8245 671.117" width="96.8245">
-            <path d={svgPaths.p34d35d10} fill="url(#paint0_linear_1_278)" id="Vector" stroke="url(#paint1_linear_1_278)" />
-            <defs>
-              <linearGradient gradientUnits="userSpaceOnUse" id="paint0_linear_1_278" x1="48.4123" x2="48.4123" y1="296.191" y2="839.437">
-                <stop stopColor="#E6E5E5" />
-                <stop offset="1" stopColor="white" stopOpacity="0" />
-              </linearGradient>
-              <linearGradient gradientUnits="userSpaceOnUse" id="paint1_linear_1_278" x1="48.4123" x2="48.4123" y1="118.529" y2="491.463">
-                <stop stopColor="#B3B3B3" />
-                <stop offset="1" stopColor="#626262" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-      </div>
-      <div className="absolute inset-[4.9%_79.43%_6.95%_2.6%]" data-name="Vector">
-        <div className="absolute inset-[-0.15%_-0.4%]">
-          <svg className="block size-full" fill="none" height="671.117" preserveAspectRatio="none" viewBox="0 0 253.548 671.117" width="253.548">
-            <path d={svgPaths.p21b22770} fill="url(#paint0_linear_1_260)" id="Vector" stroke="url(#paint1_linear_1_260)" />
-            <defs>
-              <linearGradient gradientUnits="userSpaceOnUse" id="paint0_linear_1_260" x1="126.774" x2="126.774" y1="296.191" y2="839.437">
-                <stop stopColor="#E6E5E5" />
-                <stop offset="1" stopColor="white" stopOpacity="0" />
-              </linearGradient>
-              <linearGradient gradientUnits="userSpaceOnUse" id="paint1_linear_1_260" x1="126.774" x2="126.774" y1="118.529" y2="491.463">
-                <stop stopColor="#B3B3B3" />
-                <stop offset="1" stopColor="#626262" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-      </div>
-    </div>
-  );
-}
 
-function MaskGroup() {
-  return (
-    <div className="-translate-x-1/2 absolute aspect-[949.88671875/1161.09765625] bottom-[-4.47%] contents left-[calc(50%-16.93px)] top-[-27.03%]" data-name="Mask group">
-      <div className="-translate-x-1/2 absolute aspect-[949.88671875/1161.09765625] bottom-[-4.47%] max-md:bottom-0 max-md:top-0 left-[calc(50%-16.93px)] max-md:left-1/2 mask-alpha mask-intersect mask-no-clip mask-no-repeat mask-size-[816.499px_998.051px] top-[-27.03%]" style={{ maskImage: `url("${imgImage115}")` }} data-name="image 115">
-        <Image alt="" aria-hidden="true" className="absolute inset-0 max-w-none object-contain pointer-events-none size-full" src={imgImage116} sizes="(max-width: 767px) 100vw, 860px" preload />
-      </div>
-    </div>
-  );
-}
 
-function Frame10() {
-  return (
-    <div className="h-[759px] max-md:h-[460px] relative shrink-0 w-full overflow-hidden">
-      <Livus />
-      <MaskGroup />
-    </div>
-  );
-}
 
 function Frame3() {
   return null;
@@ -161,7 +52,7 @@ function Frame3() {
 function Frame15() {
   return (
     <div className="content-stretch flex items-center relative shrink-0 w-[600px]">
-      <p className="[word-break:break-word] flex-[1_0_0] font-sans leading-[24px] min-w-px not-italic relative text-[20px] text-black tracking-[-0.1px]">Our most-loved pieces right now. New styles land with every drop.</p>
+      <p className="[word-break:break-word] flex-[1_0_0] font-sans leading-[24px] min-w-px not-italic relative text-[20px] text-black tracking-normal">Our most-loved pieces right now. New styles land with every drop.</p>
     </div>
   );
 }
@@ -323,7 +214,7 @@ function Frame6({
   return (
     <div className="relative shrink-0 w-full">
       <div className="content-stretch flex flex-col gap-[4px] items-start pb-[25px] px-[36px] max-md:px-[16px] relative size-full">
-        <p className="[word-break:break-word] font-serif font-semibold leading-[110px] max-md:leading-[48px] relative shrink-0 text-[70px] max-md:text-[40px] text-black tracking-[-2.1px] md:whitespace-nowrap">Explore the collection</p>
+        <p className="[word-break:break-word] font-serif font-semibold leading-[110px] max-md:leading-[48px] relative shrink-0 text-[70px] max-md:text-[40px] text-black tracking-normal md:whitespace-nowrap">Explore the collection</p>
         <Frame16
           activeTag={activeTag}
           onSelectTag={onSelectTag}
@@ -360,7 +251,7 @@ function Frame50() {
       <p className="font-sans font-medium relative shrink-0 text-[#1c1c1c] text-[20px]" style={{ fontVariationSettings: '"wdth" 100, "wght" 500' }}>
         ৳899 BDT
       </p>
-      <p className="[text-decoration-skip-ink:none] [text-underline-position:from-font] decoration-from-font decoration-solid font-['Barlow Semi Condensed:Regular','Noto_Sans_Bengali:Regular',sans-serif] line-through relative shrink-0 text-[#666666] text-[18px] font-normal font-medium" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
+      <p className="[text-decoration-skip-ink:none] [text-underline-position:from-font] decoration-from-font decoration-solid font-['Overused Grotesk:Regular','Noto_Sans_Bengali:Regular',sans-serif] line-through relative shrink-0 text-[#666666] text-[18px] font-normal font-medium" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
         ৳1199 BDT
       </p>
     </div>
@@ -370,7 +261,7 @@ function Frame50() {
 function Frame21() {
   return (
     <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] h-[56px] items-start leading-[24px] px-[8px] relative shrink-0 w-[436px] whitespace-nowrap">
-      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-[-0.4px]">OWAYO - CROSS FADE</p>
+      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-normal">OWAYO - CROSS FADE</p>
       <Frame50 />
     </div>
   );
@@ -388,7 +279,7 @@ function Frame30() {
 function Frame22() {
   return (
     <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] h-[56px] items-start leading-[24px] px-[8px] relative shrink-0 text-[#1c1c1c] w-[436px] whitespace-nowrap">
-      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-[-0.4px]">OWAYO - CROSS FADE</p>
+      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-normal">OWAYO - CROSS FADE</p>
       <div className="content-stretch flex gap-[8px] items-start relative shrink-0">
         <p className="font-sans font-medium relative shrink-0 text-[#1c1c1c] text-[20px]">
           ৳899 BDT
@@ -415,7 +306,7 @@ function Frame34() {
 function Frame23() {
   return (
     <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] h-[56px] items-start leading-[24px] px-[8px] relative shrink-0 text-[#1c1c1c] w-[436px] whitespace-nowrap">
-      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-[-0.4px]">OWAYO - CROSS FADE</p>
+      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-normal">OWAYO - CROSS FADE</p>
       <div className="content-stretch flex gap-[8px] items-start relative shrink-0">
         <p className="font-sans font-medium relative shrink-0 text-[#1c1c1c] text-[20px]">
           ৳899 BDT
@@ -462,7 +353,7 @@ function Frame12() {
 function Frame24() {
   return (
     <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] h-[56px] items-start leading-[24px] px-[8px] relative shrink-0 text-[#1c1c1c] w-[436px] whitespace-nowrap">
-      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-[-0.4px]">OWAYO - CROSS FADE</p>
+      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-normal">OWAYO - CROSS FADE</p>
       <div className="content-stretch flex gap-[8px] items-start relative shrink-0">
         <p className="font-sans font-medium relative shrink-0 text-[#1c1c1c] text-[20px]">
           ৳899 BDT
@@ -507,7 +398,7 @@ function Frame13() {
 function Frame25() {
   return (
     <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] h-[56px] items-start leading-[24px] px-[8px] relative shrink-0 text-[#1c1c1c] w-[436px] whitespace-nowrap">
-      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-[-0.4px]">OWAYO - CROSS FADE</p>
+      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-normal">OWAYO - CROSS FADE</p>
       <div className="content-stretch flex gap-[8px] items-start relative shrink-0">
         <p className="font-sans font-medium relative shrink-0 text-[#1c1c1c] text-[20px]">
           ৳899 BDT
@@ -552,7 +443,7 @@ function Frame19() {
 function Frame29() {
   return (
     <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] h-[56px] items-start leading-[24px] px-[8px] relative shrink-0 text-[#1c1c1c] w-[436px] whitespace-nowrap">
-      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-[-0.4px]">OWAYO - CROSS FADE</p>
+      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-normal">OWAYO - CROSS FADE</p>
       <div className="content-stretch flex gap-[8px] items-start relative shrink-0">
         <p className="font-sans font-medium relative shrink-0 text-[#1c1c1c] text-[20px]">
           ৳899 BDT
@@ -576,12 +467,12 @@ function Frame28() {
 function Frame14({ products, onResetFilter }: { products?: ProductItem[]; onResetFilter?: () => void }) {
   if (!products || products.length === 0) {
     return (
-      <div className="w-full px-[36px] max-md:px-[16px] pb-12">
+      <div className="w-full px-[var(--lv-gutter)]">
         <div className="flex flex-col items-center justify-center text-center gap-[6px] p-[48px_24px] border border-dashed border-[#d0d0d0] w-full bg-[#fafafa]">
           <p
             className="text-[#1c1c1c] uppercase"
             style={{
-              fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
+              fontFamily: "'Overused Grotesk', sans-serif",
               fontSize: "24px",
               fontWeight: 500,
               lineHeight: "32px",
@@ -704,10 +595,10 @@ export default function ForHer({ products }: { products?: ProductItem[] }) {
   return (
     <div className="bg-white content-stretch flex flex-col items-start relative size-full font-sans" data-name="For Her">
       <SiteNav />
-      <div className="content-stretch flex flex-col gap-[3px] items-center pt-[0px] relative shrink-0 w-full">
-        <Frame4 />
-        <Frame10 />
-      </div>
+      <CollectionHeader
+        title="For Her."
+        subtitle="Exclusive Women's Jersey Collection. Designed with premium fabrics and exceptional style for the modern lady."
+      />
 
       {/* Category Filter Sub-Bar with Rectangular Dropdown Buttons & Product Count */}
       <CategoryFilterSubBar
@@ -723,21 +614,21 @@ export default function ForHer({ products }: { products?: ProductItem[] }) {
         hideGenderFilter={true}
       />
 
+      <div className="h-6 md:h-8" aria-hidden />
       <Frame14 products={visibleProducts} onResetFilter={() => setSelectedCategory("all")} />
 
       {hasMore && (
-        <div className="w-full flex items-center justify-center pt-12 pb-16">
+        <div className="w-full flex items-center justify-center pt-[clamp(28px,3.5vw,40px)]">
           <button
             type="button"
             onClick={() => setVisibleCount((prev) => prev + 12)}
-            className="bg-[#050505] text-white hover:bg-neutral-800 px-10 py-4 text-xs font-medium uppercase tracking-[1px] transition-all cursor-pointer rounded-none border border-black shadow-sm"
+            className="lv-btn lv-btn--outline"
           >
             Load More ({visibleProducts.length} of {sortedProducts.length})
           </button>
         </div>
       )}
 
-      <Frame31 />
       <SiteFooter />
     </div>
   );

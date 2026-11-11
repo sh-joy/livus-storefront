@@ -1,12 +1,8 @@
-'use client';
+import { notFound } from 'next/navigation';
+import DesignSystemClient from './DesignSystemClient';
 
-import { Suspense } from 'react';
-import DesignVariantsPage from '../variants/page';
-
+// Internal design comparison page: never served on the live site (real 404 status).
 export default function Page() {
-  return (
-    <Suspense fallback={<div className="w-full min-h-screen bg-white" />}>
-      <DesignVariantsPage />
-    </Suspense>
-  );
+  if (process.env.NODE_ENV === 'production') notFound();
+  return <DesignSystemClient />;
 }

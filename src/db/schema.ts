@@ -69,6 +69,33 @@ export const promoCodes = pgTable('promo_codes', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// Offer / newsletter popup shown on the storefront (single row, id = 'main'). Edited in Admin → Offer Popup.
+export const promoPopup = pgTable('promo_popup', {
+  id: text('id').primaryKey(),
+  isEnabled: boolean('is_enabled').default(false).notNull(),
+  imageUrl: text('image_url').default('').notNull(),
+  headline: text('headline').default('').notNull(),
+  body: text('body').default('').notNull(),
+  buttonLabel: text('button_label').default('Join our newsletter').notNull(),
+  finePrint: text('fine_print').default('').notNull(),
+  delaySeconds: integer('delay_seconds').default(5).notNull(),
+  showAgainDays: integer('show_again_days').default(3).notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Messages sent from the Contact page. Read in Admin → Messages.
+export const contactMessages = pgTable('contact_messages', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  fullName: text('full_name').notNull(),
+  email: text('email').notNull(),
+  phone: text('phone').notNull(),
+  orderNumber: text('order_number'),
+  topic: text('topic').notNull(),
+  message: text('message').notNull(),
+  status: text('status').default('New').notNull(), // 'New' | 'Replied' | 'Closed'
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 // 7. Marquee Text & Top Banner Announcements
 export const marqueeAnnouncements = pgTable('marquee_announcements', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -153,20 +180,7 @@ export const shippingRegions = pgTable('shipping_regions', {
   deliveryChargeBdt: integer('delivery_charge_bdt').default(100).notNull(),
 });
 
-// 13. Customer Product Reviews
-export const productReviews = pgTable('product_reviews', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  productId: uuid('product_id').references(() => products.id, { onDelete: 'cascade' }).notNull(),
-  customerName: text('customer_name').notNull(),
-  customerEmail: text('customer_email'),
-  rating: integer('rating').notNull(),
-  headline: text('headline'),
-  comment: text('comment').notNull(),
-  status: text('status').default('Pending').notNull(), // 'Pending', 'Approved', 'Rejected'
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
-// 14. Incomplete / Abandoned Checkouts CRM
+// 13. Incomplete / Abandoned Checkouts CRM
 export const abandonedCheckouts = pgTable('abandoned_checkouts', {
   id: uuid('id').defaultRandom().primaryKey(),
   customerName: text('customer_name'),
@@ -212,11 +226,6 @@ export const categoriesRelations = relations(categories, ({ many }) => ({
 export const productsRelations = relations(products, ({ one, many }) => ({
   category: one(categories, { fields: [products.categoryId], references: [categories.id] }),
   colorVariants: many(colorVariants),
-  reviews: many(productReviews),
-}));
-
-export const productReviewsRelations = relations(productReviews, ({ one }) => ({
-  product: one(products, { fields: [productReviews.productId], references: [products.id] }),
 }));
 
 export const colorVariantsRelations = relations(colorVariants, ({ one, many }) => ({

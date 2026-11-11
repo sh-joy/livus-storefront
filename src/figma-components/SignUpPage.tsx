@@ -3,7 +3,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { InputField } from "./InputField";
 import { SiteNav } from "./SiteNav";
-import { SiteFooter } from "./SiteFooter";
 import { authClient } from "@/lib/auth-client";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import signupPhoto from "@/imports/SignUp/147bb3d7a50a487cfcb2163c878fc1a5c25e19e6.png";
@@ -21,6 +20,7 @@ export function SignUpPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [newsletter, setNewsletter] = useState(true);
+  const [agreeTerms, setAgreeTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -46,12 +46,17 @@ export function SignUpPage() {
       return;
     }
 
-    if (!cleanEmail && !cleanPhone) {
-      setErrorMessage("Please provide either an email address or phone number.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      setErrorMessage("Please enter a valid email address. We send your verification code there.");
       return;
     }
 
-    const finalEmail = cleanEmail || `${cleanPhone.replace(/\s+/g, '')}@livus-user.bd`;
+    if (!agreeTerms) {
+      setErrorMessage("Please agree to the Terms & Conditions and Privacy Policy to create an account.");
+      return;
+    }
+
+    const finalEmail = cleanEmail;
 
     setLoading(true);
     setErrorMessage("");
@@ -88,6 +93,7 @@ export function SignUpPage() {
             console.warn("Verification mail notice:", mErr);
           }
         }
+        try { localStorage.setItem('livus_pending_verify_email', finalEmail); } catch { /* storage blocked */ }
         router.push(`/verify-email?email=${encodeURIComponent(finalEmail)}`);
       }
     } catch (err: any) {
@@ -129,7 +135,7 @@ export function SignUpPage() {
   return (
     <div style={{ display: "flex", flexDirection: "column", background: "#fff" }}>
       <SiteNav variant="auth" />
-      <div style={{ position: "relative", display: "flex", width: "100%", minHeight: "100vh" }}>
+      <div style={{ position: "relative", display: "flex", width: "100%", minHeight: "100dvh" }}>
 
         {/* Left: 1.5 ratio photo panel */}
         <div className="max-md:!hidden" style={{
@@ -144,7 +150,7 @@ export function SignUpPage() {
         </div>
 
         {/* Right: 1.0 ratio dark form panel */}
-        <div className="max-md:!px-[16px] max-md:!pt-[96px] max-md:!pb-[48px] max-md:!justify-start" style={{
+        <div className="max-md:!px-[16px] max-md:!py-[80px]" style={{
           flex: 1, minWidth: 0, background: "#0d0d0d",
           display: "flex", flexDirection: "column",
           alignItems: "center", justifyContent: "center",
@@ -155,12 +161,12 @@ export function SignUpPage() {
             {/* Heading + subtitle */}
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               <p style={{
-                fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
+                fontFamily: "'Overused Grotesk', sans-serif",
                 fontSize: "48px", lineHeight: "56px", fontWeight: 600,
-                color: "#ffffff", letterSpacing: "-1.44px",
+                color: "#ffffff", letterSpacing: "-0.045em",
               }}>Sign up</p>
               <p style={{
-                fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
                 fontSize: "18px", lineHeight: "24px", color: "#cccccc", fontWeight: 400,
               }}>Join the LIVUS community and get early access to new drops</p>
             </div>
@@ -174,8 +180,8 @@ export function SignUpPage() {
             {/* Input fields */}
             <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
               <InputField label="Name" value={name} onChange={setName} variant="dark" autoComplete="name" />
-              <InputField label="Phone number" type="tel" value={phone} onChange={setPhone} variant="dark" autoComplete="tel" />
-              <InputField label="Email address" type="email" value={email} onChange={setEmail} variant="dark" autoComplete="email" />
+              <InputField label="Email address *" type="email" value={email} onChange={setEmail} variant="dark" autoComplete="email" />
+              <InputField label="Phone number (optional)" type="tel" value={phone} onChange={setPhone} variant="dark" autoComplete="tel" />
               <div className="relative w-full">
                 <InputField
                   label="Password"
@@ -196,46 +202,57 @@ export function SignUpPage() {
               </div>
             </div>
 
-            {/* Newsletter checkbox */}
-            <label style={{ display: "flex", alignItems: "flex-start", gap: "12px", cursor: "pointer" }}>
-              <div
-                onClick={() => setNewsletter(!newsletter)}
-                style={{
-                  width: "20px", height: "20px", flexShrink: 0, marginTop: "2px",
-                  border: `1px solid ${newsletter ? "#ffffff" : "#404040"}`,
-                  background: newsletter ? "#ffffff" : "transparent",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  cursor: "pointer", transition: "all 0.15s ease",
-                }}
-              >
-                {newsletter && (
-                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                    <path d="M1.5 5.5L4.5 8.5L9.5 2.5" stroke="#0d0d0d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                )}
-              </div>
-              <p style={{
-                fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
-                fontSize: "16px", lineHeight: "24px", color: "#cccccc", fontWeight: 400,
-              }}>
-                I'd like to receive emails about updates &amp; offers
-              </p>
-            </label>
+            {/* Terms (required) and newsletter (optional) */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+              {[
+                {
+                  id: "agree-terms",
+                  checked: agreeTerms,
+                  onChange: setAgreeTerms,
+                  label: (
+                    <>
+                      I agree to the{" "}
+                      <a href="/terms" target="_blank" rel="noopener" className="underline underline-offset-2 text-white">Terms &amp; Conditions</a>{" "}
+                      and{" "}
+                      <a href="/privacy" target="_blank" rel="noopener" className="underline underline-offset-2 text-white">Privacy Policy</a> *
+                    </>
+                  ),
+                },
+                { id: "agree-news", checked: newsletter, onChange: setNewsletter, label: <>I&apos;d like to receive emails about updates &amp; offers</> },
+              ].map((c) => (
+                <label key={c.id} htmlFor={c.id} style={{ display: "flex", alignItems: "flex-start", gap: "12px", cursor: "pointer" }}>
+                  <input id={c.id} type="checkbox" checked={c.checked} onChange={(e) => c.onChange(e.target.checked)} className="peer sr-only" />
+                  <span
+                    aria-hidden
+                    className="peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-white peer-focus-visible:outline-offset-2"
+                    style={{
+                      width: "20px", height: "20px", flexShrink: 0, marginTop: "2px",
+                      border: `1px solid ${c.checked ? "#ffffff" : "#5a5a5a"}`,
+                      background: c.checked ? "#ffffff" : "transparent",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    {c.checked && (
+                      <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                        <path d="M1.5 5.5L4.5 8.5L9.5 2.5" stroke="#0d0d0d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </span>
+                  <span style={{ fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)", fontSize: "16px", lineHeight: "24px", color: "#cccccc" }}>
+                    {c.label}
+                  </span>
+                </label>
+              ))}
+            </div>
 
             {/* CONTINUE Button BEFORE Social Login Options (as requested) */}
             <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-              <div style={{ display: "inline-flex" }}>
+              <div className="w-full">
                 <button
                   type="submit"
                   disabled={loading}
-                  style={{
-                    background: "#ffffff", border: "none", cursor: "pointer",
-                    display: "flex", alignItems: "center", gap: "8px",
-                    padding: "12px 24px",
-                    fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
-                    fontSize: "17px", lineHeight: "24px", color: "#000000", fontWeight: 400,
-                    textTransform: "uppercase", letterSpacing: "1.2px"
-                  }}
+                  className="lv-btn lv-btn--light lv-btn--block disabled:opacity-60 disabled:cursor-wait"
                 >
                   {loading && <Loader2 className="w-4 h-4 animate-spin text-black" />}
                   <span>{loading ? "CREATING ACCOUNT..." : "CONTINUE"}</span>
@@ -257,7 +274,7 @@ export function SignUpPage() {
                   type="button"
                   onClick={() => handleSocialSignUp("google")}
                   aria-label="Sign up with Google"
-                  className="w-full h-12 bg-[#181818] hover:bg-[#242424] border border-neutral-800 text-white flex items-center justify-center transition-colors cursor-pointer rounded-none"
+                  className="w-full h-11 bg-[#181818] hover:bg-[#242424] border border-neutral-800 text-white flex items-center justify-center transition-colors cursor-pointer rounded-none"
                 >
                   <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z" />
@@ -272,7 +289,7 @@ export function SignUpPage() {
                   type="button"
                   onClick={() => handleSocialSignUp("facebook")}
                   aria-label="Sign up with Facebook"
-                  className="w-full h-12 bg-[#181818] hover:bg-[#242424] border border-neutral-800 text-white flex items-center justify-center transition-colors cursor-pointer rounded-none"
+                  className="w-full h-11 bg-[#181818] hover:bg-[#242424] border border-neutral-800 text-white flex items-center justify-center transition-colors cursor-pointer rounded-none"
                 >
                   <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
                     <path fill="#1877F2" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
@@ -284,7 +301,7 @@ export function SignUpPage() {
             </div>
 
             <p style={{
-              fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+              fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
               fontSize: "15px", lineHeight: "24px", color: "#ffffff", fontWeight: 400,
               textTransform: "uppercase",
             }}>
@@ -299,8 +316,6 @@ export function SignUpPage() {
         </form>
       </div>
     </div>
-
-    <SiteFooter />
   </div>
   );
 }

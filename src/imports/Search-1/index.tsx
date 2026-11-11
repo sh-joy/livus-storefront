@@ -2,11 +2,12 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, useTransition, useMemo } from 'react';
+import { X, Search as SearchIcon } from 'lucide-react';
 import { SiteFooter } from '@/figma-components/SiteFooter';
 import { SiteNav } from '@/figma-components/SiteNav';
 import { ProductCard } from '@/figma-components/ProductCard';
 import { CategoryFilterSubBar } from '@/figma-components/CategoryFilterSubBar';
-import { getAdminProducts } from '@/app/actions/products';
+import { getProducts } from '@/app/actions/products';
 
 const CATEGORY_FILTERS = [
   { label: "ALL", value: "ALL" },
@@ -54,7 +55,7 @@ function calculateQueryMatchScore(p: any, q: string): number {
   const slug = (p.slug || '').toLowerCase();
   const tag = (p.collectionTag || '').toLowerCase();
   const cat = (p.categoryName || p.categorySlug || '').toLowerCase();
-  const colors = (p.colors || []).map((c: string) => c.toLowerCase());
+  const colors = (p.colors || (p.colorName ? [p.colorName] : [])).map((c: string) => c.toLowerCase());
 
   if (name === q) score += 100;
   else if (name.startsWith(q)) score += 60;
@@ -75,7 +76,9 @@ export default function Search() {
 
   const [query, setQuery] = useState(initialQuery);
   const [activeQuery, setActiveQuery] = useState(initialQuery);
-  const [selectedCategory, setSelectedCategory] = useState("ALL");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedSize, setSelectedSize] = useState("all");
+  const [sortOption, setSortOption] = useState("relevance");
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [visibleCount, setVisibleCount] = useState(12);
@@ -91,7 +94,7 @@ export default function Search() {
   useEffect(() => {
     async function loadData() {
       try {
-        const prods = await getAdminProducts({ status: 'active' });
+        const prods = await getProducts();
         setAllProducts(prods || []);
       } catch (err) {
         console.error("Failed to load search products:", err);
@@ -145,12 +148,23 @@ export default function Search() {
         }
       }
 
+      if (selectedSize !== 'all' && p.sizes && p.sizes.length > 0) {
+        if (!p.sizes.map((sz: string) => sz.toUpperCase()).includes(selectedSize.toUpperCase())) return false;
+      }
+
       if (!q) return true;
       const matchScore = calculateQueryMatchScore(p, q);
       return matchScore > 0;
     });
 
+    const time = (p: any) => (p.createdAt ? new Date(p.createdAt).getTime() : 0);
+    const discount = (p: any) => (p.compareAtPriceBdt && p.compareAtPriceBdt > p.priceBdt ? (p.compareAtPriceBdt - p.priceBdt) / p.compareAtPriceBdt : 0);
     result.sort((a, b) => {
+      if (sortOption === 'low-to-high') return a.priceBdt - b.priceBdt;
+      if (sortOption === 'high-to-low') return b.priceBdt - a.priceBdt;
+      if (sortOption === 'newest') return time(b) - time(a);
+      if (sortOption === 'best-selling') return discount(b) - discount(a);
+      if (sortOption === 'popular') return calculateRecommendationScore(b) - calculateRecommendationScore(a);
       if (q) {
         return calculateQueryMatchScore(b, q) - calculateQueryMatchScore(a, q);
       } else {
@@ -159,7 +173,7 @@ export default function Search() {
     });
 
     return result;
-  }, [allProducts, activeQuery, selectedCategory]);
+  }, [allProducts, activeQuery, selectedCategory, selectedSize, sortOption]);
 
   const visibleProducts = processedProducts.slice(0, visibleCount);
 
@@ -168,74 +182,48 @@ export default function Search() {
       <SiteNav />
 
       {/* Search Input Bar */}
-      <div className="w-full flex justify-center pt-[40px] pb-[20px] px-[24px]">
-        <form
-          onSubmit={handleSearchSubmit}
-          className="content-stretch flex items-center justify-between pb-[6px] relative w-full max-w-[660px] border-b border-[#e2e2e2]"
-        >
-          <div className="flex items-center flex-1 gap-[10px] pr-[16px]">
+      <div className="w-full px-[var(--lv-gutter)] pt-[clamp(24px,3.5vw,48px)] pb-[clamp(20px,2.5vw,32px)]">
+        <form onSubmit={handleSearchSubmit} role="search" className="mx-auto w-full max-w-[760px] flex items-stretch gap-2">
+          <div className="flex-1 min-w-0 flex items-center gap-3 h-11 px-4 border border-[#d9d9d9] bg-white focus-within:border-[#0d0d0d] transition-colors">
             {query ? (
               <button
                 type="button"
                 onClick={handleClearInput}
-                className="size-[18px] flex items-center justify-center cursor-pointer hover:opacity-70 transition-opacity bg-transparent border-none p-0 shrink-0"
-                aria-label="Clear input text"
-                title="Clear text"
+                className="size-6 -ml-1 flex items-center justify-center shrink-0 bg-transparent border-none p-0 cursor-pointer hover:opacity-70"
+                aria-label="Clear search text"
               >
-                <svg fill="none" height="18" viewBox="0 0 20 20" width="18" className="block size-full">
-                  <path d="M15 5L5 15" stroke="black" strokeLinejoin="round" strokeWidth="1.4" />
-                  <path d="M5 5L15 15" stroke="black" strokeLinejoin="round" strokeWidth="1.4" />
-                </svg>
+                <X className="size-[18px] stroke-[1.5]" aria-hidden />
               </button>
             ) : (
-              <div className="size-[18px] flex items-center justify-center shrink-0 opacity-40">
-                <svg fill="none" height="18" viewBox="0 0 24 24" width="18" className="block size-full">
-                  <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="black" strokeLinejoin="round" strokeWidth="1.5" />
-                </svg>
-              </div>
+              <SearchIcon className="size-[18px] stroke-[1.5] shrink-0 opacity-50" aria-hidden />
             )}
-
+            <label htmlFor="site-search" className="sr-only">Search products</label>
             <input
-              type="text"
+              id="site-search"
+              type="search"
+              enterKeyHint="search"
               value={query}
               onChange={(e) => {
                 setQuery(e.target.value);
                 setActiveQuery(e.target.value);
                 setVisibleCount(12);
               }}
-              placeholder="Search by keyword, style, or collection..."
-              className="font-sans leading-[28px] text-[#1c1c1c] text-[17px] outline-none border-none bg-transparent flex-1 placeholder:text-[#888888]"
-              style={{
-                fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
-                fontSize: "17px",
-                color: "#1c1c1c",
-              }}
+              placeholder="Search products"
+              className="flex-1 min-w-0 h-full bg-transparent border-none outline-none text-[16px] text-[#1c1c1c] placeholder:text-[#8a8a8a] [&::-webkit-search-cancel-button]:hidden"
+              style={{ fontFamily: "'Overused Grotesk', sans-serif" }}
             />
           </div>
-
-          <div className="flex gap-[12px] items-center shrink-0">
-            <button
-              type="submit"
-              className="bg-[#050505] flex items-center justify-center py-[8px] px-[20px] cursor-pointer hover:bg-neutral-800 transition-colors border-none"
-            >
-              <p className="font-sans leading-[24px] text-[17px] text-white uppercase font-normal tracking-[0.5px] whitespace-nowrap m-0 cursor-pointer">
-                SEARCH
-              </p>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleQuitSearch}
-              className="size-[40px] flex items-center justify-center cursor-pointer hover:bg-neutral-100 transition-colors rounded-none border border-[#e2e2e2] bg-white p-0 shrink-0"
-              aria-label="Close search view"
-              title="Close Search"
-            >
-              <svg fill="none" height="18" viewBox="0 0 20 20" width="18" className="block">
-                <path d="M15 5L5 15" stroke="#050505" strokeLinejoin="round" strokeWidth="1.5" />
-                <path d="M5 5L15 15" stroke="#050505" strokeLinejoin="round" strokeWidth="1.5" />
-              </svg>
-            </button>
-          </div>
+          <button type="submit" className="lv-btn lv-btn--solid !px-5 sm:!px-7">
+            Search
+          </button>
+          <button
+            type="button"
+            onClick={handleQuitSearch}
+            className="hidden sm:flex size-11 items-center justify-center shrink-0 border border-[#d9d9d9] bg-white cursor-pointer hover:border-[#0d0d0d]"
+            aria-label="Close search"
+          >
+            <X className="size-[18px] stroke-[1.5]" aria-hidden />
+          </button>
         </form>
       </div>
 
@@ -244,21 +232,22 @@ export default function Search() {
       {/* Category Filter Sub-Bar */}
       <CategoryFilterSubBar
         totalCount={processedProducts.length}
-        sortOption="relevance"
-        onSortChange={() => {}}
+        sortOption={sortOption}
+        onSortChange={(v) => { setSortOption(v); setVisibleCount(12); }}
         selectedGender="all"
         onGenderChange={() => {}}
         selectedCategory={selectedCategory}
         onCategoryChange={(cat) => { setSelectedCategory(cat); setVisibleCount(12); }}
-        selectedSize="all"
-        onSizeChange={() => {}}
+        selectedSize={selectedSize}
+        onSizeChange={(v) => { setSelectedSize(v); setVisibleCount(12); }}
         hideGenderFilter={true}
       />
 
       {/* Product Results Grid */}
-      <div className="relative shrink-0 w-full pb-[100px] flex-1">
+      <div className="h-6 md:h-8" aria-hidden />
+      <div className="relative shrink-0 w-full flex-1">
         {loading ? (
-          <div className="w-full py-[80px] flex justify-center items-center">
+          <div className="w-full py-12 flex justify-center items-center">
             <p className="font-sans text-[17px] text-neutral-400 uppercase tracking-[1px]">Loading recommended products...</p>
           </div>
         ) : processedProducts.length > 0 ? (
@@ -271,11 +260,11 @@ export default function Search() {
 
             {/* Load More Button in LOAD MORE (12 OF 14) format */}
             {visibleCount < processedProducts.length && (
-              <div className="w-full flex justify-center pt-[48px]">
+              <div className="w-full flex justify-center pt-[clamp(28px,3.5vw,40px)]">
                 <button
                   type="button"
                   onClick={() => setVisibleCount((prev) => prev + 12)}
-                  className="bg-[#050505] text-white py-[12px] px-[20px] text-[17px] font-normal uppercase cursor-pointer hover:bg-neutral-800 transition-colors border-none"
+                  className="lv-btn lv-btn--outline"
                 >
                   LOAD MORE ({visibleProducts.length} OF {processedProducts.length})
                 </button>
@@ -283,11 +272,11 @@ export default function Search() {
             )}
           </div>
         ) : (
-          <div className="w-full py-[100px] flex flex-col items-center justify-center gap-4 text-center px-[24px]">
+          <div className="w-full py-14 flex flex-col items-center justify-center gap-4 text-center px-[24px]">
             <p
               className="text-[#1c1c1c] uppercase"
               style={{
-                fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
+                fontFamily: "'Overused Grotesk', sans-serif",
                 fontSize: "24px",
                 fontWeight: 500,
                 lineHeight: "32px",
@@ -296,15 +285,16 @@ export default function Search() {
               No products found
             </p>
             <p className="font-sans text-[16px] text-neutral-500 max-w-[400px]">
-              We couldn't find any products matching "{activeQuery || selectedCategory}". Try checking for spelling errors or choosing another category filter.
+              We couldn't find any products matching "{activeQuery || (selectedCategory === "all" ? "your filters" : selectedCategory)}". Try checking for spelling errors or choosing another category filter.
             </p>
             <button
               type="button"
               onClick={() => {
                 handleClearInput();
-                setSelectedCategory("ALL");
+                setSelectedCategory("all");
+                setSelectedSize("all");
               }}
-              className="mt-4 bg-[#050505] text-white py-[12px] px-[20px] text-[17px] font-normal uppercase cursor-pointer hover:bg-neutral-800 transition-colors border-none"
+              className="lv-btn lv-btn--solid mt-4"
             >
               CLEAR SEARCH & FILTERS
             </button>
@@ -312,7 +302,7 @@ export default function Search() {
         )}
       </div>
 
-      <SiteFooter />
+      <SiteFooter compact />
     </div>
   );
 }

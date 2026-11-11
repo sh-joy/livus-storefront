@@ -45,7 +45,7 @@ function Frame189Status() {
 function Frame9() {
   return (
     <div className="content-stretch flex flex-col gap-[20px] items-end justify-center pb-[10px] relative shrink-0 w-[450px]">
-      <p className="[word-break:break-word] font-sans leading-[24px] min-w-full not-italic relative shrink-0 text-[20px] text-black text-right tracking-[-0.1px] w-[min-content]">We’re Bangladesh’s very first brand to let you design and print your own jersey. Stand out like never before!</p>
+      <p className="[word-break:break-word] font-sans leading-[24px] min-w-full not-italic relative shrink-0 text-[20px] text-black text-right tracking-normal w-[min-content]">We’re Bangladesh’s very first brand to let you design and print your own jersey. Stand out like never before!</p>
       <Frame189Status />
     </div>
   );
@@ -54,7 +54,7 @@ function Frame9() {
 function Frame7() {
   return (
     <div className="content-stretch flex flex-[1_0_0] items-end justify-between min-w-px relative">
-      <div className="[word-break:break-word] font-serif font-bold leading-[0] relative shrink-0 text-[110px] text-black tracking-[-3.3px] whitespace-nowrap">
+      <div className="[word-break:break-word] font-serif font-bold leading-[0] relative shrink-0 text-[110px] text-black tracking-normal whitespace-nowrap">
         <p className="leading-[110px] mb-0">Your game.</p>
         <p className="leading-[110px]">Your Design.</p>
       </div>
@@ -224,7 +224,7 @@ function Frame24() {
       <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={typeof imgFrame1597881163 === 'string' ? imgFrame1597881163 : imgFrame1597881163?.src} />
       <div className="flex flex-col items-center justify-center size-full">
         <div className="content-stretch flex flex-col items-center justify-between p-[24px] relative size-full">
-          <div className="[word-break:break-word] font-serif font-semibold leading-[0] relative shrink-0 text-[#323232] text-[110px] tracking-[-3.3px] w-full whitespace-pre-wrap">
+          <div className="[word-break:break-word] font-serif font-semibold leading-[0] relative shrink-0 text-[#323232] text-[110px] tracking-normal w-full whitespace-pre-wrap">
             <p className="leading-[110px] mb-0">{`For `}</p>
             <p className="leading-[110px]">Him</p>
           </div>
@@ -238,7 +238,7 @@ function Frame24() {
 function Frame33() {
   return (
     <div className="content-stretch flex items-start relative shrink-0 w-full">
-      <div className="[word-break:break-word] font-serif font-semibold leading-[0] relative shrink-0 text-[#323232] text-[110px] tracking-[-3.3px] whitespace-nowrap">
+      <div className="[word-break:break-word] font-serif font-semibold leading-[0] relative shrink-0 text-[#323232] text-[110px] tracking-normal whitespace-nowrap">
         <p className="leading-[110px] mb-0 whitespace-pre">{`For `}</p>
         <p className="leading-[110px] whitespace-pre">Her</p>
       </div>
@@ -297,7 +297,7 @@ function Frame19() {
 function Frame17() {
   return (
     <div className="content-stretch flex items-center relative shrink-0 w-[600px]">
-      <p className="[word-break:break-word] flex-[1_0_0] font-sans leading-[24px] min-w-px not-italic relative text-[20px] text-black tracking-[-0.1px]">Browse fully customizable templates or draw inspiration from real designs created by our community. Filter by sport to find your team’s next look.</p>
+      <p className="[word-break:break-word] flex-[1_0_0] font-sans leading-[24px] min-w-px not-italic relative text-[20px] text-black tracking-normal">Browse fully customizable templates or draw inspiration from real designs created by our community. Filter by sport to find your team’s next look.</p>
     </div>
   );
 }
@@ -401,7 +401,7 @@ function Frame8() {
   return (
     <div className="relative shrink-0 w-full">
       <div className="content-stretch flex flex-col gap-[4px] items-start pb-[25px] px-[36px] relative size-full">
-        <p className="[word-break:break-word] font-serif font-semibold leading-[110px] relative shrink-0 text-[70px] text-black tracking-[-2.1px] whitespace-nowrap">Explore the collection</p>
+        <p className="[word-break:break-word] font-serif font-semibold leading-[110px] relative shrink-0 text-[70px] text-black tracking-normal whitespace-nowrap">Explore the collection</p>
         <Frame21 />
       </div>
     </div>
@@ -411,7 +411,7 @@ function Frame8() {
 function Frame23() {
   return (
     <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] h-[56px] items-start leading-[24px] px-[8px] relative shrink-0 text-[#1c1c1c] w-[436px] whitespace-nowrap">
-      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-[-0.4px]">OWAYO - CROSS FADE</p>
+      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-normal">OWAYO - CROSS FADE</p>
       <div className="content-stretch flex gap-[8px] items-start relative shrink-0">
         <p className="font-sans font-medium relative shrink-0 text-[#1c1c1c] text-[20px]">
           ৳899 BDT
@@ -438,7 +438,7 @@ function Frame27() {
 function Frame26() {
   return (
     <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] h-[56px] items-start leading-[24px] px-[8px] relative shrink-0 text-[#1c1c1c] w-[436px] whitespace-nowrap">
-      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-[-0.4px]">OWAYO - CROSS FADE</p>
+      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-normal">OWAYO - CROSS FADE</p>
       <div className="content-stretch flex gap-[8px] items-start relative shrink-0">
         <p className="font-sans font-medium relative shrink-0 text-[#1c1c1c] text-[20px]">
           ৳899 BDT
@@ -465,7 +465,7 @@ function Frame32() {
 function Frame28() {
   return (
     <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] h-[56px] items-start leading-[24px] px-[8px] relative shrink-0 text-[#1c1c1c] w-[436px] whitespace-nowrap">
-      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-[-0.4px]">OWAYO - CROSS FADE</p>
+      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-normal">OWAYO - CROSS FADE</p>
       <div className="content-stretch flex gap-[8px] items-start relative shrink-0">
         <p className="font-sans font-medium relative shrink-0 text-[#1c1c1c] text-[20px]">
           ৳899 BDT
@@ -512,7 +512,7 @@ function Frame14() {
 function Frame30() {
   return (
     <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] h-[56px] items-start leading-[24px] px-[8px] relative shrink-0 text-[#1c1c1c] w-[436px] whitespace-nowrap">
-      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-[-0.4px]">OWAYO - CROSS FADE</p>
+      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-normal">OWAYO - CROSS FADE</p>
       <div className="content-stretch flex gap-[8px] items-start relative shrink-0">
         <p className="font-sans font-medium relative shrink-0 text-[#1c1c1c] text-[20px]">
           ৳899 BDT
@@ -557,7 +557,7 @@ function Frame15() {
 function Frame37() {
   return (
     <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] h-[56px] items-start leading-[24px] px-[8px] relative shrink-0 text-[#1c1c1c] w-[436px] whitespace-nowrap">
-      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-[-0.4px]">OWAYO - CROSS FADE</p>
+      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-normal">OWAYO - CROSS FADE</p>
       <div className="content-stretch flex gap-[8px] items-start relative shrink-0">
         <p className="font-sans font-medium relative shrink-0 text-[#1c1c1c] text-[20px]">
           ৳899 BDT
@@ -602,7 +602,7 @@ function Frame39() {
 function Frame41() {
   return (
     <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] h-[56px] items-start leading-[24px] px-[8px] relative shrink-0 text-[#1c1c1c] w-[436px] whitespace-nowrap">
-      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-[-0.4px]">OWAYO - CROSS FADE</p>
+      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-normal">OWAYO - CROSS FADE</p>
       <div className="content-stretch flex gap-[8px] items-start relative shrink-0">
         <p className="font-sans font-medium relative shrink-0 text-[#1c1c1c] text-[20px]">
           ৳899 BDT
@@ -659,7 +659,7 @@ function Frame45() {
 function Frame44() {
   return (
     <div className="content-stretch flex flex-col items-center relative shrink-0">
-      <p className="[word-break:break-word] font-serif font-semibold leading-[110px] relative shrink-0 text-[70px] text-white tracking-[-2.1px] whitespace-nowrap">Have your own design?</p>
+      <p className="[word-break:break-word] font-serif font-semibold leading-[110px] relative shrink-0 text-[70px] text-white tracking-normal whitespace-nowrap">Have your own design?</p>
       <Frame45 />
     </div>
   );

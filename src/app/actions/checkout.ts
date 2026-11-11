@@ -29,6 +29,7 @@ export async function getCheckoutQuoteAction(
       vatBdt: q.vatBdt,
       vatPercent: q.vatPercent,
       deliveryChargeBdt: q.deliveryChargeBdt,
+      standardDeliveryChargeBdt: q.standardDeliveryChargeBdt,
       freeShippingThresholdBdt: q.freeShippingThresholdBdt,
       freeShippingEligible: q.freeShippingEligible,
       amountNeededForFreeShippingBdt: q.amountNeededForFreeShippingBdt,

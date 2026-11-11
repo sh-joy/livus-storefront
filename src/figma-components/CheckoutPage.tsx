@@ -2,6 +2,8 @@
 
 import { useState, useEffect, type CSSProperties } from "react";
 import Link from "next/link";
+import { Minus, Plus } from "lucide-react";
+import { SmartImage } from "@/components/storefront/SmartImage";
 import { useCartStore, getCartItemKey } from "@/lib/store/cart-store";
 import { useRouter } from "next/navigation";
 import { InputField } from "./InputField";
@@ -40,15 +42,15 @@ function CheckCircle() {
 }
 
 const base: CSSProperties = {
-  fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+  fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
   fontSize: "17px", lineHeight: "24px", letterSpacing: "0.17px",
   color: "var(--ink)", fontWeight: 400,
 };
 
 const sectionLabel: CSSProperties = {
-  fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
-  fontSize: "15px", lineHeight: "24px", fontWeight: 500,
-  color: "var(--ink-muted)", letterSpacing: "0.9px",
+  fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
+  fontSize: "14px", lineHeight: "20px", fontWeight: 500,
+  color: "var(--ink)", letterSpacing: "0.12em",
   textTransform: "uppercase",
 };
 
@@ -116,6 +118,13 @@ export function CheckoutPage() {
   const [appliedDiscount, setAppliedDiscount] = useState<{ code: string; amount: number; isPercentage?: boolean; description: string } | null>(null);
   const [errors, setErrors]     = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [orderPlaced, setOrderPlaced] = useState(false);
+  // The cart is restored from this browser after the first render; wait for it before deciding "empty".
+  const [cartReady, setCartReady] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCartReady(true);
+  }, []);
   const [storeSettingsData, setStoreSettingsData] = useState<{
     bKashMerchantNumber?: string;
     nagadMerchantNumber?: string;
@@ -176,7 +185,7 @@ export function CheckoutPage() {
   const [quote, setQuote] = useState<{
     subtotalBdt: number; discountBdt: number; vatBdt: number; vatPercent: number;
     deliveryChargeBdt: number; totalBdt: number; freeShippingEligible?: boolean;
-    freeShippingThresholdBdt?: number; amountNeededForFreeShippingBdt?: number;
+    freeShippingThresholdBdt?: number; amountNeededForFreeShippingBdt?: number; standardDeliveryChargeBdt?: number;
   } | null>(null);
   const [quoteError, setQuoteError] = useState("");
 
@@ -235,7 +244,7 @@ export function CheckoutPage() {
   const discountVal = quote?.discountBdt ?? 0;
   const localTaxable = Math.max(0, localSubtotal - discountVal);
   const vatVal = quote?.vatBdt ?? (cartItems.length > 0 ? Math.round((localTaxable * vatRatePct) / 100) : 0);
-  const deliveryVal = quote?.deliveryChargeBdt ?? (cartItems.length > 0 ? (localTaxable >= 2500 ? 0 : 150) : 0);
+  const deliveryVal = quote?.deliveryChargeBdt ?? 0;
   const totalVal = quote?.totalBdt ?? Math.max(0, localTaxable + vatVal + deliveryVal);
 
   const handleApplyPromo = async () => {
@@ -371,6 +380,7 @@ export function CheckoutPage() {
       const res = await placeOrderAction(orderPayload);
 
       if (res.success) {
+        setOrderPlaced(true);
         useCartStore.getState().clearCart();
         const ordNum = res.orderNumber || res.orderId || 'LIV-1042';
         const locStr = [city.trim(), region.trim()].filter(Boolean).join(', ') || 'Dhaka, Bangladesh';
@@ -386,36 +396,47 @@ export function CheckoutPage() {
     }
   };
 
+  if (cartReady && cartItems.length === 0 && !isSubmitting && !orderPlaced) {
+    return (
+      <div className="min-h-[100dvh] flex flex-col bg-white">
+        <SiteNav />
+        <main className="flex-1 flex flex-col items-center justify-center text-center px-[var(--lv-gutter)] py-16">
+          <h1 className="t-h2 m-0">Your cart is empty</h1>
+          <p className="t-lead mt-5 mb-9 max-w-[440px]">
+            Add a few pieces you love, then come back here to check out.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <Link href="/all-products" className="lv-btn lv-btn--solid">Shop all products</Link>
+            <Link href="/" className="lv-btn lv-btn--outline">Back to home</Link>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: "#ffffff" }}>
       <SiteNav />
 
       <div style={{ flex: 1 }}>
-        <div className="max-[1112px]:!px-[16px] max-md:!pt-[32px] max-md:!pb-[48px]" style={{
+        <div className="max-[1112px]:!px-[16px] max-md:!pt-[24px] max-md:!pb-[32px]" style={{
           maxWidth: "1080px",
           margin: "0px auto",
-          padding: "80px 0px",
+          padding: "48px 0px",
         }}>
 
           {/* Top Row: Checkout Heading & Subtitle */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "40px" }}>
-            <p className="max-md:!text-[40px] max-md:!leading-[44px]" style={{
-              fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
-              fontSize: "48px", fontWeight: 600,
-              color: "var(--ink)", letterSpacing: "-1.44px", lineHeight: "56px",
-            }}>Checkout</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "28px" }}>
+            <h1 className="t-h2 m-0">Checkout</h1>
             {user ? (
-              <p style={{ ...base, color: "var(--ink-muted)", textTransform: "uppercase" }}>
-                Signed in as <span style={{ color: "var(--ink)" }}>{user.email}</span>
+              <p className="t-body m-0 mt-2 text-[var(--lv-ink-muted)]">
+                Signed in as <span className="text-[#0d0d0d]">{user.email}</span>
               </p>
             ) : (
-              <p style={{ ...base, color: "var(--ink-muted)", textTransform: "uppercase" }}>
-                ALREADY HAVE AN ACCOUNT?{" "}
-                <a
-                  href="/signin?redirect=/checkout"
-                  style={{ color: "var(--ink)", textDecoration: "underline", cursor: "pointer", fontSize: "15px" }}
-                >
-                  SIGN IN
+              <p className="t-body m-0 mt-2 text-[var(--lv-ink-muted)]">
+                Already have an account?{" "}
+                <a href="/signin?redirect=/checkout" className="text-[#0d0d0d] underline underline-offset-4">
+                  Sign in
                 </a>
               </p>
             )}
@@ -430,7 +451,7 @@ export function CheckoutPage() {
           }}>
 
             {/* ── LEFT: Form ── */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "40px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
 
               {/* Personal information (Reordered: Full name, Phone number, Email address optional) */}
               <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
@@ -459,9 +480,6 @@ export function CheckoutPage() {
                     autoComplete="email"
                     error={errors.email}
                   />
-                  <p className="text-[12px] text-neutral-500 font-sans mt-[-8px]">
-                    We save your details while you check out so you can finish your order later.
-                  </p>
                 </div>
               </div>
 
@@ -494,7 +512,7 @@ export function CheckoutPage() {
                             lineHeight: "16px",
                             fontWeight: 500,
                             color: errors.region ? "#d4183d" : "#0d0d0d",
-                            fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                            fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
                             letterSpacing: "0.17px",
                           }}
                         >
@@ -517,7 +535,7 @@ export function CheckoutPage() {
                             display: "block", width: "100%", padding: "8px 28px 6px 0",
                             fontSize: "16px", lineHeight: "22px",
                             color: region ? "var(--ink)" : "#808080",
-                            fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                            fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
                             letterSpacing: "0.17px",
                             appearance: "none", background: "transparent", border: "none", outline: "none",
                           }}
@@ -537,7 +555,7 @@ export function CheckoutPage() {
                         </svg>
                       </div>
                       {errors.region && (
-                        <p style={{ fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)", fontSize: "12px", color: "#d4183d" }}>
+                        <p style={{ fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)", fontSize: "12px", color: "#d4183d" }}>
                           {errors.region}
                         </p>
                       )}
@@ -555,7 +573,7 @@ export function CheckoutPage() {
                             lineHeight: "16px",
                             fontWeight: 500,
                             color: errors.city ? "#d4183d" : "#0d0d0d",
-                            fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                            fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
                             letterSpacing: "0.17px",
                           }}
                         >
@@ -571,7 +589,7 @@ export function CheckoutPage() {
                             display: "block", width: "100%", padding: "8px 28px 6px 0",
                             fontSize: "16px", lineHeight: "22px",
                             color: city ? "var(--ink)" : "#808080",
-                            fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                            fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
                             letterSpacing: "0.17px",
                             appearance: "none", background: "transparent", border: "none", outline: "none",
                             cursor: region ? "pointer" : "not-allowed",
@@ -587,7 +605,7 @@ export function CheckoutPage() {
                         </svg>
                       </div>
                       {errors.city && (
-                        <p style={{ fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)", fontSize: "12px", color: "#d4183d" }}>
+                        <p style={{ fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)", fontSize: "12px", color: "#d4183d" }}>
                           {errors.city}
                         </p>
                       )}
@@ -611,7 +629,7 @@ export function CheckoutPage() {
               {/* Payment method */}
               <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                 <p style={sectionLabel}>Payment method</p>
-                <div className={`grid grid-cols-1 ${isBkashConfigured && isNagadConfigured ? 'sm:grid-cols-3' : isBkashConfigured || isNagadConfigured ? 'sm:grid-cols-2' : 'sm:grid-cols-1'} gap-3 w-full`} style={{ opacity: cartItems.length === 0 ? 0.5 : 1, pointerEvents: cartItems.length === 0 ? "none" : "auto" }}>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full" style={{ opacity: cartItems.length === 0 ? 0.5 : 1, pointerEvents: cartItems.length === 0 ? "none" : "auto" }}>
 
                   {/* Cash on delivery */}
                   <button
@@ -632,147 +650,133 @@ export function CheckoutPage() {
                   >
                     <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                       <TruckIcon />
-                      <span style={{ ...base, fontSize: "14px", fontWeight: payment === "cash" ? 600 : 400 }}>COD (Cash)</span>
+                      <span style={{ ...base, fontSize: "16px", fontWeight: payment === "cash" ? 500 : 400 }}>Cash on delivery</span>
                     </span>
                     {payment === "cash" && <CheckCircle />}
                   </button>
 
-                  {/* bKash (only if configured in store settings) */}
-                  {isBkashConfigured && (
-                    <button
-                      type="button"
-                      disabled={cartItems.length === 0}
-                      onClick={() => setPayment("bkash")}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        padding: "14px 14px",
-                        border: payment === "bkash" ? "1.5px solid #d12053" : "1px solid #e2e8f0",
-                        background: payment === "bkash" ? "#fff5f7" : "#ffffff",
-                        cursor: "pointer",
-                        boxSizing: "border-box",
-                        transition: "all 0.2s ease",
-                      }}
-                    >
-                      <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <span style={{ fontWeight: 700, color: "#d12053", fontSize: "15px", fontFamily: "sans-serif" }}>bKash</span>
-                      </span>
-                      {payment === "bkash" && <CheckCircle />}
-                    </button>
-                  )}
+                  {/* bKash: selectable once a valid merchant number is saved in Admin → Settings */}
+                  <button
+                    type="button"
+                    disabled={cartItems.length === 0 || !isBkashConfigured}
+                    onClick={() => setPayment("bkash")}
+                    aria-disabled={!isBkashConfigured}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "14px 14px",
+                      border: payment === "bkash" ? "1.5px solid #d12053" : "1px solid #e2e8f0",
+                      background: payment === "bkash" ? "#fff5f7" : "#ffffff",
+                      cursor: isBkashConfigured ? "pointer" : "not-allowed",
+                      opacity: isBkashConfigured ? 1 : 0.55,
+                      boxSizing: "border-box",
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src="/payment-icons/bkash.svg" alt="" width={40} height={40} style={{ display: "block", margin: "-8px -4px -8px -8px" }} />
+                      <span style={{ ...base, fontSize: "16px", fontWeight: payment === "bkash" ? 500 : 400 }}>bKash</span>
+                    </span>
+                    {!isBkashConfigured ? (
+                      <span style={{ ...base, fontSize: "13px", color: "var(--ink-muted)" }}>Coming soon</span>
+                    ) : (
+                      payment === "bkash" && <CheckCircle />
+                    )}
+                  </button>
 
-                  {/* Nagad (only if configured in store settings) */}
-                  {isNagadConfigured && (
-                    <button
-                      type="button"
-                      disabled={cartItems.length === 0}
-                      onClick={() => setPayment("nagad")}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        padding: "14px 14px",
-                        border: payment === "nagad" ? "1.5px solid #e65c00" : "1px solid #e2e8f0",
-                        background: payment === "nagad" ? "#fff9f5" : "#ffffff",
-                        cursor: "pointer",
-                        boxSizing: "border-box",
-                        transition: "all 0.2s ease",
-                      }}
-                    >
-                      <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <span style={{ fontWeight: 700, color: "#e65c00", fontSize: "15px", fontFamily: "sans-serif" }}>Nagad</span>
-                      </span>
-                      {payment === "nagad" && <CheckCircle />}
-                    </button>
-                  )}
+                  {/* Nagad: selectable once a valid merchant number is saved in Admin → Settings */}
+                  <button
+                    type="button"
+                    disabled={cartItems.length === 0 || !isNagadConfigured}
+                    onClick={() => setPayment("nagad")}
+                    aria-disabled={!isNagadConfigured}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "14px 14px",
+                      border: payment === "nagad" ? "1.5px solid #e65c00" : "1px solid #e2e8f0",
+                      background: payment === "nagad" ? "#fff9f5" : "#ffffff",
+                      cursor: isNagadConfigured ? "pointer" : "not-allowed",
+                      opacity: isNagadConfigured ? 1 : 0.55,
+                      boxSizing: "border-box",
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src="/payment-icons/nagad.svg" alt="" width={40} height={40} style={{ display: "block", margin: "-8px -4px -8px -8px" }} />
+                      <span style={{ ...base, fontSize: "16px", fontWeight: payment === "nagad" ? 500 : 400 }}>Nagad</span>
+                    </span>
+                    {!isNagadConfigured ? (
+                      <span style={{ ...base, fontSize: "13px", color: "var(--ink-muted)" }}>Coming soon</span>
+                    ) : (
+                      payment === "nagad" && <CheckCircle />
+                    )}
+                  </button>
 
                 </div>
 
-                {/* Instructions & TrxID inputs for bKash */}
-                {payment === "bkash" && (
-                  <div className="p-4 bg-[#fff5f7] border border-[#f8c5d2] flex flex-col gap-3 font-sans">
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-xs text-[#a1113b] uppercase tracking-wider">bKash Manual Payment</span>
-                      <span className="text-xs bg-[#d12053] text-white px-2 py-0.5 font-mono">{bkashNumber}</span>
-                    </div>
-                    <p className="text-xs text-neutral-700 leading-relaxed">
-                      1. Open your bKash app or dial *247#<br/>
-                      2. Send Money / Make Payment of <strong>৳{totalVal.toFixed(0)} BDT</strong> to <strong>{bkashNumber}</strong><br/>
-                      3. Enter the <strong>Transaction ID (TrxID)</strong> from your SMS receipt below to verify order.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-3 pt-1">
-                      <div className="flex-1">
-                        <InputField
-                          label="bKash Transaction ID (TrxID) *"
-                          value={trxId}
-                          onChange={(v) => { setTrxId(v); if (errors.trxId) setErrors(prev => ({ ...prev, trxId: "" })); }}
-                          error={errors.trxId}
-                          placeholder="e.g. 9J47AB12"
-                        />
+                {/* Manual mobile payment (no gateway yet): customer uses "Send Money" to our number, then enters the TrxID */}
+                {(payment === "bkash" || payment === "nagad") && (() => {
+                  const isBkash = payment === "bkash";
+                  const wallet = isBkash ? "bKash" : "Nagad";
+                  const number = isBkash ? bkashNumber : nagadNumber;
+                  const ussd = isBkash ? "*247#" : "*167#";
+                  return (
+                    <div className="border border-[var(--lv-line)] p-4 sm:p-5 flex flex-col gap-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex flex-col">
+                          <span className="t-small text-[var(--lv-ink-muted)]">Send Money to our {wallet} number</span>
+                          <span className="text-[20px] tracking-[0.04em] text-[#0d0d0d] tabular-nums">{number}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => navigator.clipboard?.writeText(number).catch(() => {})}
+                          className="lv-btn lv-btn--outline !min-h-9 !px-3 !text-[13px]"
+                        >
+                          Copy
+                        </button>
                       </div>
-                      <div className="flex-1">
-                        <InputField
-                          label="Sender bKash Number (Optional)"
-                          value={senderPhone}
-                          onChange={setSenderPhone}
-                          placeholder="017XXXXXXXX"
-                        />
+                      <ol className="t-small m-0 pl-5 list-decimal flex flex-col gap-1 text-[#3a3a3a]">
+                        <li>Open the {wallet} app (or dial {ussd}) and choose <strong>Send Money</strong>.</li>
+                        <li>Send exactly <strong>৳{totalVal.toFixed(0)}</strong> to <strong>{number}</strong>.</li>
+                        <li>Enter the Transaction ID (TrxID) from your confirmation SMS below, then confirm your order.</li>
+                      </ol>
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <div className="flex-1">
+                          <InputField
+                            label={`${wallet} Transaction ID (TrxID) *`}
+                            value={trxId}
+                            onChange={(v) => { setTrxId(v); if (errors.trxId) setErrors(prev => ({ ...prev, trxId: "" })); }}
+                            error={errors.trxId}
+                            placeholder="e.g. 9J47AB12"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <InputField
+                            label={`Number you sent from (optional)`}
+                            type="tel"
+                            value={senderPhone}
+                            onChange={setSenderPhone}
+                            placeholder="01XXXXXXXXX"
+                          />
+                        </div>
                       </div>
+                      <p className="t-small m-0 text-[var(--lv-ink-muted)]">We check the payment and confirm your order by phone before dispatch.</p>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
 
-                {/* Instructions & TrxID inputs for Nagad */}
-                {payment === "nagad" && (
-                  <div className="p-4 bg-[#fff9f5] border border-[#fed7aa] flex flex-col gap-3 font-sans">
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-xs text-[#9a3412] uppercase tracking-wider">Nagad Manual Payment</span>
-                      <span className="text-xs bg-[#ea580c] text-white px-2 py-0.5 font-mono">{storeSettingsData?.nagadMerchantNumber || ''}</span>
-                    </div>
-                    <p className="text-xs text-neutral-700 leading-relaxed">
-                      1. Open your Nagad app or dial *167#<br/>
-                      2. Send Money of <strong>৳{totalVal.toFixed(0)} BDT</strong> to <strong>{storeSettingsData?.nagadMerchantNumber || ''}</strong><br/>
-                      3. Enter the <strong>Transaction ID (TrxID)</strong> from your SMS receipt below to verify order.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-3 pt-1">
-                      <div className="flex-1">
-                        <InputField
-                          label="Nagad Transaction ID (TrxID) *"
-                          value={trxId}
-                          onChange={(v) => { setTrxId(v); if (errors.trxId) setErrors(prev => ({ ...prev, trxId: "" })); }}
-                          error={errors.trxId}
-                          placeholder="e.g. 7K29NM84"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <InputField
-                          label="Sender Nagad Number (Optional)"
-                          value={senderPhone}
-                          onChange={setSenderPhone}
-                          placeholder="018XXXXXXXX"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {payment === "cash" && (
-                  <div className="p-3 bg-neutral-50 border border-neutral-200 text-neutral-600 text-xs font-sans">
-                    Pay with cash directly to our delivery courier when your package arrives at your doorstep.
-                  </div>
-                )}
               </div>
             </div>
 
             {/* ── RIGHT: Order summary ── */}
             <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
 
-              <p style={{
-                fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
-                fontSize: "24px", fontWeight: 500,
-                color: "var(--ink)", letterSpacing: "-0.5px", lineHeight: "36px",
-              }}>Order Summary</p>
+              <h2 className="t-h3 m-0">Order summary</h2>
 
               {/* Cart items */}
               <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
@@ -790,7 +794,7 @@ export function CheckoutPage() {
                     background: "#fafafa",
                   }}>
                     <p style={{
-                      fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
+                      fontFamily: "'Overused Grotesk', sans-serif",
                       fontSize: "24px",
                       fontWeight: 500,
                       lineHeight: "32px",
@@ -811,7 +815,7 @@ export function CheckoutPage() {
                         border: "none",
                         cursor: "pointer",
                         padding: "7px 16px",
-                        fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                        fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
                         fontSize: "15px",
                         fontWeight: 500,
                         letterSpacing: "0.75px",
@@ -831,60 +835,53 @@ export function CheckoutPage() {
                         {index > 0 && <div className="w-full h-px bg-[#E2E2E2] shrink-0" />}
                         <div className="flex gap-[16px] items-start w-full shrink-0">
                           <div className="bg-[#f0f0f0] flex h-[140px] w-[105px] max-md:h-[117px] max-md:w-[88px] aspect-[3/4] items-center justify-center overflow-hidden shrink-0">
-                            <img
+                            <SmartImage
                               alt={item.product.name}
-                              width={105}
-                              height={140}
-                              loading="lazy"
-                              decoding="async"
+                              width={210}
+                              height={280}
+                              sizes="105px"
                               className="w-full h-full object-cover aspect-[3/4]"
                               src={item.product.imageUrl || (typeof productImg === 'string' ? productImg : productImg?.src) || "/images/for_him.jpg"}
+                              fallbackSrc="/images/for_him.jpg"
                             />
                           </div>
                           <div className="flex-1 flex flex-col justify-between py-[3px] self-stretch min-w-0">
                             <div className="flex items-start justify-between gap-[8px] w-full leading-[24px] text-[#1c1c1c]">
                               <div className="font-sans flex flex-col items-start min-w-0">
-                                <p className="text-[17px] font-medium tracking-[-0.34px]">{item.product.name}</p>
-                                {item.product.color && <p className="text-[17px] tracking-[-0.085px]">Color: {item.product.color}</p>}
-                                {item.product.size && <p className="text-[17px] tracking-[-0.085px]">Size: {item.product.size}</p>}
+                                <p className="text-[16px] font-medium leading-snug">{item.product.name}</p>
+                                {item.product.color && <p className="text-[14px] text-[#5c5c5c]">Color: {item.product.color}</p>}
+                                {item.product.size && <p className="text-[14px] text-[#5c5c5c]">Size: {item.product.size}</p>}
                               </div>
                               <p className="font-sans text-[17px] font-medium shrink-0 whitespace-nowrap">{item.product.price}</p>
                             </div>
                             <div className="flex items-center justify-between w-full shrink-0 pt-[8px]">
-                              <div className="flex gap-[16px] items-center">
+                              <div className="flex items-center border border-[#e2e2e2] h-10">
                                 <button
                                   type="button"
                                   disabled={item.quantity <= 1}
                                   onClick={() => updateQuantity(itemKey, item.quantity - 1)}
-                                  className={`size-[20px] flex items-center justify-center transition-opacity ${
-                                    item.quantity <= 1 ? "opacity-30 cursor-not-allowed" : "cursor-pointer hover:opacity-75"
-                                  }`}
+                                  className="size-10 flex items-center justify-center bg-transparent border-none cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#f5f5f5]"
                                   aria-label="Decrease quantity"
                                 >
-                                  <svg fill="none" height="20" viewBox="0 0 20 20" width="20" className="block size-full">
-                                    <path d="M2.92893 10H17.0711" stroke="black" strokeWidth="1.2" strokeLinejoin="round" />
-                                  </svg>
+                                  <Minus className="size-4 stroke-[1.5]" aria-hidden />
                                 </button>
-                                <p className="font-sans leading-[20px] text-[17px] tracking-[-0.34px] text-[#1c1c1c]">
-                                  {item.quantity}
-                                </p>
+                                <span className="w-9 text-center text-[16px] tabular-nums text-[#1c1c1c]">{item.quantity}</span>
                                 <button
                                   type="button"
                                   onClick={() => updateQuantity(itemKey, item.quantity + 1)}
-                                  className="size-[20px] flex items-center justify-center cursor-pointer hover:opacity-75"
+                                  className="size-10 flex items-center justify-center bg-transparent border-none cursor-pointer hover:bg-[#f5f5f5]"
+                                  aria-label="Increase quantity"
                                 >
-                                  <svg fill="none" height="20" viewBox="0 0 20 20" width="20" className="block size-full">
-                                    <path d="M10 2.92893V17.0711" stroke="black" strokeWidth="1.2" strokeLinejoin="round" />
-                                    <path d="M2.92893 10H17.0711" stroke="black" strokeWidth="1.2" strokeLinejoin="round" />
-                                  </svg>
+                                  <Plus className="size-4 stroke-[1.5]" aria-hidden />
                                 </button>
                               </div>
-                              <p
+                              <button
+                                type="button"
                                 onClick={() => removeItem(itemKey)}
-                                className="font-sans leading-[24px] text-[17px] tracking-[-0.085px] underline text-[#1c1c1c] cursor-pointer"
+                                className="text-[15px] underline underline-offset-4 text-[#5c5c5c] hover:text-black bg-transparent border-none p-0 cursor-pointer"
                               >
                                 Remove
-                              </p>
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -894,9 +891,36 @@ export function CheckoutPage() {
                 )}
               </div>
 
+              {/* Free-delivery progress (same as the cart). Hidden when the offer is off in Admin → Settings. */}
+              {cartItems.length > 0 && (quote?.freeShippingThresholdBdt ?? 0) > 0 && (
+                <div className="flex flex-col gap-2">
+                  <p className="t-small m-0 text-[#1a1a1a]">
+                    {quote?.freeShippingEligible ? (
+                      <span className="text-[#1f7a3a]">You&apos;ve unlocked free delivery</span>
+                    ) : (
+                      <>
+                        Add <strong className="font-semibold">৳{(quote?.amountNeededForFreeShippingBdt ?? 0).toLocaleString()}</strong> more for free delivery
+                      </>
+                    )}
+                  </p>
+                  <div className="w-full h-1 bg-neutral-200 overflow-hidden">
+                    <div
+                      className="h-full bg-[#0d0d0d] transition-all duration-300"
+                      style={{
+                        width: `${
+                          quote?.freeShippingEligible
+                            ? 100
+                            : Math.max(0, Math.min(100, Math.round((1 - (quote?.amountNeededForFreeShippingBdt ?? 0) / (quote?.freeShippingThresholdBdt || 1)) * 100)))
+                        }%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+
               {/* Gift Card / Promo Code Input Section */}
               <div style={{ width: "100%", paddingTop: "16px", paddingBottom: "16px", borderTop: "1px dashed #d0d0d0", borderBottom: "1px dashed #d0d0d0", margin: "4px 0", opacity: cartItems.length === 0 ? 0.4 : 1, pointerEvents: cartItems.length === 0 ? "none" : "auto" }}>
-                <div style={{ display: "flex", width: "100%", height: "48px", background: "#f4f4f4" }}>
+                <div style={{ display: "flex", width: "100%", height: "44px", background: "#f4f4f4" }}>
                   <input
                     type="text"
                     placeholder="Gift or Promo Code"
@@ -912,7 +936,7 @@ export function CheckoutPage() {
                       border: "none",
                       outline: "none",
                       padding: "0 16px",
-                      fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                      fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
                       fontSize: "16px",
                       color: "#1c1c1c",
                     }}
@@ -920,38 +944,37 @@ export function CheckoutPage() {
                   <button
                     type="button"
                     onClick={handleApplyPromo}
+                    disabled={!promoCode.trim()}
                     style={{
                       width: "100px",
-                      background: "#e0e0e0",
-                      color: "#555555",
+                      background: promoCode.trim() ? "#0d0d0d" : "#e0e0e0",
+                      color: promoCode.trim() ? "#ffffff" : "#8a8a8a",
                       border: "none",
-                      cursor: "pointer",
-                      fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
-                      fontSize: "17px",
+                      cursor: promoCode.trim() ? "pointer" : "not-allowed",
+                      fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
+                      fontSize: "15px",
                       fontWeight: 500,
-                      letterSpacing: "0.85px",
+                      letterSpacing: "0.1em",
                       textTransform: "uppercase",
                       transition: "all 0.2s ease",
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = "#050505"; e.currentTarget.style.color = "#ffffff"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = "#e0e0e0"; e.currentTarget.style.color = "#555555"; }}
                   >
                     APPLY
                   </button>
                 </div>
                 {promoError && (
-                  <p style={{ fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)", fontSize: "13px", color: "#d4183d", marginTop: "6px" }}>
+                  <p style={{ fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)", fontSize: "13px", color: "#d4183d", marginTop: "6px" }}>
                     {promoError}
                   </p>
                 )}
                 {appliedDiscount && (
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "8px" }}>
-                    <p style={{ fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)", fontSize: "14px", color: "#10b981", fontWeight: 500 }}>
+                    <p style={{ fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)", fontSize: "14px", color: "#10b981", fontWeight: 500 }}>
                       Code '{appliedDiscount.code}' applied ({appliedDiscount.description})
                     </p>
                     <span
                       onClick={handleRemovePromo}
-                      style={{ fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)", fontSize: "14px", color: "#808080", textDecoration: "underline", cursor: "pointer", marginLeft: "auto" }}
+                      style={{ fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)", fontSize: "14px", color: "#808080", textDecoration: "underline", cursor: "pointer", marginLeft: "auto" }}
                     >
                       Remove
                     </span>
@@ -963,49 +986,49 @@ export function CheckoutPage() {
               <div style={{ display: "flex", flexDirection: "column", gap: "20px", opacity: cartItems.length === 0 ? 0.4 : 1 }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <p style={{ ...base, letterSpacing: "-0.34px", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>Subtotal</p>
-                    <p style={{ ...base, letterSpacing: "-0.34px", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>৳ {subtotalVal.toFixed(0)} BDT</p>
+                    <p style={{ ...base, letterSpacing: "0", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>Subtotal</p>
+                    <p style={{ ...base, letterSpacing: "0", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>৳ {subtotalVal.toFixed(0)} BDT</p>
                   </div>
                   {appliedDiscount && (
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <p style={{ ...base, letterSpacing: "-0.34px", color: "#d4183d" }}>Discount ({appliedDiscount.code})</p>
-                      <p style={{ ...base, letterSpacing: "-0.34px", color: "#d4183d", fontWeight: 500 }}>-৳ {discountVal.toFixed(0)} BDT</p>
+                      <p style={{ ...base, letterSpacing: "0", color: "#d4183d" }}>Discount ({appliedDiscount.code})</p>
+                      <p style={{ ...base, letterSpacing: "0", color: "#d4183d", fontWeight: 500 }}>-৳ {discountVal.toFixed(0)} BDT</p>
                     </div>
                   )}
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <p style={{ ...base, letterSpacing: "-0.34px", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>VAT</p>
-                    <p style={{ ...base, letterSpacing: "-0.34px", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>৳ {vatVal.toFixed(0)} BDT</p>
+                    <p style={{ ...base, letterSpacing: "0", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>VAT</p>
+                    <p style={{ ...base, letterSpacing: "0", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>৳ {vatVal.toFixed(0)} BDT</p>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <p style={{ ...base, letterSpacing: "-0.34px", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>Delivery Charge</p>
-                    <p style={{ ...base, letterSpacing: "-0.34px", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>
-                      {deliveryVal === 0 ? (
-                        <span style={{ color: "#10b981", fontWeight: 600 }}>FREE (Over ৳{(quote?.freeShippingThresholdBdt ?? 2500).toLocaleString()})</span>
+                    <p style={{ ...base, letterSpacing: "0", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>Delivery Charge</p>
+                    <p style={{ ...base, letterSpacing: "0", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>
+                      {deliveryVal === 0 && quote?.freeShippingEligible ? (
+                        <>
+                          <span style={{ textDecoration: "line-through", color: "var(--ink-muted)", marginRight: "8px" }}>
+                            ৳ {(quote?.standardDeliveryChargeBdt ?? 0).toFixed(0)} BDT
+                          </span>
+                          Free
+                        </>
                       ) : (
                         `৳ ${deliveryVal.toFixed(0)} BDT`
                       )}
                     </p>
                   </div>
-                  {Boolean(quote?.amountNeededForFreeShippingBdt && quote.amountNeededForFreeShippingBdt > 0 && deliveryVal > 0) && (
-                    <p style={{ fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)", fontSize: "12px", color: "#737373", marginTop: "-4px", textAlign: "right" }}>
-                      Add ৳{quote?.amountNeededForFreeShippingBdt?.toLocaleString()} more for FREE delivery
-                    </p>
-                  )}
                 </div>
 
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <p style={{ ...base, fontWeight: 500, letterSpacing: "-0.34px", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>Total</p>
-                  <p style={{ ...base, fontWeight: 500, letterSpacing: "-0.34px", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>৳ {totalVal.toFixed(0)} BDT</p>
+                  <p style={{ ...base, fontWeight: 500, letterSpacing: "0", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>Total</p>
+                  <p style={{ ...base, fontWeight: 500, letterSpacing: "0", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>৳ {totalVal.toFixed(0)} BDT</p>
                 </div>
 
                 {quoteError && !errors.form && (
-                  <p style={{ fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)", fontSize: "14px", color: "#d4183d", fontWeight: 500, textAlign: "center" }}>
+                  <p style={{ fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)", fontSize: "14px", color: "#d4183d", fontWeight: 500, textAlign: "center" }}>
                     {quoteError}
                   </p>
                 )}
 
                 {errors.form && (
-                  <p style={{ fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)", fontSize: "14px", color: "#d4183d", fontWeight: 500, textAlign: "center" }}>
+                  <p style={{ fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)", fontSize: "14px", color: "#d4183d", fontWeight: 500, textAlign: "center" }}>
                     {errors.form}
                   </p>
                 )}
@@ -1014,32 +1037,9 @@ export function CheckoutPage() {
                   type="button"
                   disabled={cartItems.length === 0 || isSubmitting}
                   onClick={handleProceedToPayment}
-                  style={{
-                    background: cartItems.length === 0 || isSubmitting ? "#e0e0e0" : "#050505",
-                    color: cartItems.length === 0 || isSubmitting ? "#999999" : "#ffffff",
-                    border: "none",
-                    cursor: cartItems.length === 0 || isSubmitting ? "not-allowed" : "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: "12px 20px",
-                    width: "100%",
-                    fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
-                    fontSize: "17px",
-                    lineHeight: "24px",
-                    fontWeight: 400,
-                    transition: "all 0.2s ease",
-                  }}
+                  className="lv-btn lv-btn--solid lv-btn--block disabled:!bg-neutral-200 disabled:!border-neutral-200 disabled:!text-neutral-500 disabled:cursor-not-allowed"
                 >
-                  {isSubmitting
-                    ? "PLACING YOUR ORDER..."
-                    : payment === "cash"
-                    ? "CONFIRM CASH ON DELIVERY"
-                    : payment === "bkash"
-                    ? "CONFIRM BKASH PAYMENT ORDER"
-                    : payment === "nagad"
-                    ? "CONFIRM NAGAD PAYMENT ORDER"
-                    : "PROCEED TO PAYMENT"}
+                  {isSubmitting ? "Placing your order…" : "Confirm order"}
                 </button>
               </div>
             </div>
@@ -1049,7 +1049,7 @@ export function CheckoutPage() {
         </div>
       </div>
 
-      <SiteFooter />
+      <SiteFooter compact />
     </div>
   );
 }

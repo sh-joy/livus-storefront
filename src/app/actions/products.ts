@@ -258,7 +258,7 @@ export async function getProductBySlugAction(slug: string) {
       }
     }
 
-    const adminRows = await getAdminProducts({ status: 'active' });
+    const adminRows = await loadProductRows({ status: 'active' });
     const foundRow = adminRows.find(
       (r) =>
         (r.slug && r.slug.toLowerCase() === cleanSlug) ||
@@ -378,7 +378,14 @@ const catalogProducts: any[] = [
   },
 ];
 
+/** Admin product list (includes inactive products and stock). Admins only. */
 export async function getAdminProducts(params?: { search?: string; collection?: string; status?: string; categorySlug?: string }): Promise<ProductRow[]> {
+  await requireAdmin();
+  return loadProductRows(params);
+}
+
+/** Internal loader shared by the admin list and the public storefront helpers (not callable from the browser). */
+async function loadProductRows(params?: { search?: string; collection?: string; status?: string; categorySlug?: string }): Promise<ProductRow[]> {
   try {
     let allProducts: any[] = [];
     if (db) {
@@ -506,7 +513,7 @@ export async function getAdminProducts(params?: { search?: string; collection?: 
 
 export async function getProducts(catSlug?: string): Promise<ProductItem[]> {
   // Storefront only lists active products
-  const rows = await getAdminProducts({ status: 'active' });
+  const rows = await loadProductRows({ status: 'active' });
 
   let filtered = rows;
   const slug = (catSlug || "").toLowerCase();
@@ -562,7 +569,7 @@ export async function getProducts(catSlug?: string): Promise<ProductItem[]> {
 }
 
 export async function getPopularProductsAction(limit = 12): Promise<ProductItem[]> {
-  const allRows = await getAdminProducts({ status: 'active' });
+  const allRows = await loadProductRows({ status: 'active' });
   const now = Date.now();
 
   const scored = allRows.map((p) => {

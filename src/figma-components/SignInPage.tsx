@@ -3,7 +3,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { InputField } from "./InputField";
 import { SiteNav } from "./SiteNav";
-import { SiteFooter } from "./SiteFooter";
 import { authClient } from "@/lib/auth-client";
 import { sendOtpVerificationAction, resetPasswordWithOtpAction } from "@/app/actions/auth-actions";
 import { Loader2, Eye, EyeOff } from "lucide-react";
@@ -99,6 +98,9 @@ export function SignInPage() {
       } else {
         setErrorMessage(`Authentication error: ${urlError}`);
       }
+    } else if (urlMode === "reset-request") {
+      setAuthMode("reset-request");
+      if (urlEmail) setResetIdentifier(urlEmail);
     } else if (urlMode === "reset-code" || urlCode) {
       setAuthMode("reset-code");
       if (urlEmail) setResetIdentifier(urlEmail);
@@ -255,7 +257,7 @@ export function SignInPage() {
   return (
     <div style={{ display: "flex", flexDirection: "column", background: "#fff" }}>
       <SiteNav variant="auth" />
-      <div style={{ position: "relative", display: "flex", width: "100%", minHeight: "100vh" }}>
+      <div style={{ position: "relative", display: "flex", width: "100%", minHeight: "100dvh" }}>
 
         {/* Left: 1.5 ratio photo panel */}
         <div className="max-md:!hidden" style={{
@@ -270,7 +272,7 @@ export function SignInPage() {
         </div>
 
         {/* Right: 1.0 ratio dark form panel */}
-        <div className="max-md:!px-[16px] max-md:!pt-[96px] max-md:!pb-[48px] max-md:!justify-start" style={{
+        <div className="max-md:!px-[16px] max-md:!py-[80px]" style={{
           flex: 1, minWidth: 0, background: "#0d0d0d",
           display: "flex", flexDirection: "column",
           alignItems: "center", justifyContent: "center",
@@ -297,12 +299,12 @@ export function SignInPage() {
               <form onSubmit={handleSignIn} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                   <p style={{
-                    fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
+                    fontFamily: "'Overused Grotesk', sans-serif",
                     fontSize: "48px", lineHeight: "56px", fontWeight: 600,
-                    color: "#ffffff", letterSpacing: "-1.44px",
+                    color: "#ffffff", letterSpacing: "-0.045em",
                   }}>Sign in</p>
                   <p style={{
-                    fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                    fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
                     fontSize: "18px", lineHeight: "24px", color: "#cccccc", fontWeight: 400,
                   }}>Please provide your credentials to proceed</p>
                 </div>
@@ -348,18 +350,11 @@ export function SignInPage() {
 
                 {/* CONTINUE Button BEFORE Social Login Options (as requested in screenshot) */}
                 <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                  <div style={{ display: "inline-flex" }}>
+                  <div className="w-full">
                     <button
                       type="submit"
                       disabled={loading}
-                      style={{
-                        background: "#ffffff", border: "none", cursor: "pointer",
-                        display: "flex", alignItems: "center", gap: "8px",
-                        padding: "12px 24px",
-                        fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
-                        fontSize: "17px", lineHeight: "24px", color: "#000000", fontWeight: 400,
-                        textTransform: "uppercase", letterSpacing: "1.2px"
-                      }}
+                      className="lv-btn lv-btn--light lv-btn--block disabled:opacity-60 disabled:cursor-wait"
                     >
                       {loading && <Loader2 className="w-4 h-4 animate-spin text-black" />}
                       <span>{loading ? "AUTHENTICATING..." : "CONTINUE"}</span>
@@ -381,7 +376,7 @@ export function SignInPage() {
                       type="button"
                       onClick={() => handleSocialSignIn("google")}
                       aria-label="Sign in with Google"
-                      className="w-full h-12 bg-[#181818] hover:bg-[#242424] border border-neutral-800 text-white flex items-center justify-center transition-colors cursor-pointer rounded-none"
+                      className="w-full h-11 bg-[#181818] hover:bg-[#242424] border border-neutral-800 text-white flex items-center justify-center transition-colors cursor-pointer rounded-none"
                     >
                       <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
                         <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z" />
@@ -396,7 +391,7 @@ export function SignInPage() {
                       type="button"
                       onClick={() => handleSocialSignIn("facebook")}
                       aria-label="Sign in with Facebook"
-                      className="w-full h-12 bg-[#181818] hover:bg-[#242424] border border-neutral-800 text-white flex items-center justify-center transition-colors cursor-pointer rounded-none"
+                      className="w-full h-11 bg-[#181818] hover:bg-[#242424] border border-neutral-800 text-white flex items-center justify-center transition-colors cursor-pointer rounded-none"
                     >
                       <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
                         <path fill="#1877F2" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
@@ -408,7 +403,7 @@ export function SignInPage() {
                 </div>
 
                 <p style={{
-                  fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                  fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
                   fontSize: "15px", lineHeight: "24px", color: "#ffffff", fontWeight: 400,
                   textTransform: "uppercase",
                 }}>
@@ -428,12 +423,12 @@ export function SignInPage() {
               <form onSubmit={handleRequestOtp} style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                   <p style={{
-                    fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
+                    fontFamily: "'Overused Grotesk', sans-serif",
                     fontSize: "48px", lineHeight: "56px", fontWeight: 600,
-                    color: "#ffffff", letterSpacing: "-1.44px",
+                    color: "#ffffff", letterSpacing: "-0.045em",
                   }}>Reset password</p>
                   <p style={{
-                    fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                    fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
                     fontSize: "18px", lineHeight: "24px", color: "#cccccc", fontWeight: 400,
                   }}>Please enter your account information</p>
                 </div>
@@ -450,18 +445,11 @@ export function SignInPage() {
                 </div>
 
                 <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                  <div style={{ display: "inline-flex" }}>
+                  <div className="w-full">
                     <button
                       type="submit"
                       disabled={loading}
-                      style={{
-                        background: "#ffffff", border: "none", cursor: "pointer",
-                        display: "flex", alignItems: "center", gap: "8px",
-                        padding: "12px 24px",
-                        fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
-                        fontSize: "17px", lineHeight: "24px", color: "#000000", fontWeight: 400,
-                        textTransform: "uppercase", letterSpacing: "1.2px"
-                      }}
+                      className="lv-btn lv-btn--light lv-btn--block disabled:opacity-60 disabled:cursor-wait"
                     >
                       {loading && <Loader2 className="w-4 h-4 animate-spin text-black" />}
                       <span>{loading ? "SENDING CODE..." : "CONTINUE"}</span>
@@ -469,7 +457,7 @@ export function SignInPage() {
                   </div>
 
                   <p style={{
-                    fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                    fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
                     fontSize: "15px", lineHeight: "24px", color: "#ffffff", fontWeight: 400,
                     textTransform: "uppercase",
                   }}>
@@ -493,12 +481,12 @@ export function SignInPage() {
               <form onSubmit={handleResetPasswordSubmit} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                   <p style={{
-                    fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
+                    fontFamily: "'Overused Grotesk', sans-serif",
                     fontSize: "48px", lineHeight: "56px", fontWeight: 600,
-                    color: "#ffffff", letterSpacing: "-1.44px",
+                    color: "#ffffff", letterSpacing: "-0.045em",
                   }}>Verify code</p>
                   <p style={{
-                    fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                    fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
                     fontSize: "17px", lineHeight: "24px", color: "#cccccc", fontWeight: 400,
                     whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                   }}>
@@ -506,7 +494,7 @@ export function SignInPage() {
                   </p>
 
                   <div style={{
-                    fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                    fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
                     fontSize: "15px", lineHeight: "24px", color: "#ffffff", fontWeight: 400,
                     textTransform: "uppercase", display: "flex", alignItems: "center", gap: "6px",
                     marginTop: "6px", flexWrap: "wrap",
@@ -581,14 +569,7 @@ export function SignInPage() {
                     <button
                       type="submit"
                       disabled={loading}
-                      style={{
-                        background: "#ffffff", border: "none", cursor: "pointer",
-                        display: "flex", alignItems: "center", gap: "8px",
-                        padding: "12px 24px",
-                        fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
-                        fontSize: "17px", lineHeight: "24px", color: "#000000", fontWeight: 400,
-                        textTransform: "uppercase", letterSpacing: "1.2px"
-                      }}
+                      className="lv-btn lv-btn--light lv-btn--block disabled:opacity-60 disabled:cursor-wait"
                     >
                       {loading && <Loader2 className="w-4 h-4 animate-spin text-black" />}
                       <span>{loading ? "UPDATING PASSWORD..." : "UPDATE PASSWORD & SIGN IN"}</span>
@@ -596,7 +577,7 @@ export function SignInPage() {
                   </div>
 
                   <p style={{
-                    fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                    fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
                     fontSize: "15px", lineHeight: "24px", color: "#ffffff", fontWeight: 400,
                     textTransform: "uppercase", marginTop: "4px",
                   }}>
@@ -618,8 +599,6 @@ export function SignInPage() {
           </div>
         </div>
       </div>
-
-      <SiteFooter />
     </div>
   );
 }

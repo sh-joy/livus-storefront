@@ -461,7 +461,7 @@ function Paragraph9() {
   return (
     <div className="relative shrink-0" data-name="Paragraph">
       <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-start relative size-full">
-        <p className="[word-break:break-word] font-['Barlow Semi Condensed:Medium','Noto_Sans_Bengali:Medium',sans-serif] leading-[24px] relative shrink-0 text-[#1a1a1a] text-[17px] tracking-[0.17px] whitespace-nowrap" style={{ fontVariationSettings: '"wdth" 100, "wght" 500' }}>
+        <p className="[word-break:break-word] font-['Overused Grotesk:Medium','Noto_Sans_Bengali:Medium',sans-serif] leading-[24px] relative shrink-0 text-[#1a1a1a] text-[17px] tracking-[0.17px] whitespace-nowrap" style={{ fontVariationSettings: '"wdth" 100, "wght" 500' }}>
           ৳899 BDT
         </p>
       </div>
@@ -556,7 +556,7 @@ function Paragraph14() {
   return (
     <div className="relative shrink-0" data-name="Paragraph">
       <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col items-start relative size-full">
-        <p className="[word-break:break-word] font-['Barlow Semi Condensed:Medium','Noto_Sans_Bengali:Medium',sans-serif] leading-[24px] relative shrink-0 text-[#1a1a1a] text-[17px] tracking-[0.17px] whitespace-nowrap" style={{ fontVariationSettings: '"wdth" 100, "wght" 500' }}>
+        <p className="[word-break:break-word] font-['Overused Grotesk:Medium','Noto_Sans_Bengali:Medium',sans-serif] leading-[24px] relative shrink-0 text-[#1a1a1a] text-[17px] tracking-[0.17px] whitespace-nowrap" style={{ fontVariationSettings: '"wdth" 100, "wght" 500' }}>
           ৳790 BDT
         </p>
       </div>
@@ -595,7 +595,7 @@ function Frame2() {
   return (
     <div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
       <p className="font-sans not-italic relative shrink-0">Subtotal</p>
-      <p className="font-['Barlow Semi Condensed:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
+      <p className="font-['Overused Grotesk:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
         ৳ 1790.00
       </p>
     </div>
@@ -610,7 +610,7 @@ function Frame4() {
   return (
     <div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
       <p className="font-sans not-italic relative shrink-0">Delivery Charge</p>
-      <p className="font-['Barlow Semi Condensed:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
+      <p className="font-['Overused Grotesk:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
         ৳ 150.00
       </p>
     </div>
@@ -633,7 +633,7 @@ function Frame5() {
   return (
     <div className="[word-break:break-word] content-stretch flex items-center justify-between leading-[24px] relative shrink-0 text-[#1c1c1c] text-[17px] tracking-[-0.34px] w-full whitespace-nowrap">
       <p className="font-sans not-italic relative shrink-0">Total</p>
-      <p className="font-['Barlow Semi Condensed:Medium','Noto_Sans_Bengali:Medium',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 500' }}>
+      <p className="font-['Overused Grotesk:Medium','Noto_Sans_Bengali:Medium',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 500' }}>
         ৳ 2130.00
       </p>
     </div>

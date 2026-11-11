@@ -20,7 +20,7 @@ function Frame7() {
 function Frame13() {
   return (
     <div className="[word-break:break-word] content-stretch flex flex-col gap-[12px] items-start relative shrink-0 w-full">
-      <p className="font-serif font-semibold leading-[56px] relative shrink-0 text-[48px] text-white tracking-[-1.44px] whitespace-nowrap">Sign Up</p>
+      <p className="font-serif font-semibold leading-[56px] relative shrink-0 text-[48px] text-white tracking-normal whitespace-nowrap">Sign Up</p>
       <p className="font-sans leading-[24px] min-w-full not-italic relative shrink-0 text-[#ccc] text-[18px] w-[min-content]">Join our community for early access to new products, faster checkout, and easier returns.</p>
     </div>
   );

@@ -74,8 +74,8 @@ function formatOrder(ord: OrderWithItems) {
  * Order history / lookup.
  * - Signed in: returns the signed-in customer's own orders (matched by account email or the phone
  *   on their customer record), optionally filtered by `query`.
- * - Guest: must provide BOTH an exact order number and the phone number used on that order
- *   in `query` (e.g. "LIV-123456 01712345678"). Nothing else is searchable without signing in.
+ * - Guest: an exact order number (e.g. "LIV-123456") shows that order's status, items and totals only —
+ *   never the customer's name, phone, email or address. Rate limited to 10 lookups a minute.
  * The first argument is ignored (kept for call-site compatibility) — identity comes from the session.
  */
 export async function searchCustomerOrdersAction(_ignored?: string, query?: string) {
@@ -112,15 +112,15 @@ export async function searchCustomerOrdersAction(_ignored?: string, query?: stri
     if (!rate.success) return [];
 
     const orderNumMatch = q.match(/liv-\d{4,8}/i);
-    const phoneMatch = q.replace(/liv-\d+/i, '').replace(/[^\d+]/g, '');
-    if (!orderNumMatch || !BD_PHONE_RE.test(phoneMatch)) return [];
+    if (!orderNumMatch) return [];
 
     const ord = await db.query.orders.findFirst({
       where: eq(orders.orderNumber, orderNumMatch[0].toUpperCase()),
       with: { items: true },
     });
-    if (!ord || normPhone(ord.phone) !== normPhone(phoneMatch)) return [];
-    return [formatOrder(ord)];
+    if (!ord) return [];
+    // Strip personal details for guests: knowing an order number must not reveal who placed it or where it goes.
+    return [{ ...formatOrder(ord), customerName: '', phone: '', email: '', address: '' }];
   } catch (err) {
     console.error('Error searching customer orders:', err);
     return [];

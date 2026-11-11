@@ -63,7 +63,7 @@ export function SiteNav({ variant = "standard", logoColor = "#0d0d0d" }: SiteNav
         >
           LIVUS
         </Link>
-        <Link href="/" className="t-nav lv-link pointer-events-auto text-white">
+        <Link href="/" className="t-nav lv-link pointer-events-auto flex items-center h-10" style={{ color: "#fff" }}>
           Visit shop
         </Link>
       </nav>
@@ -95,22 +95,21 @@ export function SiteNav({ variant = "standard", logoColor = "#0d0d0d" }: SiteNav
           className="grid grid-cols-[1fr_auto_1fr] items-center h-16 md:h-[72px] px-[var(--lv-gutter)] text-[#0d0d0d]"
         >
           {/* Left: menu + primary links */}
-          <div className="flex items-center gap-7 min-w-0">
+          <div className="flex items-center gap-4 xl:gap-6 min-w-0">
             <button
               type="button"
               onClick={openMenu}
               aria-label="Open menu"
-              className="flex items-center gap-2.5 -ml-1 p-1 bg-transparent border-none cursor-pointer text-inherit"
+              className="flex items-center justify-center size-10 -ml-2 bg-transparent border-none cursor-pointer text-inherit"
             >
               <Menu className="size-[22px] stroke-[1.5]" aria-hidden />
-              <span className="t-nav hidden md:inline">Menu</span>
             </button>
-            <ul className="hidden lg:flex items-center gap-7 list-none m-0 p-0">
+            <ul className="hidden lg:flex items-center gap-5 xl:gap-6 list-none m-0 p-0">
               {PRIMARY_LINKS.map((l) => (
                 <li key={l.href}>
                   <Link
                     href={l.href}
-                    className="t-nav lv-link"
+                    className="t-nav lv-link flex items-center h-10"
                     aria-current={isActive(l.href) ? "page" : undefined}
                   >
                     {l.label}
@@ -126,20 +125,20 @@ export function SiteNav({ variant = "standard", logoColor = "#0d0d0d" }: SiteNav
           </Link>
 
           {/* Right: search, account, cart */}
-          <div className="flex items-center justify-end gap-4 md:gap-7 min-w-0">
+          <div className="flex items-center justify-end gap-1 min-[360px]:gap-2.5 lg:gap-5 xl:gap-6 min-w-0">
             {isAdmin && (
-              <Link href="/admin" className="t-nav lv-link hidden xl:inline text-[#b45309]">
+              <Link href="/admin" className="t-nav lv-link hidden xl:flex items-center h-10 text-[#b45309]">
                 Admin
               </Link>
             )}
-            <Link href="/search" aria-label="Search" className="flex items-center gap-2 p-1 text-inherit no-underline">
+            <Link href="/search" aria-label="Search" className="flex items-center gap-2 h-10 px-1 text-inherit no-underline">
               <Search className="size-[20px] stroke-[1.5]" aria-hidden />
-              <span className="t-nav hidden md:inline">Search</span>
+              <span className="t-nav hidden lg:inline">Search</span>
             </Link>
             <Link
               href={user ? "/profile" : "/signin"}
               aria-label={user ? "My account" : "Sign in"}
-              className="flex items-center gap-2 p-1 text-inherit no-underline"
+              className="flex items-center gap-2 h-10 px-1 text-inherit no-underline"
             >
               <User className="size-[20px] stroke-[1.5]" aria-hidden />
               <span className="t-nav hidden lg:inline">{user ? "Account" : "Sign in"}</span>
@@ -148,9 +147,9 @@ export function SiteNav({ variant = "standard", logoColor = "#0d0d0d" }: SiteNav
               type="button"
               onClick={handleCartClick}
               aria-label={`Open cart, ${cartCount} item${cartCount === 1 ? "" : "s"}`}
-              className="relative flex items-center gap-2 p-1 bg-transparent border-none cursor-pointer text-inherit"
+              className="relative flex items-center gap-2 h-10 px-1 bg-transparent border-none cursor-pointer text-inherit"
             >
-              <span className="relative">
+              <span className="relative flex">
                 <ShoppingBag className="size-[20px] stroke-[1.5]" aria-hidden />
                 {cartCount > 0 && (
                   <span className="absolute -top-1.5 -right-2 min-w-[17px] h-[17px] px-1 rounded-full bg-[#0d0d0d] text-white text-[10px] leading-[17px] text-center font-medium tabular-nums">
@@ -158,7 +157,7 @@ export function SiteNav({ variant = "standard", logoColor = "#0d0d0d" }: SiteNav
                   </span>
                 )}
               </span>
-              <span className="t-nav hidden md:inline">Cart</span>
+              <span className="t-nav hidden lg:inline">Cart</span>
             </button>
           </div>
         </nav>

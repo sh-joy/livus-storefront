@@ -3,330 +3,80 @@
 import { useState, useMemo } from 'react';
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from 'next/navigation';
 import type { ProductItem } from '@/app/actions/products';
 import { ProductCard } from '@/figma-components/ProductCard';
 import { SiteNav } from '@/figma-components/SiteNav';
 import { SiteFooter } from '@/figma-components/SiteFooter';
-import { TrustStrip } from '@/components/storefront/TrustStrip';
+import { CategoryFilterSubBar } from '@/figma-components/CategoryFilterSubBar';
 import svgPaths from "./svg-8f9q8i8m4a";
-import imgImage116 from "./147bb3d7a50a487cfcb2163c878fc1a5c25e19e6.png";
 import imgFrame1597881163 from "./d0bebc10c59b7c075b3c9a8b180df7af46874e97.png";
 import imgFrame1597881164 from "./567e4da671b456cb109158110b48b3f597529eca.png";
 import imgFrame1597881192 from "./cd8123b8a9ab8a34443daf47f95966a2cb8719ce.png";
 import imgImage121 from "./21edf1b8dee7cef23ed2ec91e1a1b0550b6c38c9.png";
 import imgImage114 from "./71b3cd582dab7174e13346a8d88abe33548d2aa7.png";
-import { imgImage115 } from "./svg-vohki";
 
-function Group() {
-  return (
-    <div className="absolute flex inset-[8.33%_27.03%] items-center justify-center" style={{ containerType: "size" }}>
-      <div className="-scale-x-100 flex-none h-[100cqh] w-[100cqw]">
-        <div className="relative size-full">
-          <div className="absolute inset-[0_-5.77%_-6.36%_-5.77%]">
-            <svg className="block size-full" fill="none" height="14.1822" preserveAspectRatio="none" viewBox="0 0 8.19944 14.1822" width="8.19944">
-              <g id="Group 1000004211">
-                <path d={svgPaths.p146ff300} id="Vector" stroke="var(--stroke-0, white)" strokeWidth="1.2" />
-                <path d="M4.10121 6.33943e-05V13.3334" id="Vector_2" stroke="var(--stroke-0, white)" strokeLinejoin="round" strokeWidth="1.2" />
-              </g>
-            </svg>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
-function Frame() {
-  return (
-    <div className="overflow-clip relative shrink-0 size-[16px]" data-name="Frame">
-      <Group />
-    </div>
-  );
-}
 
-function Frame189Status() {
-  return (
-    <div className="flex flex-wrap gap-3">
-      <Link href="/latest" className="lv-btn lv-btn--solid">Shop new in</Link>
-      <Link href="/all-products" className="lv-btn lv-btn--outline">Shop all</Link>
-    </div>
-  );
-}
 
-function Frame8() {
-  return (
-    <div className="flex flex-col gap-6 items-start md:items-end md:text-right w-full md:max-w-[420px] pb-2">
-      <p className="t-lead m-0">
-        Premium jerseys and athletic streetwear for him and her — delivered anywhere in Bangladesh, with cash on delivery.
-      </p>
-      <Frame189Status />
-    </div>
-  );
-}
 
-function Frame6() {
-  return (
-    <div className="flex flex-1 min-w-0 flex-col md:flex-row md:items-end md:justify-between gap-6 md:gap-10">
-      <div className="flex flex-col gap-4 min-w-0">
-        <p className="t-eyebrow m-0 text-[var(--lv-ink-muted)]">LIVUS · Athletic streetwear</p>
-        <h1 className="t-display m-0">
-          <span className="block">Your game.</span>
-          <span className="block">Your style.</span>
-        </h1>
-      </div>
-      <Frame8 />
-    </div>
-  );
-}
 
-function Frame5() {
-  return (
-    <div className="relative shrink-0 w-full">
-      <div className="flex flex-row items-center justify-center size-full">
-        <div className="flex items-center justify-center px-[var(--lv-gutter)] relative size-full">
-          <Frame6 />
-        </div>
-      </div>
-    </div>
-  );
-}
 
-function Livus() {
-  return (
-    <div className="absolute contents inset-[3.35%_2.34%_20.56%_2.6%]" data-name="LIVUS">
-      <div className="absolute inset-[3.35%_2.34%_20.56%_76.03%]" data-name="Vector">
-        <div className="absolute inset-[-0.15%_-0.33%]">
-          <svg className="block size-full" fill="none" height="685.336" preserveAspectRatio="none" viewBox="0 0 304.912 685.336" width="304.912">
-            <path d={svgPaths.p1dfd2380} fill="url(#paint0_linear_1_276)" id="Vector" stroke="url(#paint1_linear_1_276)" />
-            <defs>
-              <linearGradient gradientUnits="userSpaceOnUse" id="paint0_linear_1_276" x1="152.456" x2="152.456" y1="302.464" y2="857.254">
-                <stop stopColor="#E6E5E5" />
-                <stop offset="1" stopColor="white" stopOpacity="0" />
-              </linearGradient>
-              <linearGradient gradientUnits="userSpaceOnUse" id="paint1_linear_1_276" x1="152.456" x2="152.456" y1="121.026" y2="501.885">
-                <stop stopColor="#B3B3B3" />
-                <stop offset="1" stopColor="#626262" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-      </div>
-      <div className="absolute inset-[4.14%_25.16%_20.56%_53.2%]" data-name="Vector">
-        <div className="absolute inset-[-0.15%_-0.33%]">
-          <svg className="block size-full" fill="none" height="678.227" preserveAspectRatio="none" viewBox="0 0 304.912 678.227" width="304.912">
-            <path d={svgPaths.p3ba05f00} fill="url(#paint0_linear_1_264)" id="Vector" stroke="url(#paint1_linear_1_264)" />
-            <defs>
-              <linearGradient gradientUnits="userSpaceOnUse" id="paint0_linear_1_264" x1="152.456" x2="152.456" y1="299.328" y2="848.346">
-                <stop stopColor="#E6E5E5" />
-                <stop offset="1" stopColor="white" stopOpacity="0" />
-              </linearGradient>
-              <linearGradient gradientUnits="userSpaceOnUse" id="paint1_linear_1_264" x1="152.456" x2="152.456" y1="119.778" y2="496.674">
-                <stop stopColor="#B3B3B3" />
-                <stop offset="1" stopColor="#626262" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-      </div>
-      <div className="absolute inset-[4.14%_47.11%_21.35%_28.81%]" data-name="Vector">
-        <div className="absolute inset-[-0.15%_-0.34%]">
-          <svg className="block size-full" fill="none" height="671.117" preserveAspectRatio="none" viewBox="0 0 339.435 671.117" width="339.435">
-            <path d={svgPaths.p28d26700} fill="url(#paint0_linear_1_262)" id="Vector" stroke="url(#paint1_linear_1_262)" />
-            <defs>
-              <linearGradient gradientUnits="userSpaceOnUse" id="paint0_linear_1_262" x1="169.717" x2="169.717" y1="296.191" y2="839.437">
-                <stop stopColor="#E6E5E5" />
-                <stop offset="1" stopColor="white" stopOpacity="0" />
-              </linearGradient>
-              <linearGradient gradientUnits="userSpaceOnUse" id="paint1_linear_1_262" x1="169.717" x2="169.717" y1="118.529" y2="491.463">
-                <stop stopColor="#B3B3B3" />
-                <stop offset="1" stopColor="#626262" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-      </div>
-      <div className="absolute inset-[4.14%_72.08%_21.35%_21.15%]" data-name="Vector">
-        <div className="absolute inset-[-0.15%_-1.05%]">
-          <svg className="block size-full" fill="none" height="671.117" preserveAspectRatio="none" viewBox="0 0 96.8245 671.117" width="96.8245">
-            <path d={svgPaths.p34d35d10} fill="url(#paint0_linear_1_278)" id="Vector" stroke="url(#paint1_linear_1_278)" />
-            <defs>
-              <linearGradient gradientUnits="userSpaceOnUse" id="paint0_linear_1_278" x1="48.4123" x2="48.4123" y1="296.191" y2="839.437">
-                <stop stopColor="#E6E5E5" />
-                <stop offset="1" stopColor="white" stopOpacity="0" />
-              </linearGradient>
-              <linearGradient gradientUnits="userSpaceOnUse" id="paint1_linear_1_278" x1="48.4123" x2="48.4123" y1="118.529" y2="491.463">
-                <stop stopColor="#B3B3B3" />
-                <stop offset="1" stopColor="#626262" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-      </div>
-      <div className="absolute inset-[4.14%_79.43%_21.35%_2.6%]" data-name="Vector">
-        <div className="absolute inset-[-0.15%_-0.4%]">
-          <svg className="block size-full" fill="none" height="671.117" preserveAspectRatio="none" viewBox="0 0 253.548 671.117" width="253.548">
-            <path d={svgPaths.p21b22770} fill="url(#paint0_linear_1_260)" id="Vector" stroke="url(#paint1_linear_1_260)" />
-            <defs>
-              <linearGradient gradientUnits="userSpaceOnUse" id="paint0_linear_1_260" x1="126.774" x2="126.774" y1="296.191" y2="839.437">
-                <stop stopColor="#E6E5E5" />
-                <stop offset="1" stopColor="white" stopOpacity="0" />
-              </linearGradient>
-              <linearGradient gradientUnits="userSpaceOnUse" id="paint1_linear_1_260" x1="126.774" x2="126.774" y1="118.529" y2="491.463">
-                <stop stopColor="#B3B3B3" />
-                <stop offset="1" stopColor="#626262" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-      </div>
-    </div>
-  );
-}
 
-function MaskGroup() {
-  return (
-    <div className="-translate-x-1/2 absolute aspect-[949.88671875/1161.09765625] bottom-[-10.9%] contents left-[calc(50%-16.93px)] top-[-32.05%]" data-name="Mask group">
-      <div className="-translate-x-1/2 absolute aspect-[949.88671875/1161.09765625] bottom-[-10.9%] max-md:bottom-0 max-md:top-0 left-[calc(50%-16.93px)] max-md:left-1/2 mask-alpha mask-intersect mask-no-clip mask-no-repeat mask-position-[0.001px_0px] mask-size-[1050.216px_1283.735px] top-[-32.05%]" style={{ maskImage: `url("${imgImage115}")` }} data-name="image 115">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <Image alt="" aria-hidden="true" className="absolute h-[102.31%] left-0 max-w-none top-[-2.29%] w-full" src={imgImage116} sizes="(max-width: 767px) 100vw, 1100px" preload />
-        </div>
-      </div>
-    </div>
-  );
-}
 
-function Frame11() {
-  return (
-    <div className="h-[898px] max-md:h-[480px] relative shrink-0 w-full overflow-hidden">
-      <Livus />
-      <MaskGroup />
-    </div>
-  );
-}
 
-function Frame4() {
-  return (
-    <div className="content-stretch flex flex-col gap-[3px] items-center pt-[clamp(32px,5vw,72px)] relative shrink-0 w-full">
-      <Frame5 />
-      <Frame11 />
-    </div>
-  );
-}
 
-function Frame189Status1() {
-  const router = useRouter();
+
+
+
+
+
+
+
+
+function CategoryPanel({ href, line1, line2, cta, src }: { href: string; line1: string; line2: string; cta: string; src: typeof imgFrame1597881163 }) {
   return (
-    <button
-      type="button"
-      onClick={() => router.push("/for-him")}
-      className="bg-white content-stretch flex items-center justify-center px-[20px] py-[12px] relative shrink-0 cursor-pointer hover:opacity-85 transition-opacity border-none shop-cta-btn"
-      data-name="Frame 189/Status3"
+    <Link
+      href={href}
+      className="group relative block aspect-[4/5] sm:aspect-square overflow-hidden bg-[#f0f0f0] no-underline"
     >
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#0d0d0d] text-[17px] uppercase font-normal tracking-[0.5px] whitespace-nowrap m-0 cursor-pointer">SHOP FOR HIM</p>
-    </button>
-  );
-}
-
-function Frame19() {
-  return (
-    <div className="content-stretch flex items-end justify-between relative shrink-0 w-full">
-      <div className="flex h-[256px] max-md:h-[200px] items-center justify-center relative shrink-0 w-[24px]">
-        <div className="-rotate-90 flex-none">
-          <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative text-[#1a1a1a] text-[20px] max-md:!text-[15px] whitespace-nowrap">{`Exclusive Men's Jersey Collection`}</p>
-        </div>
+      <Image
+        alt=""
+        aria-hidden="true"
+        src={src}
+        fill
+        sizes="(max-width: 639px) 100vw, 50vw"
+        className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+        preload
+      />
+      <div className="absolute inset-0 flex flex-col justify-between p-[clamp(16px,2.4vw,32px)]">
+        <h2 className="t-display m-0" style={{ fontSize: "clamp(56px, 7vw, 112px)", lineHeight: 0.85 }}>
+          {line1}
+          <br />
+          {line2}
+        </h2>
+        <span className="lv-btn lv-btn--light self-end !min-h-[44px] !px-5 group-hover:!bg-[#0d0d0d] group-hover:!text-white group-hover:!border-[#0d0d0d]">
+          {cta}
+        </span>
       </div>
-      <Frame189Status1 />
-    </div>
+    </Link>
   );
 }
 
-function Frame23() {
+function CategoryPanels() {
   return (
-    <div className="aspect-[660/660] flex-[1_0_0] min-w-px relative max-md:w-full max-md:flex-none">
-      <Image alt="" aria-hidden="true" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgFrame1597881163} sizes="(max-width: 767px) 100vw, 50vw" />
-      <div className="flex flex-col items-center justify-center size-full">
-        <div className="content-stretch flex flex-col items-center justify-between p-[24px] relative size-full">
-          <div className="[word-break:break-word] font-serif font-semibold leading-[0] relative shrink-0 text-[#323232] text-[110px] max-md:text-[64px] tracking-[-3.3px] w-full whitespace-pre-wrap">
-            <p className="leading-[110px] max-md:leading-[64px] mb-0">{`For `}</p>
-            <p className="leading-[110px] max-md:leading-[64px]">Him</p>
-          </div>
-          <Frame19 />
-        </div>
+    <section aria-label="Shop by category" className="w-full px-[var(--lv-gutter)]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <CategoryPanel href="/for-him" line1="For" line2="Him" cta="Shop for him" src={imgFrame1597881163} />
+        <CategoryPanel href="/for-her" line1="For" line2="Her" cta="Shop for her" src={imgFrame1597881164} />
       </div>
-    </div>
-  );
-}
-
-function Frame32() {
-  return (
-    <div className="content-stretch flex items-start relative shrink-0 w-full">
-      <div className="[word-break:break-word] font-serif font-semibold leading-[0] relative shrink-0 text-[#323232] text-[110px] max-md:text-[64px] tracking-[-3.3px] whitespace-nowrap">
-        <p className="leading-[110px] max-md:leading-[64px] mb-0 whitespace-pre">{`For `}</p>
-        <p className="leading-[110px] max-md:leading-[64px] whitespace-pre">Her</p>
-      </div>
-    </div>
-  );
-}
-
-function Frame189Status2() {
-  const router = useRouter();
-  return (
-    <button
-      type="button"
-      onClick={() => router.push("/for-her")}
-      className="bg-white content-stretch flex items-center justify-center px-[20px] py-[12px] relative shrink-0 cursor-pointer hover:opacity-85 transition-opacity border-none shop-cta-btn"
-      data-name="Frame 189/Status3"
-    >
-      <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#0d0d0d] text-[17px] uppercase font-normal tracking-[0.5px] whitespace-nowrap m-0 cursor-pointer">SHOP FOR HER</p>
-    </button>
-  );
-}
-
-function Frame17() {
-  return (
-    <div className="content-stretch flex items-end justify-between relative shrink-0 w-full">
-      <div className="flex h-[282px] max-md:h-[220px] items-center justify-center relative shrink-0 w-[24px]">
-        <div className="-rotate-90 flex-none">
-          <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative text-[#1a1a1a] text-[20px] max-md:!text-[15px] whitespace-nowrap">{`Exclusive Women's Jersey Collection`}</p>
-        </div>
-      </div>
-      <Frame189Status2 />
-    </div>
-  );
-}
-
-function Frame24() {
-  return (
-    <div className="aspect-[660/660] flex-[1_0_0] min-w-px relative max-md:w-full max-md:flex-none">
-      <Image alt="" aria-hidden="true" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgFrame1597881164} sizes="(max-width: 767px) 100vw, 50vw" />
-      <div className="flex flex-col items-center justify-center size-full">
-        <div className="content-stretch flex flex-col items-center justify-between p-[24px] relative size-full">
-          <Frame32 />
-          <Frame17 />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Frame18() {
-  return (
-    <div className="relative shrink-0 w-full">
-      <div className="flex flex-row items-center size-full">
-        <div className="content-stretch flex gap-[8px] items-center pb-[120px] px-[36px] max-md:flex-col max-md:px-[16px] max-md:pb-[64px] relative size-full">
-          <Frame23 />
-          <Frame24 />
-        </div>
-      </div>
-    </div>
+    </section>
   );
 }
 
 function Frame16() {
   return (
     <div className="content-stretch flex items-center relative shrink-0 w-[600px]">
-      <p className="[word-break:break-word] flex-[1_0_0] font-sans leading-[24px] min-w-px not-italic relative text-[20px] text-black tracking-[-0.1px]">Our most-loved pieces right now. New styles land with every drop.</p>
+      <p className="[word-break:break-word] flex-[1_0_0] font-sans leading-[24px] min-w-px not-italic relative text-[20px] text-black tracking-normal">Our most-loved pieces right now. New styles land with every drop.</p>
     </div>
   );
 }
@@ -435,14 +185,11 @@ function Frame20({
 
 function Frame7() {
   return (
-    <div className="relative shrink-0 w-full">
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 pb-8 px-[var(--lv-gutter)]">
-        <div className="flex flex-col gap-3">
-          <p className="t-eyebrow m-0 text-[var(--lv-ink-muted)]">Popular now</p>
-          <h2 className="t-h2 m-0">Explore the collection</h2>
-        </div>
-        <p className="t-lead m-0 max-w-[460px] md:text-right">
-          Our most-loved pieces right now. New styles land with every drop.
+    <div className="relative shrink-0 w-full px-[var(--lv-gutter)] pb-[clamp(20px,2.5vw,32px)]">
+      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between md:gap-10">
+        <h2 className="t-h2 m-0">Explore the collection</h2>
+        <p className="t-lead m-0 max-w-[440px] md:text-right md:pb-1">
+          Our most-loved jerseys, shirts and everyday athletic wear right now. New styles land with every drop.
         </p>
       </div>
     </div>
@@ -474,7 +221,7 @@ function Frame53() {
       <p className="font-sans font-medium relative shrink-0 text-[#1c1c1c] text-[20px]" style={{ fontVariationSettings: '"wdth" 100, "wght" 500' }}>
         ৳899 BDT
       </p>
-      <p className="[text-decoration-skip-ink:none] [text-underline-position:from-font] decoration-from-font decoration-solid font-['Barlow Semi Condensed:Regular','Noto_Sans_Bengali:Regular',sans-serif] line-through relative shrink-0 text-[#666666] text-[18px] font-normal font-medium" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
+      <p className="[text-decoration-skip-ink:none] [text-underline-position:from-font] decoration-from-font decoration-solid font-['Overused Grotesk:Regular','Noto_Sans_Bengali:Regular',sans-serif] line-through relative shrink-0 text-[#666666] text-[18px] font-normal font-medium" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
         ৳1199 BDT
       </p>
     </div>
@@ -484,7 +231,7 @@ function Frame53() {
 function Frame22() {
   return (
     <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] h-[56px] items-start leading-[24px] px-[8px] relative shrink-0 w-[436px] whitespace-nowrap">
-      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-[-0.4px]">OWAYO - CROSS FADE</p>
+      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-normal">OWAYO - CROSS FADE</p>
       <Frame53 />
     </div>
   );
@@ -502,7 +249,7 @@ function Frame34() {
 function Frame25() {
   return (
     <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] h-[56px] items-start leading-[24px] px-[8px] relative shrink-0 text-[#1c1c1c] w-[436px] whitespace-nowrap">
-      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-[-0.4px]">OWAYO - CROSS FADE</p>
+      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-normal">OWAYO - CROSS FADE</p>
       <div className="content-stretch flex gap-[8px] items-start relative shrink-0">
         <p className="font-sans font-medium relative shrink-0 text-[#1c1c1c] text-[20px]">
           ৳899 BDT
@@ -554,7 +301,7 @@ function Frame55() {
       <p className="font-sans font-medium relative shrink-0 text-[#1c1c1c] text-[20px]" style={{ fontVariationSettings: '"wdth" 100, "wght" 500' }}>
         ৳899 BDT
       </p>
-      <p className="[text-decoration-skip-ink:none] [text-underline-position:from-font] decoration-from-font decoration-solid font-['Barlow Semi Condensed:Regular','Noto_Sans_Bengali:Regular',sans-serif] line-through relative shrink-0 text-[#666666] text-[18px] font-normal font-medium" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
+      <p className="[text-decoration-skip-ink:none] [text-underline-position:from-font] decoration-from-font decoration-solid font-['Overused Grotesk:Regular','Noto_Sans_Bengali:Regular',sans-serif] line-through relative shrink-0 text-[#666666] text-[18px] font-normal font-medium" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
         ৳1199 BDT
       </p>
     </div>
@@ -564,7 +311,7 @@ function Frame55() {
 function Frame26() {
   return (
     <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] h-[56px] items-start leading-[24px] px-[8px] relative shrink-0 w-[436px] whitespace-nowrap">
-      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-[-0.4px]">OWAYO - CROSS FADE</p>
+      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-normal">OWAYO - CROSS FADE</p>
       <Frame55 />
     </div>
   );
@@ -602,7 +349,7 @@ function Frame13() {
 function Frame28() {
   return (
     <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] h-[56px] items-start leading-[24px] px-[8px] relative shrink-0 text-[#1c1c1c] w-[436px] whitespace-nowrap">
-      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-[-0.4px]">OWAYO - CROSS FADE</p>
+      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-normal">OWAYO - CROSS FADE</p>
       <div className="content-stretch flex gap-[8px] items-start relative shrink-0">
         <p className="font-sans font-medium relative shrink-0 text-[#1c1c1c] text-[20px]">
           ৳899 BDT
@@ -647,7 +394,7 @@ function Frame14() {
 function Frame31() {
   return (
     <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] h-[56px] items-start leading-[24px] px-[8px] relative shrink-0 text-[#1c1c1c] w-[436px] whitespace-nowrap">
-      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-[-0.4px]">OWAYO - CROSS FADE</p>
+      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-normal">OWAYO - CROSS FADE</p>
       <div className="content-stretch flex gap-[8px] items-start relative shrink-0">
         <p className="font-sans font-medium relative shrink-0 text-[#1c1c1c] text-[20px]">
           ৳899 BDT
@@ -692,7 +439,7 @@ function Frame38() {
 function Frame40() {
   return (
     <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] h-[56px] items-start leading-[24px] px-[8px] relative shrink-0 text-[#1c1c1c] w-[436px] whitespace-nowrap">
-      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-[-0.4px]">OWAYO - CROSS FADE</p>
+      <p className="font-sans not-italic relative shrink-0 text-[#1c1c1c] text-[17px] font-normal tracking-normal">OWAYO - CROSS FADE</p>
       <div className="content-stretch flex gap-[8px] items-start relative shrink-0">
         <p className="font-sans font-medium relative shrink-0 text-[#1c1c1c] text-[20px]">
           ৳899 BDT
@@ -723,32 +470,22 @@ interface HomepageProductItem {
   imageUrl?: string;
   compareAtPriceBdt?: number;
   collectionTag?: string;
+  categoryName?: string;
+  categorySlug?: string;
+  sizes?: string[];
+  createdAt?: string | Date;
 }
 
 function Frame15({ products, onResetFilter }: { products?: HomepageProductItem[]; onResetFilter?: () => void }) {
   if (!products || products.length === 0) {
     return (
-      <div className="w-full px-[36px] pb-12">
-        <div className="flex flex-col items-center justify-center text-center gap-[6px] p-[48px_24px] border border-dashed border-[#d0d0d0] w-full bg-[#fafafa]">
-          <p
-            className="text-[#808080] text-[22px] font-medium tracking-[-0.4px]"
-            style={{ fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)" }}
-          >
-            No products found
-          </p>
-          <p className="font-sans text-[14px] text-[#808080]">
-            No products match the selected collection filter.
-          </p>
-          {onResetFilter && (
-            <button
-              type="button"
-              onClick={onResetFilter}
-              className="inline-flex items-center justify-center bg-[#050505] text-white border-none cursor-pointer px-[18px] py-[8px] font-sans text-[14px] font-semibold tracking-[0.75px] uppercase transition-opacity hover:opacity-90 mt-[8px]"
-            >
-              Browse all designs
-            </button>
-          )}
-        </div>
+      <div className="w-full px-[var(--lv-gutter)] py-12 flex flex-col items-center text-center gap-3">
+        <p className="t-h3 m-0">No products match these filters</p>
+        {onResetFilter && (
+          <button type="button" onClick={onResetFilter} className="lv-btn lv-btn--outline mt-2">
+            Clear filters
+          </button>
+        )}
       </div>
     );
   }
@@ -764,127 +501,12 @@ function Frame15({ products, onResetFilter }: { products?: HomepageProductItem[]
   );
 }
 
-function Frame189Status11() {
-  return (
-    <Link href="/all-products" className="lv-btn lv-btn--light">Shop the collection</Link>
-  );
-}
 
-function Frame44() {
-  return (
-    <div className="flex flex-col gap-7 items-center max-w-full">
-      <p className="t-lead m-0 text-center max-w-[560px] !text-[#bdbdbd]">
-        Breathable fabrics, athletic fits and bold graphics — made to move with you from the pitch to the city.
-      </p>
-      <Frame189Status11 />
-    </div>
-  );
-}
 
-function Frame43() {
-  return (
-    <div className="flex flex-col items-center gap-6 max-w-full">
-      <h2 className="t-h2 m-0 text-center !text-white">Made for the game.<br />Built for the street.</h2>
-      <Frame44 />
-    </div>
-  );
-}
 
-function Livus1() {
-  return (
-    <div className="aspect-[1330.81787109375/683.3359375] relative shrink-0 w-full" data-name="LIVUS">
-      <div className="absolute inset-[-0.31%_-0.16%]">
-        <svg className="block size-full" fill="none" height="324.46" preserveAspectRatio="none" viewBox="0 0 630 324.46" width="630">
-          <g id="LIVUS">
-            <path d={svgPaths.p2b20c900} fill="url(#paint0_linear_1_251)" id="Vector" stroke="url(#paint1_linear_1_251)" />
-            <path d={svgPaths.p2f030600} fill="url(#paint2_linear_1_251)" id="Vector_2" stroke="url(#paint3_linear_1_251)" />
-            <path d={svgPaths.p35000c70} fill="url(#paint4_linear_1_251)" id="Vector_3" stroke="url(#paint5_linear_1_251)" />
-            <path d={svgPaths.p5902180} fill="url(#paint6_linear_1_251)" id="Vector_4" stroke="url(#paint7_linear_1_251)" />
-            <path d={svgPaths.p22ab9cc0} fill="url(#paint8_linear_1_251)" id="Vector_5" stroke="url(#paint9_linear_1_251)" />
-          </g>
-          <defs>
-            <linearGradient gradientUnits="userSpaceOnUse" id="paint0_linear_1_251" x1="557.529" x2="557.529" y1="143.258" y2="405.058">
-              <stop stopColor="#2C2C2C" />
-              <stop offset="1" stopColor="#1F1F1F" stopOpacity="0" />
-            </linearGradient>
-            <linearGradient gradientUnits="userSpaceOnUse" id="paint1_linear_1_251" x1="557.529" x2="557.529" y1="57.6392" y2="237.363">
-              <stop stopColor="#595959" />
-              <stop offset="1" stopColor="#626262" stopOpacity="0" />
-            </linearGradient>
-            <linearGradient gradientUnits="userSpaceOnUse" id="paint2_linear_1_251" x1="406.752" x2="406.752" y1="145.133" y2="404.209">
-              <stop stopColor="#2C2C2C" />
-              <stop offset="1" stopColor="#1F1F1F" stopOpacity="0" />
-            </linearGradient>
-            <linearGradient gradientUnits="userSpaceOnUse" id="paint3_linear_1_251" x1="406.752" x2="406.752" y1="60.4045" y2="238.258">
-              <stop stopColor="#595959" />
-              <stop offset="1" stopColor="#626262" stopOpacity="0" />
-            </linearGradient>
-            <linearGradient gradientUnits="userSpaceOnUse" id="paint4_linear_1_251" x1="253.675" x2="253.675" y1="143.652" y2="400.005">
-              <stop stopColor="#2C2C2C" />
-              <stop offset="1" stopColor="#1F1F1F" stopOpacity="0" />
-            </linearGradient>
-            <linearGradient gradientUnits="userSpaceOnUse" id="paint5_linear_1_251" x1="253.675" x2="253.675" y1="59.8152" y2="235.799">
-              <stop stopColor="#595959" />
-              <stop offset="1" stopColor="#626262" stopOpacity="0" />
-            </linearGradient>
-            <linearGradient gradientUnits="userSpaceOnUse" id="paint6_linear_1_251" x1="145.889" x2="145.889" y1="143.652" y2="400.005">
-              <stop stopColor="#2C2C2C" />
-              <stop offset="1" stopColor="#1F1F1F" stopOpacity="0" />
-            </linearGradient>
-            <linearGradient gradientUnits="userSpaceOnUse" id="paint7_linear_1_251" x1="145.889" x2="145.889" y1="59.8152" y2="235.799">
-              <stop stopColor="#595959" />
-              <stop offset="1" stopColor="#626262" stopOpacity="0" />
-            </linearGradient>
-            <linearGradient gradientUnits="userSpaceOnUse" id="paint8_linear_1_251" x1="60.3516" x2="60.3516" y1="143.652" y2="400.005">
-              <stop stopColor="#2C2C2C" />
-              <stop offset="1" stopColor="#1F1F1F" stopOpacity="0" />
-            </linearGradient>
-            <linearGradient gradientUnits="userSpaceOnUse" id="paint9_linear_1_251" x1="60.3516" x2="60.3516" y1="59.8151" y2="235.799">
-              <stop stopColor="#595959" />
-              <stop offset="1" stopColor="#626262" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
-    </div>
-  );
-}
 
-function Frame42() {
-  return (
-    <div className="flex flex-[1_0_0] flex-row items-center self-stretch max-md:w-full max-md:flex-none">
-      <div className="bg-[#0d0d0d] flex-[1_0_0] h-full min-w-px relative">
-        <div className="flex flex-col items-center justify-center size-full">
-          <div className="content-stretch flex flex-col gap-[48px] max-md:gap-[32px] items-center justify-center p-[36px] max-md:px-[16px] max-md:py-[48px] relative size-full">
-            <Frame43 />
-            <Livus1 />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
-function Frame45() {
-  return (
-    <div className="aspect-[698/698] bg-[#f0f0f0] content-stretch flex flex-[1_0_0] items-center justify-center min-w-px overflow-clip py-[60px] max-md:py-[32px] relative max-md:w-full max-md:flex-none">
-      <div className="h-[558px] relative shrink-0 w-[480.341px] max-md:h-full max-md:w-auto max-md:aspect-[480/558]" data-name="image 114">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <Image alt="" aria-hidden="true" className="absolute h-full left-[-8.01%] max-w-none top-0 w-[116.17%]" src={imgImage114} sizes="(max-width: 767px) 90vw, 560px" />
-        </div>
-      </div>
-    </div>
-  );
-}
 
-function Frame41() {
-  return (
-    <div className="content-stretch flex items-center pb-[20px] pt-[140px] max-md:pt-[48px] max-md:flex-col relative shrink-0 w-full">
-      <Frame42 />
-      <Frame45 />
-    </div>
-  );
-}
 
 function Frame3() {
   return null;
@@ -1055,15 +677,61 @@ export default function Homepage({ products }: { products?: HomepageProductItem[
     return scored.slice(0, 16).map((item) => item.product);
   }, [products]);
 
+  const [sortOption, setSortOption] = useState("relevance");
+  const [selectedGender, setSelectedGender] = useState("all");
+  const [selectedSize, setSelectedSize] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+
+  const shownProducts = useMemo(() => {
+    const cat = selectedCategory.toLowerCase();
+    const list = popularProducts.filter((p) => {
+      if (selectedGender !== "all" && (p.categorySlug || "").toLowerCase() !== selectedGender) return false;
+      if (cat !== "all") {
+        const hit = [p.categorySlug, p.categoryName, p.collectionTag].some((v) => (v || "").toLowerCase() === cat);
+        if (!hit) return false;
+      }
+      if (selectedSize !== "all" && p.sizes && p.sizes.length > 0 && !p.sizes.map((x) => x.toUpperCase()).includes(selectedSize.toUpperCase())) {
+        return false;
+      }
+      return true;
+    });
+    const time = (p: HomepageProductItem) => (p.createdAt ? new Date(p.createdAt).getTime() : 0);
+    const off = (p: HomepageProductItem) => (p.compareAtPriceBdt && p.compareAtPriceBdt > p.priceBdt ? (p.compareAtPriceBdt - p.priceBdt) / p.compareAtPriceBdt : 0);
+    if (sortOption === "low-to-high") return [...list].sort((a, b) => a.priceBdt - b.priceBdt);
+    if (sortOption === "high-to-low") return [...list].sort((a, b) => b.priceBdt - a.priceBdt);
+    if (sortOption === "newest") return [...list].sort((a, b) => time(b) - time(a));
+    if (sortOption === "best-selling") return [...list].sort((a, b) => off(b) - off(a));
+    return list; // relevance / popular: already ranked
+  }, [popularProducts, sortOption, selectedGender, selectedSize, selectedCategory]);
+
+  const resetFilters = () => {
+    setSortOption("relevance");
+    setSelectedGender("all");
+    setSelectedSize("all");
+    setSelectedCategory("all");
+  };
+
   return (
     <div className="bg-white content-stretch flex flex-col items-start relative size-full" data-name="Homepage">
       <SiteNav />
-      <Frame4 />
-      <TrustStrip />
-      <div className="h-[clamp(48px,6vw,96px)]" aria-hidden />
-      <Frame18 />
+      <h1 className="sr-only">LIVUS — jerseys and streetwear for him and her</h1>
+      <div className="h-2 md:h-3" aria-hidden />
+      <CategoryPanels />
+      <div className="h-[clamp(80px,10.3vw,148px)]" aria-hidden />
       <Frame7 />
-      <Frame15 products={popularProducts} />
+      <CategoryFilterSubBar
+        totalCount={shownProducts.length}
+        sortOption={sortOption}
+        onSortChange={setSortOption}
+        selectedGender={selectedGender}
+        onGenderChange={setSelectedGender}
+        selectedCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
+        selectedSize={selectedSize}
+        onSizeChange={setSelectedSize}
+      />
+      <div className="h-6 md:h-8" aria-hidden />
+      <Frame15 products={shownProducts} onResetFilter={resetFilters} />
       
       {/* "Explore All" Button */}
       <div className="w-full flex items-center justify-center pt-8 pb-16">
@@ -1072,7 +740,6 @@ export default function Homepage({ products }: { products?: HomepageProductItem[
         </Link>
       </div>
 
-      <Frame41 />
       <SiteFooter />
     </div>
   );

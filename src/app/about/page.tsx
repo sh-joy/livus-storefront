@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
-import { SiteNav } from '@/figma-components/SiteNav';
-import { SiteFooter } from '@/figma-components/SiteFooter';
+import { InfoPage } from '@/components/storefront/InfoPage';
 
 export const metadata: Metadata = {
   title: "About Us",
@@ -10,16 +9,9 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-white text-neutral-900 flex flex-col font-sans">
-      <SiteNav />
-      <main className="flex-1 max-w-3xl mx-auto px-6 py-16">
-        <h1 className="text-4xl font-display uppercase tracking-tight mb-8">About LIVUS</h1>
-        <div className="space-y-6 text-sm text-neutral-600 leading-relaxed">
-          <p>LIVUS is a contemporary Bangladeshi streetwear atelier focused on architectural silhouettes, heavy cotton fabrications, and minimalist luxury.</p>
-          <p>Designed in Dhaka, our pieces bridge functional sports performance with runway aesthetic standards.</p>
-        </div>
-      </main>
-      <SiteFooter />
-    </div>
+    <InfoPage newsletter title="About LIVUS">
+      <p>LIVUS is a contemporary Bangladeshi streetwear atelier focused on architectural silhouettes, heavy cotton fabrications, and minimalist luxury.</p>
+      <p>Designed in Dhaka, our pieces bridge functional sports performance with runway aesthetic standards.</p>
+    </InfoPage>
   );
 }

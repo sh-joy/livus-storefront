@@ -1,10 +1,12 @@
 'use client';
 
+import { Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { useDrawer } from "./DrawerContext";
 import { MenuDrawer } from "./MenuDrawer";
 import { CartDrawer } from "./CartDrawer";
 import { SizingGuideModal } from "./SizingGuideModal";
+import { PromoPopup } from "./PromoPopup";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { openMenu, openCart, openSizingGuide } = useDrawer();
@@ -12,6 +14,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const handleClick = (e: React.MouseEvent) => {
     let el: HTMLElement | null = e.target as HTMLElement;
+    // Real links and anything inside a form handle their own clicks. Without this, clicking the
+    // search box matched the "Search" text of its wrapper and pushed /search, wiping the query.
+    if (el?.closest?.('form, input, textarea, select, label, a[href]')) return;
     for (let i = 0; i < 6; i++) {
       if (!el) break;
       const text = el.textContent?.trim();
@@ -44,6 +49,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {children}
       <MenuDrawer />
       <CartDrawer />
+      <Suspense fallback={null}>
+        <PromoPopup />
+      </Suspense>
     </div>
   );
 }

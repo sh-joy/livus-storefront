@@ -47,12 +47,18 @@ export function MenuDrawer() {
             transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex flex-col gap-[24px] p-[20px] size-full">
+            <div className="flex flex-col gap-6 p-[20px] size-full overflow-y-auto">
               {/* Header — 20px font size, regular 400 weight */}
               <div className="flex items-center justify-between w-full shrink-0">
-                <p className="font-sans leading-[28px] text-[20px] text-white whitespace-nowrap font-normal">
-                  Menu
-                </p>
+                <button
+                  type="button"
+                  onClick={() => handleNav("/")}
+                  aria-label="LIVUS home"
+                  className="livus-logo bg-transparent border-none p-0 cursor-pointer text-white leading-none text-[24px] tracking-[0.28em]"
+                  style={{ fontFamily: "'Big Shoulders', 'Big Shoulders Display', sans-serif", fontWeight: 600 }}
+                >
+                  LIVUS
+                </button>
                 <button
                   onClick={closeMenu}
                   className="shrink-0 size-[20px] cursor-pointer"
@@ -66,13 +72,13 @@ export function MenuDrawer() {
               </div>
 
               {/* Nav links — btn-group for focus fade on hover */}
-              <div className="btn-group menu-drawer-links flex flex-col gap-[20px] items-start w-full mt-4">
+              <div className="btn-group menu-drawer-links flex flex-col gap-3 items-start w-full">
                 {NAV_LINKS.map((item) => (
                   <p
                     key={item.label}
                     onClick={() => handleNav(item.path)}
                     className="font-serif font-medium leading-[34px] text-[30px] text-white whitespace-nowrap cursor-pointer select-none"
-                    style={{ fontWeight: 500, transition: "opacity 0.25s ease" }}
+                    style={{ fontWeight: 500, letterSpacing: "-0.04em", transition: "opacity 0.25s ease" }}
                   >
                     {item.label}
                   </p>

@@ -3,10 +3,11 @@
  * Single Source of Truth for Project Typography
  */
 
-// Storefront Fonts: Barlow Semi Condensed & Big Shoulders Display
+// Storefront: Overused Grotesk everywhere; Big Shoulders only for the LIVUS wordmark
 export const storefrontFonts = {
-  sans: "'Barlow Semi Condensed', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-  display: "'Big Shoulders', 'Big Shoulders Display', sans-serif",
+  sans: "'Overused Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+  display: "'Overused Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+  logo: "'Big Shoulders', 'Big Shoulders Display', sans-serif",
 };
 
 // Admin Portal Font: Geist / Inter / Monospace

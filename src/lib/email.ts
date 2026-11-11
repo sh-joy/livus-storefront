@@ -11,7 +11,7 @@ export function escapeHtml(str?: string | null): string {
 const APP_URL = (process.env.NEXT_PUBLIC_APP_URL || process.env.BETTER_AUTH_URL || 'http://localhost:3000').replace(/\/$/, '');
 
 /** Support email shown in customer emails: Admin → Settings value, falling back to the sender address. */
-async function getSupportEmail(): Promise<string> {
+export async function getSupportEmail(): Promise<string> {
   try {
     const { db } = await import('@/db');
     const { storeSettings } = await import('@/db/schema');

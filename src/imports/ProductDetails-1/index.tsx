@@ -1,5 +1,8 @@
 'use client';
 
+import { Minus, Plus } from 'lucide-react';
+import { useStoreSettings, freeDeliveryThreshold } from '@/lib/hooks/use-store-settings';
+
 import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -10,7 +13,6 @@ import { SiteFooter } from '@/figma-components/SiteFooter';
 import { SizingGuideModal } from '@/figma-components/SizingGuideModal';
 import { useDrawer } from '@/figma-components/DrawerContext';
 import { useCartStore } from '@/lib/store/cart-store';
-import { ProductReviewsSection } from '@/components/ProductReviewsSection';
 import type { ProductItem } from '@/app/actions/products';
 import { generateCleanSku } from '@/lib/utils';
 import imgImage115 from "./147bb3d7a50a487cfcb2163c878fc1a5c25e19e6.png";
@@ -116,6 +118,7 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const freeOver = freeDeliveryThreshold(useStoreSettings());
   const [showGuide, setShowGuide] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isShippingExpanded, setIsShippingExpanded] = useState(false);
@@ -140,6 +143,18 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
   }, [product?.slug]);
 
   // Compute 3 Smart Recommended Products
+  const [browsing, setBrowsing] = useState<{ views: string[]; affinity: Record<string, number> }>({ views: [], affinity: {} });
+  useEffect(() => {
+    try {
+      const views = JSON.parse(localStorage.getItem("my_store_view_history") || "[]");
+      const affinity = JSON.parse(localStorage.getItem("my_store_category_affinity") || "{}");
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setBrowsing({ views: Array.isArray(views) ? views : [], affinity: affinity && typeof affinity === "object" ? affinity : {} });
+    } catch {
+      /* storage blocked: recommend without history */
+    }
+  }, []);
+
   const recommendedProducts = useMemo(() => {
     const candidates = (allProducts || []).filter(
       (p) => p.slug !== product?.slug && p.id !== product?.id
@@ -147,17 +162,9 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
 
     if (candidates.length === 0) return [];
 
-    let userViewHistory: string[] = [];
-    let userCategoryAffinity: Record<string, number> = {};
-
-    if (typeof window !== "undefined") {
-      try {
-        const historyRaw = localStorage.getItem("my_store_view_history");
-        if (historyRaw) userViewHistory = JSON.parse(historyRaw);
-        const affinityRaw = localStorage.getItem("my_store_category_affinity");
-        if (affinityRaw) userCategoryAffinity = JSON.parse(affinityRaw);
-      } catch (e) {}
-    }
+    // Browsing history is read after the first render (see effect below) so server and browser agree.
+    const userViewHistory = browsing.views;
+    const userCategoryAffinity = browsing.affinity;
 
     const scored = candidates.map((p) => {
       let score = 0;
@@ -193,7 +200,7 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
 
     scored.sort((a, b) => b.score - a.score);
     return scored.slice(0, 4).map((item) => item.product);
-  }, [product?.slug, product?.collectionTag, product?.categorySlug, product?.priceBdt, allProducts]);
+  }, [product?.slug, product?.collectionTag, product?.categorySlug, product?.priceBdt, allProducts, browsing]);
 
   const { openCart: openCartDrawer } = useDrawer();
   const addItemToCart = useCartStore((state) => state.addItem);
@@ -389,7 +396,7 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
         <div
           className="product-single__panel w-full lg:sticky lg:top-[98px] flex items-start justify-center p-[36px] max-md:px-[16px] max-md:pt-[24px] shrink-0 self-start pb-12 z-20 lg:overflow-y-auto lg:max-h-[calc(100vh-120px)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
-          <div className="content-stretch flex flex-col gap-[28px] items-start relative shrink-0 w-full max-w-[460px]">
+          <div className="content-stretch flex flex-col gap-6 items-start relative shrink-0 w-full max-w-[460px]">
             
             {/* Header Title & Price */}
             <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full">
@@ -397,10 +404,11 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
                 <h1
                   className="font-serif font-semibold relative shrink-0 text-[#1c1c1c]"
                   style={{
-                    fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
+                    fontFamily: "'Overused Grotesk', sans-serif",
                     fontSize: "28px",
                     lineHeight: "32px",
                     fontWeight: 600,
+                    letterSpacing: "-0.03em",
                   }}
                 >
                   {productName}
@@ -428,17 +436,15 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
               </div>
             </div>
 
-            {/* Color Swatch Selectors (Right-aligned rectangular color blocks with underline) */}
-            <div className="content-stretch flex flex-wrap gap-y-[10px] items-center justify-between relative shrink-0 w-full">
-              <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#1c1c1c] text-[17px] tracking-[-0.34px] whitespace-nowrap font-medium">
-                Color: <span className="font-medium">{activeColor.name}</span>
+            {/* Colour */}
+            <div className="flex flex-col gap-3 w-full">
+              <p className="t-body m-0 text-[#1c1c1c]" style={{ fontWeight: 500 }}>
+                Color: <span className="text-[#5c5c5c]" style={{ fontWeight: 400 }}>{activeColor.name}</span>
                 {activeColor.isLowStock && (
-                  <span className="text-[#d4183d] font-medium text-[15px] ml-[6px] tracking-normal font-sans">
-                    (Low Stock)
-                  </span>
+                  <span className="text-[#d4183d] text-[14px] ml-2">Low stock</span>
                 )}
               </p>
-              <div className="content-stretch flex flex-wrap gap-[12px] items-center relative shrink-0">
+              <div className="flex flex-wrap gap-1 -ml-[3px]">
                 {activeColorVariants.map((c: any, idx) => {
                   const isSelected = selectedColorIdx === idx;
                   const hex = c.hexCode || c.hexColor || (
@@ -450,35 +456,38 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
                     c.name.toLowerCase().includes("black") ? "#18181b" :
                     c.name.toLowerCase().includes("white") || c.name.toLowerCase().includes("cream") ? "#ffffff" : "#64748b"
                   );
-
                   return (
-                    <div key={c.name || idx} className="flex flex-col items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => handleSelectColor(idx)}
-                        title={c.name}
-                        className="w-10 h-4 relative transition-all cursor-pointer border border-neutral-300/60 shadow-2xs"
-                        style={{ backgroundColor: hex }}
-                      />
-                      <div className={`h-[2px] w-6 transition-all ${isSelected ? "bg-black" : "bg-transparent"}`} />
-                    </div>
+                    <button
+                      key={c.name || idx}
+                      type="button"
+                      onClick={() => handleSelectColor(idx)}
+                      title={c.name}
+                      aria-label={`Color ${c.name}`}
+                      aria-pressed={isSelected}
+                      className={`size-10 p-[3px] border cursor-pointer bg-white transition-colors ${isSelected ? "border-[#0d0d0d]" : "border-transparent hover:border-[#c8c8c8]"}`}
+                    >
+                      <span className="block size-full border border-black/10" style={{ backgroundColor: hex }} />
+                    </button>
                   );
                 })}
               </div>
             </div>
 
-            {/* Size Selection & Sizing Guide */}
-            <div className="content-stretch flex items-center justify-between gap-[12px] relative shrink-0 w-full">
-              <div className="[word-break:break-word] content-stretch flex flex-col font-sans items-start leading-[24px] not-italic relative shrink-0 whitespace-nowrap">
-                <p className="relative shrink-0 text-[#1c1c1c] text-[17px] tracking-[-0.34px] font-medium">Size</p>
-                <p
-                  onClick={() => setShowGuide(true)}
-                  className="[text-underline-position:from-font] decoration-from-font decoration-solid relative shrink-0 text-[#676767] text-[15px] tracking-[-0.3px] underline cursor-pointer hover:text-black transition-colors font-medium"
-                >
-                  View Guide
+            {/* Size */}
+            <div className="flex flex-col gap-3 w-full">
+              <div className="flex items-center justify-between">
+                <p className="t-body m-0 text-[#1c1c1c]" style={{ fontWeight: 500 }}>
+                  Size{selectedSize ? <span className="text-[#5c5c5c]" style={{ fontWeight: 400 }}>: {selectedSize}</span> : null}
                 </p>
+                <button
+                  type="button"
+                  onClick={() => setShowGuide(true)}
+                  className="t-small text-[#5c5c5c] underline underline-offset-4 bg-transparent border-none p-0 cursor-pointer hover:text-black"
+                >
+                  Size guide
+                </button>
               </div>
-              <div className="content-stretch flex flex-wrap justify-end gap-[20px] max-md:gap-x-[14px] max-md:gap-y-[6px] items-center relative min-w-0">
+              <div className="flex flex-wrap gap-2">
                 {availableSizes.map((sz) => {
                   const isStockOut = isSizeOut(sz);
                   const isSelected = selectedSize === sz;
@@ -487,53 +496,45 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
                       key={sz}
                       type="button"
                       disabled={isStockOut}
+                      aria-pressed={isSelected}
                       onClick={() => { if (!isStockOut) { setSelectedSize(sz); setQuantity(1); } }}
-                      className={`content-stretch flex items-center justify-center px-[2px] max-md:min-w-[28px] max-md:min-h-[32px] relative shrink-0 ${
+                      className={`h-11 flex-1 min-w-[48px] max-w-[76px] px-2 flex items-center justify-center border text-[15px] tracking-[0.04em] font-sans transition-colors ${
                         isStockOut
-                          ? "line-through opacity-40 cursor-not-allowed text-[#a0a0a0]"
+                          ? "border-[#ececec] text-[#b0b0b0] line-through cursor-not-allowed bg-[#fafafa]"
                           : isSelected
-                          ? "border-b border-black text-[#1a1a1a] font-medium cursor-pointer"
-                          : "text-[#606060] hover:text-black cursor-pointer font-medium"
+                          ? "border-[#0d0d0d] bg-[#0d0d0d] text-white cursor-pointer"
+                          : "border-[#e2e2e2] text-[#1a1a1a] bg-white hover:border-[#0d0d0d] cursor-pointer"
                       }`}
                     >
-                      <p className="font-sans leading-[24px] not-italic relative shrink-0 text-[17px] tracking-[0.17px] whitespace-nowrap font-medium">{sz}</p>
+                      {sz}
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            {/* Quantity Stepper */}
-            <div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
-              <p className="[word-break:break-word] font-sans leading-[24px] not-italic relative shrink-0 text-[#1c1c1c] text-[17px] tracking-[-0.34px] whitespace-nowrap font-medium">Quantity</p>
-              <div className="content-stretch flex gap-[16px] items-center relative shrink-0">
+            {/* Quantity */}
+            <div className="flex items-center justify-between w-full">
+              <p className="t-body m-0 text-[#1c1c1c]" style={{ fontWeight: 500 }}>Quantity</p>
+              <div className="flex items-center border border-[#e2e2e2] h-11">
                 <button
                   type="button"
+                  aria-label="Decrease quantity"
                   disabled={quantity <= 1}
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className={`size-[20px] flex items-center justify-center transition-opacity ${
-                    quantity <= 1 ? "opacity-30 cursor-not-allowed" : "cursor-pointer hover:opacity-75"
-                  }`}
+                  className="size-11 flex items-center justify-center bg-transparent border-none cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#f5f5f5]"
                 >
-                  <svg fill="none" height="20" viewBox="0 0 20 20" width="20" className="block size-full">
-                    <path d="M2.92893 10H17.0711" stroke="black" strokeWidth="1.2" strokeLinejoin="round" />
-                  </svg>
+                  <Minus className="size-4 stroke-[1.5]" aria-hidden />
                 </button>
-                <p className="font-sans leading-[20px] text-[17px] tracking-[-0.34px] text-[#1c1c1c] font-medium min-w-[20px] text-center">
-                  {quantity}
-                </p>
+                <span className="t-body w-10 text-center tabular-nums text-[#1c1c1c]" aria-live="polite">{quantity}</span>
                 <button
                   type="button"
+                  aria-label="Increase quantity"
                   disabled={quantity >= maxQty}
                   onClick={() => setQuantity(Math.min(maxQty, quantity + 1))}
-                  className={`size-[20px] flex items-center justify-center transition-opacity ${
-                    quantity >= maxQty ? "opacity-30 cursor-not-allowed" : "cursor-pointer hover:opacity-75"
-                  }`}
+                  className="size-11 flex items-center justify-center bg-transparent border-none cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#f5f5f5]"
                 >
-                  <svg fill="none" height="20" viewBox="0 0 20 20" width="20" className="block size-full">
-                    <path d="M10 2.92893V17.0711" stroke="black" strokeWidth="1.2" strokeLinejoin="round" />
-                    <path d="M2.92893 10H17.0711" stroke="black" strokeWidth="1.2" strokeLinejoin="round" />
-                  </svg>
+                  <Plus className="size-4 stroke-[1.5]" aria-hidden />
                 </button>
               </div>
             </div>
@@ -546,27 +547,27 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
               type="button"
               onClick={handleAddToCart}
               disabled={!canAddToCart}
-              className={`group relative shrink-0 w-full border py-[12px] px-[20px] transition-all duration-200 ${
+              className={`lv-btn lv-btn--block ${
                 canAddToCart
-                  ? "border-black bg-transparent cursor-pointer hover:bg-[#050505] max-md:bg-[#050505]"
-                  : "border-neutral-300 bg-neutral-100 cursor-not-allowed"
+                  ? "lv-btn--solid cursor-pointer"
+                  : "!border-neutral-300 !bg-neutral-100 !text-neutral-400 cursor-not-allowed"
               }`}
             >
-              <p className={`font-sans leading-[24px] text-[17px] uppercase tracking-[0.85px] font-medium transition-colors ${
-                canAddToCart ? "text-black group-hover:text-white max-md:text-white" : "text-neutral-400"
-              }`}>
+              <p className="m-0">
                 {allSoldOut ? "SOLD OUT" : !selectedSize ? "SELECT A SIZE" : addedFlash ? "ADDED ✓" : "ADD TO CART"}
               </p>
             </button>
 
+            {/* Description + shipping accordions: one group, equal rows */}
+            <div className="w-full border-t border-neutral-200 -mt-2">
             {/* Collapsible Product Description Accordion */}
-            <div className="w-full border-t border-b border-neutral-200 py-2 mt-2">
+            <div className="w-full border-b border-neutral-200">
               <button
                 type="button"
                 onClick={() => setIsDescriptionExpanded((prev) => !prev)}
-                className="w-full flex items-center justify-between py-2 text-left cursor-pointer group"
+                className="w-full min-h-14 flex items-center justify-between gap-4 py-3 text-left bg-transparent border-none cursor-pointer group"
               >
-                <span className="font-sans text-[15px] font-medium uppercase tracking-[0.5px] text-[#1c1c1c]">
+                <span className="font-sans text-[14px] uppercase tracking-[0.08em] text-[#1c1c1c]" style={{ fontWeight: 500 }}>
                   Product Description &amp; Specifications
                 </span>
                 <span className="font-sans text-[20px] font-normal text-neutral-600 group-hover:text-black transition-colors">
@@ -583,7 +584,7 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                     className="overflow-hidden"
                   >
-                    <div className="font-sans text-xs text-neutral-800 leading-relaxed space-y-2 pt-3 pb-2 border-t border-neutral-100 mt-1">
+                    <div className="font-sans text-[15px] text-[#3a3a3a] leading-relaxed space-y-3 pb-5">
                       {renderFormattedMarkdown(formattedDescriptionText)}
                     </div>
                   </motion.div>
@@ -592,13 +593,13 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
             </div>
 
             {/* Collapsible Shipping, Delivery & Returns Accordion */}
-            <div className="w-full border-b border-neutral-200 py-2">
+            <div className="w-full border-b border-neutral-200">
               <button
                 type="button"
                 onClick={() => setIsShippingExpanded((prev) => !prev)}
-                className="w-full flex items-center justify-between py-2 text-left cursor-pointer group"
+                className="w-full min-h-14 flex items-center justify-between gap-4 py-3 text-left bg-transparent border-none cursor-pointer group"
               >
-                <span className="font-sans text-[15px] font-medium uppercase tracking-[0.5px] text-[#1c1c1c]">
+                <span className="font-sans text-[14px] uppercase tracking-[0.08em] text-[#1c1c1c]" style={{ fontWeight: 500 }}>
                   Shipping, Delivery &amp; Returns
                 </span>
                 <span className="font-sans text-[20px] font-normal text-neutral-600 group-hover:text-black transition-colors">
@@ -615,34 +616,32 @@ export default function ProductDetails({ product, allProducts = [] }: ProductDet
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                     className="overflow-hidden"
                   >
-                    <div className="font-sans text-xs text-neutral-800 leading-relaxed space-y-2 pt-3 pb-2 border-t border-neutral-100 mt-1">
+                    <div className="font-sans text-[15px] text-[#3a3a3a] leading-relaxed space-y-3 pb-5">
                       <p><strong>Nationwide Delivery in Bangladesh:</strong> Standard delivery within 2–3 business days inside Dhaka Division (৳100) and 3–5 days across all other divisions (৳150).</p>
-                      <p><strong>Free Delivery:</strong> All orders of ৳2,500 BDT or more qualify for 100% free nationwide delivery.</p>
+                      {freeOver > 0 && (
+                        <p><strong>Free Delivery:</strong> All orders of ৳{freeOver.toLocaleString()} BDT or more qualify for free nationwide delivery.</p>
+                      )}
                       <p><strong>Easy 7-Day Exchange:</strong> Size or fit issues? We offer a hassle-free 7-day exchange window on all unworn items with original tags attached.</p>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Customer Reviews & Star Ratings Section */}
-      {product?.id && (
-        <ProductReviewsSection productId={product.id} productName={productName} />
-      )}
-
       {/* "You might also like" Section Heading & Smart Recommendation Grid */}
       {recommendedProducts.length > 0 && (
         <>
-          <div className="w-full px-[36px] max-md:px-[16px] pt-[100px] max-md:pt-[48px] pb-[32px] max-md:pb-[20px] shrink-0">
-            <h2 className="font-serif text-[36px] max-md:text-[28px] font-semibold tracking-[-0.72px] text-[#1c1c1c] leading-[44px]">
+          <div className="w-full px-[var(--lv-gutter)] pt-[clamp(48px,6vw,88px)] pb-8 shrink-0">
+            <h2 className="t-h2 m-0">
               You might also like
             </h2>
           </div>
 
-          <div className="relative shrink-0 w-full pb-[100px] max-md:pb-[48px]">
+          <div className="relative shrink-0 w-full pb-[56px] max-md:pb-[32px]">
             <div className="gap-x-[24px] max-md:gap-x-[12px] gap-y-[60px] max-md:gap-y-[32px] grid grid-cols-2 md:grid-cols-3 md:[&>*:nth-child(4)]:hidden px-[36px] max-md:px-[16px] relative size-full">
               {recommendedProducts.map((p) => (
                 <ProductCard key={p.id} product={p} />

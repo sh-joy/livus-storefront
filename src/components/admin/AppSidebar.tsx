@@ -13,6 +13,8 @@ import {
   Mail,
   Ticket,
   Megaphone,
+  PanelTop,
+  Inbox,
   Settings,
   MoreVertical,
   ArrowUpRight,
@@ -34,15 +36,16 @@ const allNavItems = [
   { title: "All Orders", url: "/admin/orders", icon: ShoppingBag },
   { title: "Abandoned Carts", url: "/admin/abandoned-carts", icon: ShoppingCart },
   { title: "Customers Directory", url: "/admin/customers", icon: Users },
-  { title: "Product Reviews", url: "/admin/reviews", icon: Star },
   { title: "Analytics", url: "/admin/analytics", icon: BarChart3 },
   { title: "Newsletter CRM", url: "/admin/subscribers", icon: Mail },
+  { title: "Messages", url: "/admin/messages", icon: Inbox },
   { title: "Discounts & Promos", url: "/admin/promos", icon: Ticket },
   { title: "Marquee Banners", url: "/admin/marquee", icon: Megaphone },
+  { title: "Offer Popup", url: "/admin/popup", icon: PanelTop },
   { title: "Store Settings", url: "/admin/settings", icon: Settings },
 ];
 
-import { LogOut, Star, BarChart3 } from "lucide-react";
+import { LogOut, BarChart3 } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export function AppSidebar() {

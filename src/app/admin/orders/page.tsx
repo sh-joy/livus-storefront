@@ -97,6 +97,8 @@ interface OrderRecord {
   totalAmount: number;
   paymentMethod: string;
   paymentStatus: string;
+  paymentTrxId?: string;
+  paymentSenderPhone?: string;
   status: string;
   createdAt: string;
   items: OrderItem[];
@@ -701,6 +703,8 @@ export default function AdminOrdersPage() {
             totalAmount: sidebarOrder.totalAmount,
             paymentMethod: sidebarOrder.paymentMethod,
             paymentStatus: sidebarOrder.paymentStatus,
+            paymentTrxId: sidebarOrder.paymentTrxId,
+            paymentSenderPhone: sidebarOrder.paymentSenderPhone,
             status: sidebarOrder.status,
             createdAt: sidebarOrder.createdAt,
             items: (sidebarOrder.items || []).map((i) => ({

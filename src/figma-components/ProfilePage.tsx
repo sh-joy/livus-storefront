@@ -15,16 +15,16 @@ import {
 import productImg from "@/imports/ProductDetails/71b3cd582dab7174e13346a8d88abe33548d2aa7.png";
 
 const base: CSSProperties = {
-  fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+  fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
   fontSize: "17px", lineHeight: "24px", letterSpacing: "0.17px",
   color: "var(--ink)", fontWeight: 400,
 };
 
 const sectionLabel: CSSProperties = {
-  fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
-  fontSize: "15px", lineHeight: "24px", fontWeight: 500,
-  color: "var(--ink-muted)", letterSpacing: "0.9px",
-  textTransform: "uppercase",
+  fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
+  fontSize: "14px", lineHeight: "20px", fontWeight: 500,
+  color: "var(--ink)", letterSpacing: "0.12em",
+  textTransform: "uppercase", margin: 0,
 };
 
 type OrderStatus = "Pending" | "Processing" | "Shipped" | "Delivered" | "Cancelled";
@@ -84,35 +84,35 @@ const statusStyle: Record<string, CSSProperties> = {
   Pending: {
     background: "#fff3cd", color: "#856404",
     padding: "4px 12px",
-    fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+    fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
     fontSize: "13px", letterSpacing: "0.7px", textTransform: "uppercase",
     fontWeight: 500, lineHeight: "20px", whiteSpace: "nowrap",
   },
   Processing: {
     background: "#cce5ff", color: "#004085",
     padding: "4px 12px",
-    fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+    fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
     fontSize: "13px", letterSpacing: "0.7px", textTransform: "uppercase",
     fontWeight: 500, lineHeight: "20px", whiteSpace: "nowrap",
   },
   Shipped: {
     background: "#e2d9f3", color: "#4a1282",
     padding: "4px 12px",
-    fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+    fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
     fontSize: "13px", letterSpacing: "0.7px", textTransform: "uppercase",
     fontWeight: 500, lineHeight: "20px", whiteSpace: "nowrap",
   },
   Delivered: {
     background: "#d8f3dc", color: "#2d6a4f",
     padding: "4px 12px",
-    fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+    fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
     fontSize: "13px", letterSpacing: "0.7px", textTransform: "uppercase",
     fontWeight: 500, lineHeight: "20px", whiteSpace: "nowrap",
   },
   Cancelled: {
     background: "#f8d7da", color: "#721c24",
     padding: "4px 12px",
-    fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+    fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
     fontSize: "13px", letterSpacing: "0.7px", textTransform: "uppercase",
     fontWeight: 500, lineHeight: "20px", whiteSpace: "nowrap",
   },
@@ -168,7 +168,7 @@ function SelectField({ label, value, onChange, options, placeholder }: SelectFie
             transform: "scale(0.82)",
             transformOrigin: "top left",
             color: focused ? "#0d0d0d" : "#808080",
-            fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+            fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
             fontSize: "16px",
             lineHeight: "22px",
             fontWeight: 500,
@@ -195,7 +195,7 @@ function SelectField({ label, value, onChange, options, placeholder }: SelectFie
             fontSize: "16px",
             lineHeight: "22px",
             color: value ? "#0d0d0d" : "#808080",
-            fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+            fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
             letterSpacing: "0.17px",
             fontWeight: 400,
             background: "transparent",
@@ -338,6 +338,17 @@ export function ProfilePage() {
     }
   }, [isLoggedIn, user?.email]);
 
+  // Arriving from the order confirmation page (/profile?order=LIV-123456): look that order up straight away.
+  useEffect(() => {
+    const fromLink = new URLSearchParams(window.location.search).get("order") || "";
+    if (/^LIV-\d{4,10}$/i.test(fromLink)) {
+      setOrderSearchQuery(fromLink.toUpperCase());
+      setHasSearched(true);
+      fetchOrders(fromLink.toUpperCase());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleSearchSubmit = async (e?: React.FormEvent | React.MouseEvent) => {
     if (e) {
       e.preventDefault();
@@ -455,7 +466,7 @@ export function ProfilePage() {
                   justifyContent: 'center',
                   fontSize: '12px',
                   fontWeight: 600,
-                  fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                  fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
                   background: isDone || isCurrent ? '#050505' : '#ffffff',
                   color: isDone || isCurrent ? '#ffffff' : '#9ca3af',
                   border: isDone || isCurrent ? '2px solid #050505' : '2px solid #d1d5db',
@@ -464,7 +475,7 @@ export function ProfilePage() {
                 </div>
                 <span style={{
                   fontSize: '12px',
-                  fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                  fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px',
                   fontWeight: isCurrent ? 600 : 500,
@@ -486,20 +497,20 @@ export function ProfilePage() {
       <SiteNav />
 
       <div style={{ flex: 1 }}>
-        <div className="max-md:!px-[16px] max-md:!pt-[32px] max-md:!pb-[48px] max-md:!gap-[40px]" style={{
+        <div className="max-md:!px-[16px] max-md:!pt-[24px] max-md:!pb-[32px] max-md:!gap-[28px]" style={{
           display: "flex",
           flexDirection: "column",
           maxWidth: "1080px",
           margin: "0px auto",
-          padding: "80px 24px",
-          gap: "60px",
+          padding: "48px 24px",
+          gap: "40px",
         }}>
 
           {/* Heading row — Centered Profile / Sign out container */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px" }}>
             <p className="max-md:!text-[36px] max-md:!leading-[40px]" style={{
-              fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
-              fontSize: "48px", fontWeight: 600, lineHeight: "56px",
+              fontFamily: "'Overused Grotesk', sans-serif",
+              fontSize: "48px", letterSpacing: "-0.045em", fontWeight: 600, lineHeight: "56px",
               color: "var(--ink)",
             }}>Profile &amp; Orders</p>
             {isLoggedIn && (
@@ -565,7 +576,7 @@ export function ProfilePage() {
                     display: "inline-flex", alignItems: "center", justifyContent: "center",
                     background: "#050505", color: "#ffffff", border: "none", cursor: "pointer",
                     padding: "12px 20px",
-                    fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                    fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
                     fontSize: "17px", letterSpacing: "0.5px", textTransform: "uppercase",
                     fontWeight: 400, lineHeight: "24px",
                     opacity: savingProfile ? 0.7 : 1,
@@ -589,8 +600,8 @@ export function ProfilePage() {
               gap: "16px",
             }}>
               <p className="max-md:!text-[26px] max-md:!leading-[32px]" style={{
-                fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
-                fontSize: "32px",
+                fontFamily: "'Overused Grotesk', sans-serif",
+                fontSize: "32px", letterSpacing: "-0.025em",
                 fontWeight: 600,
                 lineHeight: "40px",
                 color: "#1c1c1c",
@@ -610,7 +621,7 @@ export function ProfilePage() {
                     border: "none",
                     cursor: "pointer",
                     padding: "12px 28px",
-                    fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                    fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
                     fontSize: "16px",
                     letterSpacing: "0.5px",
                     textTransform: "uppercase",
@@ -627,7 +638,7 @@ export function ProfilePage() {
                     border: "1px solid #050505",
                     cursor: "pointer",
                     padding: "12px 28px",
-                    fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                    fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
                     fontSize: "16px",
                     letterSpacing: "0.5px",
                     textTransform: "uppercase",
@@ -662,14 +673,15 @@ export function ProfilePage() {
                     type="text"
                     value={orderSearchQuery}
                     onChange={(e) => setOrderSearchQuery(e.target.value)}
-                    placeholder={isLoggedIn ? "Search your orders by Order ID or product..." : "Order ID + phone, e.g. LIV-123456 01712345678"}
-                    className="max-md:!text-[16px]"
+                    placeholder={isLoggedIn ? "Search by order number or product" : "Order number, e.g. LIV-123456"}
+                    aria-label="Order number"
                     style={{
                       width: "100%",
-                      padding: "10px 36px 10px 14px",
-                      border: "1px solid #e2e2e2",
-                      fontSize: "15px",
-                      fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                      height: "44px",
+                      padding: "0 36px 0 14px",
+                      border: "1px solid #d9d9d9",
+                      fontSize: "16px",
+                      fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
                       outline: "none",
                       background: "#ffffff",
                       color: "#1c1c1c",
@@ -702,23 +714,8 @@ export function ProfilePage() {
                   )}
                 </div>
 
-                <button
-                  type="button"
-                  onClick={handleSearchSubmit}
-                  style={{
-                    background: "#050505",
-                    color: "#ffffff",
-                    border: "none",
-                    padding: "10px 20px",
-                    fontSize: "15px",
-                    fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.5px",
-                    cursor: "pointer",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  SEARCH
+                <button type="submit" className="lv-btn lv-btn--solid">
+                  Search
                 </button>
               </form>
             </div>
@@ -731,7 +728,7 @@ export function ProfilePage() {
                 border: `1px solid ${cancelMessage.type === 'success' ? '#a7f3d0' : '#fecaca'}`,
                 color: cancelMessage.type === 'success' ? '#065f46' : '#991b1b',
                 fontSize: '14px',
-                fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
               }}>
                 {cancelMessage.text}
               </div>
@@ -746,7 +743,7 @@ export function ProfilePage() {
                 {hasSearched ? (
                   <>
                     <p style={{
-                      fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
+                      fontFamily: "'Overused Grotesk', sans-serif",
                       fontSize: "24px",
                       fontWeight: 500,
                       lineHeight: "32px",
@@ -762,7 +759,7 @@ export function ProfilePage() {
                 ) : (
                   <>
                     <p style={{
-                      fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
+                      fontFamily: "'Overused Grotesk', sans-serif",
                       fontSize: "24px",
                       fontWeight: 500,
                       lineHeight: "32px",
@@ -772,7 +769,7 @@ export function ProfilePage() {
                       Check your order
                     </p>
                     <p style={{ ...base, color: "var(--ink-muted)", maxWidth: "460px", fontSize: "16px" }}>
-                      Enter your phone number or Order ID and click SEARCH to track your order status.
+                      Enter your order number (for example LIV-123456) to see its status.
                     </p>
                   </>
                 )}
@@ -793,10 +790,10 @@ export function ProfilePage() {
                       {/* Order header row */}
                       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", width: "100%" }}>
                         <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                          <p style={{ ...base, fontSize: "20px", fontWeight: 500, letterSpacing: "-0.36px", color: "#000000" }}>
+                          <p style={{ ...base, fontSize: "20px", fontWeight: 500, letterSpacing: "0", color: "#000000" }}>
                             {order.id.startsWith("#") ? order.id : `#${order.id}`}
                           </p>
-                          <p style={{ ...base, fontSize: "15px", color: "#666666", letterSpacing: "-0.085px" }}>{order.date}</p>
+                          <p style={{ ...base, fontSize: "15px", color: "#666666", letterSpacing: "0" }}>{order.date}</p>
                           {order.address && (
                             <p style={{ ...base, fontSize: "13px", color: "#888888", marginTop: "2px" }}>
                               Delivering to: {order.address}
@@ -804,7 +801,7 @@ export function ProfilePage() {
                           )}
                         </div>
                         <div style={{ display: "flex", flexDirection: "column", gap: "8px", alignItems: "flex-end", marginLeft: "auto" }}>
-                          <p style={{ ...base, fontSize: "18px", fontWeight: 500, letterSpacing: "-0.36px", color: "#000000" }}>
+                          <p style={{ ...base, fontSize: "18px", fontWeight: 500, letterSpacing: "0", color: "#000000" }}>
                             Total: {order.total}
                           </p>
                           <span style={statusStyle[order.status] || statusStyle.Pending}>{order.status}</span>
@@ -843,30 +840,10 @@ export function ProfilePage() {
                       {/* Pricing summary & Order Actions */}
                       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "16px" }}>
                         <div>
-                          {order.status === "Pending" ? (
-                            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                              <button
-                                type="button"
-                                onClick={() => setCancelConfirmOrder(order)}
-                                style={{
-                                  background: "#ffffff",
-                                  color: "#d4183d",
-                                  border: "1px solid #d4183d",
-                                  padding: "8px 18px",
-                                  fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
-                                  fontSize: "14px",
-                                  letterSpacing: "0.5px",
-                                  textTransform: "uppercase",
-                                  cursor: "pointer",
-                                  fontWeight: 500,
-                                }}
-                              >
-                                CANCEL ORDER
-                              </button>
-                              <span style={{ fontSize: "12px", color: "#888888" }}>
-                                Eligible for instant self-service cancellation
-                              </span>
-                            </div>
+                          {order.status === "Pending" || order.status === "Processing" ? (
+                            <span style={{ fontSize: "14px", color: "#4b5563" }}>
+                              Need to change or cancel? <a href="/contact" style={{ color: "#0d0d0d", textDecoration: "underline" }}>Contact support</a>
+                            </span>
                           ) : order.status === "Cancelled" ? (
                             <span style={{ fontSize: "13px", color: "#9f1239", fontWeight: 500 }}>
                               Order Cancelled
@@ -916,8 +893,8 @@ export function ProfilePage() {
                 boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.2)",
               }}>
                 <h3 style={{
-                  fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
-                  fontSize: "28px",
+                  fontFamily: "'Overused Grotesk', sans-serif",
+                  fontSize: "28px", letterSpacing: "-0.025em",
                   fontWeight: 600,
                   margin: 0,
                   color: "#050505",
@@ -937,7 +914,7 @@ export function ProfilePage() {
                       color: "#050505",
                       border: "1px solid #d1d5db",
                       padding: "10px 20px",
-                      fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                      fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
                       fontSize: "15px",
                       letterSpacing: "0.5px",
                       textTransform: "uppercase",
@@ -955,7 +932,7 @@ export function ProfilePage() {
                       color: "#ffffff",
                       border: "none",
                       padding: "10px 24px",
-                      fontFamily: "var(--font-body, 'Barlow Semi Condensed', sans-serif)",
+                      fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
                       fontSize: "15px",
                       letterSpacing: "0.5px",
                       textTransform: "uppercase",
@@ -974,7 +951,7 @@ export function ProfilePage() {
         </div>
       </div>
 
-      <SiteFooter />
+      <SiteFooter compact />
     </div>
   );
 }

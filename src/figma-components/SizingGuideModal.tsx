@@ -15,7 +15,7 @@ function Row({ label, bold }: { label: string; bold?: boolean }) {
   return (
     <div className="content-stretch flex items-center justify-center py-[12px] relative shrink-0 w-full">
       <div aria-hidden className="absolute border-[#e2e2e2] border-b border-solid inset-0 pointer-events-none" />
-      <p className={`[word-break:break-word] flex-[1_0_0] ${bold ? "font-sans font-medium" : "font-sans"} leading-[24px] min-w-px not-italic relative text-[#1a1a1a] text-[15px] tracking-[-0.085px]`}>
+      <p className={`[word-break:break-word] flex-[1_0_0] ${bold ? "font-sans font-medium" : "font-sans"} leading-[24px] min-w-px not-italic relative text-[#1a1a1a] text-[15px] tracking-normal`}>
         {label}
       </p>
     </div>
@@ -26,7 +26,7 @@ function Cell({ value, bold }: { value: string; bold?: boolean }) {
   return (
     <div className="content-stretch flex items-center justify-center p-[12px] relative shrink-0">
       <div aria-hidden className="absolute border-[#e2e2e2] border-b border-solid inset-0 pointer-events-none" />
-      <p className={`[word-break:break-word] ${bold ? "font-sans font-medium" : "font-sans"} leading-[24px] not-italic relative shrink-0 text-[#1a1a1a] text-[15px] tracking-[-0.085px] min-w-[36px] text-center`}>
+      <p className={`[word-break:break-word] ${bold ? "font-sans font-medium" : "font-sans"} leading-[24px] not-italic relative shrink-0 text-[#1a1a1a] text-[15px] tracking-normal min-w-[36px] text-center`}>
         {value}
       </p>
     </div>

@@ -4,22 +4,22 @@ import { SiteFooter } from '@/figma-components/SiteFooter';
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-white text-neutral-900 flex flex-col font-sans">
-      <SiteNav />
-      <main className="flex-1 flex flex-col items-center justify-center text-center px-6 py-24">
-        <p className="text-xs uppercase tracking-widest text-neutral-400 font-mono mb-2">404 — Page Not Found</p>
-        <h1 className="text-5xl font-display uppercase tracking-tight mb-4">Nothing to See Here</h1>
-        <p className="text-sm text-neutral-600 max-w-md mb-8">
-          The garment or page you are looking for has been moved, archived, or does not exist.
-        </p>
-        <Link
-          href="/all-products"
-          className="bg-black text-white px-8 py-3.5 text-xs uppercase tracking-widest hover:bg-neutral-800 transition-colors"
-        >
-          Explore All Apparel
-        </Link>
-      </main>
-      <SiteFooter />
+    <div className="bg-white text-[#0d0d0d] flex flex-col">
+      {/* Fills the screen; the slim footer sits below the fold */}
+      <div className="min-h-[100dvh] flex flex-col">
+        <SiteNav />
+        <main className="flex-1 flex flex-col items-center justify-center text-center px-[var(--lv-gutter)] py-16">
+          <h1 className="t-h2 m-0">Page not found</h1>
+          <p className="t-lead mt-5 mb-9 max-w-[460px]">
+            Sorry, we couldn&apos;t find what you were looking for. The link may be broken or the page may have moved.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <Link href="/all-products" className="lv-btn lv-btn--solid">Shop all products</Link>
+            <Link href="/" className="lv-btn lv-btn--outline">Back to home</Link>
+          </div>
+        </main>
+      </div>
+      <SiteFooter compact />
     </div>
   );
 }

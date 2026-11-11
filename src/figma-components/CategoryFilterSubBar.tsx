@@ -36,6 +36,7 @@ export function CategoryFilterSubBar({
   const [openDropdown, setOpenDropdown] = useState<'sort' | 'gender' | 'category' | 'size' | null>(null);
   const [dbCategories, setDbCategories] = useState<Array<{ id: string; name: string; slug: string }>>([]);
   const barRef = useRef<HTMLDivElement>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; left?: number; right?: number; minWidth: number } | null>(null);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -47,6 +48,18 @@ export function CategoryFilterSubBar({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // The menu sits in a fixed layer, so close it when the page scrolls or resizes.
+  useEffect(() => {
+    if (!openDropdown) return;
+    const close = () => setOpenDropdown(null);
+    window.addEventListener('scroll', close, { passive: true });
+    window.addEventListener('resize', close);
+    return () => {
+      window.removeEventListener('scroll', close);
+      window.removeEventListener('resize', close);
+    };
+  }, [openDropdown]);
 
   // Dynamically fetch categories from Postgres backend
   useEffect(() => {
@@ -125,7 +138,7 @@ export function CategoryFilterSubBar({
   const getSortButtonText = (val: string) => {
     if (!val || val === '' || val === 'none') return 'SORT';
     const found = sortOptions.find((o) => o.value === val);
-    return found ? `SORT : ${found.label}` : 'SORT';
+    return found ? `Sort: ${found.label}` : 'Sort';
   };
 
   const getGenderLabel = (val: string) => {
@@ -144,169 +157,95 @@ export function CategoryFilterSubBar({
     return found ? found.label : 'SIZE';
   };
 
+  type Key = 'sort' | 'gender' | 'category' | 'size';
+  const filters: Array<{ key: Key; label: string; active: boolean; options: Array<{ label: string; value: string }>; value: string; onChange: (v: string) => void }> = [
+    ...(!hideGenderFilter
+      ? [{ key: 'gender' as Key, label: selectedGender === 'all' ? 'Gender' : getGenderLabel(selectedGender), active: selectedGender !== 'all', options: genderOptions, value: selectedGender, onChange: onGenderChange }]
+      : []),
+    { key: 'category', label: selectedCategory === 'all' ? 'Category' : getCategoryLabel(selectedCategory), active: selectedCategory !== 'all', options: categoryOptions, value: selectedCategory, onChange: onCategoryChange },
+    { key: 'size', label: selectedSize === 'all' ? 'Size' : `Size: ${selectedSize}`, active: selectedSize !== 'all', options: sizeOptions, value: selectedSize, onChange: onSizeChange },
+    { key: 'sort', label: getSortButtonText(sortOption), active: Boolean(sortOption && sortOption !== 'relevance' && sortOption !== 'none'), options: sortOptions, value: sortOption, onChange: onSortChange },
+  ];
+
+  const openFilter = filters.find((f) => f.key === openDropdown) || null;
+
+  const toggle = (key: Key, el: HTMLElement) => {
+    if (openDropdown === key) {
+      setOpenDropdown(null);
+      return;
+    }
+    // The chip row can scroll sideways, which would clip a menu inside it, so the menu is placed
+    // in a fixed layer right under the tapped chip and kept on screen.
+    const r = el.getBoundingClientRect();
+    // Chips on the right half open their menu aligned to the chip's right edge, others to its left edge.
+    const vw = window.innerWidth;
+    setMenuPos(
+      r.left + r.width / 2 > vw / 2
+        ? { top: r.bottom + 4, right: Math.max(16, vw - r.right), minWidth: r.width }
+        : { top: r.bottom + 4, left: Math.max(16, r.left), minWidth: r.width }
+    );
+    setOpenDropdown(key);
+  };
+
   return (
-    <div ref={barRef} className="w-full relative z-30 bg-white py-4 px-[36px] max-md:px-[16px] font-sans select-none max-w-[2560px] mx-auto">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        {/* Left Filter Dropdowns */}
-        <div className="flex flex-wrap items-center gap-3 max-md:gap-2">
-          
-          {/* 1. SORT DROPDOWN */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setOpenDropdown(openDropdown === 'sort' ? null : 'sort')}
-              className="px-[16px] py-[10px] border border-neutral-200 bg-white text-black text-[15px] font-normal uppercase tracking-wider flex items-center justify-between gap-3 hover:border-black min-w-[170px] max-md:min-w-0 max-md:px-[12px] rounded-none cursor-pointer transition-colors"
-            >
-              <span>{getSortButtonText(sortOption)}</span>
-              <ChevronDown className={`size-4 text-neutral-600 transition-transform duration-200 ${openDropdown === 'sort' ? 'rotate-180' : ''}`} />
-            </button>
-
-            {openDropdown === 'sort' && (
-              <div className="absolute top-[calc(100%+4px)] left-0 bg-white border border-neutral-200 p-0 z-50 flex flex-col shadow-xl min-w-[210px] animate-in fade-in zoom-in-95 duration-100 overflow-hidden">
-                {sortOptions.map((opt) => {
-                  const isSelected = sortOption === opt.value;
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => {
-                        onSortChange(opt.value);
-                        setOpenDropdown(null);
-                      }}
-                      className={`w-full text-left px-[16px] py-[10px] text-[15px] font-normal uppercase tracking-wider border-b border-neutral-100 last:border-b-0 rounded-none transition-colors cursor-pointer ${
-                        isSelected
-                          ? 'bg-neutral-100 text-black font-medium'
-                          : 'bg-white text-neutral-700 hover:bg-neutral-50 hover:text-black'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* 2. GENDER DROPDOWN */}
-          {!hideGenderFilter && (
-            <div className="relative">
+    <div ref={barRef} className="w-full relative z-30 bg-white font-sans select-none">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:px-[var(--lv-gutter)]">
+        <div
+          className="flex flex-nowrap gap-2 overflow-x-auto px-[var(--lv-gutter)] sm:px-0 sm:flex-wrap sm:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          onScroll={() => setOpenDropdown(null)}
+        >
+          {filters.map((f) => {
+            const open = openDropdown === f.key;
+            return (
               <button
+                key={f.key}
                 type="button"
-                onClick={() => setOpenDropdown(openDropdown === 'gender' ? null : 'gender')}
-                className="px-[16px] py-[10px] border border-neutral-200 bg-white text-black text-[15px] font-normal uppercase tracking-wider flex items-center justify-between gap-3 hover:border-black min-w-[130px] max-md:min-w-0 max-md:px-[12px] rounded-none cursor-pointer transition-colors"
+                aria-expanded={open}
+                aria-haspopup="listbox"
+                onClick={(e) => toggle(f.key, e.currentTarget)}
+                className={`shrink-0 h-11 px-4 flex items-center gap-2 border bg-white text-[14px] uppercase tracking-[0.08em] whitespace-nowrap cursor-pointer transition-colors ${
+                  f.active ? 'border-[#0d0d0d] text-[#0d0d0d]' : 'border-[#e2e2e2] text-[#1a1a1a] hover:border-[#0d0d0d]'
+                }`}
               >
-                <span>{selectedGender === 'all' ? 'GENDER' : getGenderLabel(selectedGender)}</span>
-                <ChevronDown className={`size-4 text-neutral-600 transition-transform duration-200 ${openDropdown === 'gender' ? 'rotate-180' : ''}`} />
+                <span>{f.label}</span>
+                <ChevronDown className={`size-4 shrink-0 text-neutral-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
               </button>
-
-              {openDropdown === 'gender' && (
-                <div className="absolute top-[calc(100%+4px)] left-0 bg-white border border-neutral-200 p-0 z-50 flex flex-col shadow-xl min-w-[170px] animate-in fade-in zoom-in-95 duration-100 overflow-hidden">
-                  {genderOptions.map((opt) => {
-                    const isSelected = selectedGender === opt.value;
-                    return (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => {
-                          onGenderChange(opt.value);
-                          setOpenDropdown(null);
-                        }}
-                        className={`w-full text-left px-[16px] py-[10px] text-[15px] font-normal uppercase tracking-wider border-b border-neutral-100 last:border-b-0 rounded-none transition-colors cursor-pointer ${
-                          isSelected
-                            ? 'bg-neutral-100 text-black font-medium'
-                            : 'bg-white text-neutral-700 hover:bg-neutral-50 hover:text-black'
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* 3. SIZE DROPDOWN */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setOpenDropdown(openDropdown === 'size' ? null : 'size')}
-              className="px-[16px] py-[10px] border border-neutral-200 bg-white text-black text-[15px] font-normal uppercase tracking-wider flex items-center justify-between gap-3 hover:border-black min-w-[110px] max-md:min-w-0 max-md:px-[12px] rounded-none cursor-pointer transition-colors"
-            >
-              <span>{selectedSize === 'all' ? 'SIZE' : `SIZE: ${selectedSize}`}</span>
-              <ChevronDown className={`size-4 text-neutral-600 transition-transform duration-200 ${openDropdown === 'size' ? 'rotate-180' : ''}`} />
-            </button>
-
-            {openDropdown === 'size' && (
-              <div className="absolute top-[calc(100%+4px)] left-0 bg-white border border-neutral-200 p-0 z-50 flex flex-col shadow-xl min-w-[130px] animate-in fade-in zoom-in-95 duration-100 overflow-hidden">
-                {sizeOptions.map((opt) => {
-                  const isSelected = selectedSize === opt.value;
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => {
-                        onSizeChange(opt.value);
-                        setOpenDropdown(null);
-                      }}
-                      className={`w-full text-left px-[16px] py-[10px] text-[15px] font-normal uppercase tracking-wider border-b border-neutral-100 last:border-b-0 rounded-none transition-colors cursor-pointer ${
-                        isSelected
-                          ? 'bg-neutral-100 text-black font-medium'
-                          : 'bg-white text-neutral-700 hover:bg-neutral-50 hover:text-black'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* 4. CATEGORY DROPDOWN */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setOpenDropdown(openDropdown === 'category' ? null : 'category')}
-              className="px-[16px] py-[10px] border border-neutral-200 bg-white text-black text-[15px] font-normal uppercase tracking-wider flex items-center justify-between gap-3 hover:border-black min-w-[150px] max-md:min-w-0 max-md:px-[12px] rounded-none cursor-pointer transition-colors"
-            >
-              <span>{selectedCategory === 'all' ? 'CATEGORY' : getCategoryLabel(selectedCategory)}</span>
-              <ChevronDown className={`size-4 text-neutral-600 transition-transform duration-200 ${openDropdown === 'category' ? 'rotate-180' : ''}`} />
-            </button>
-
-            {openDropdown === 'category' && (
-              <div className="absolute top-[calc(100%+4px)] left-0 bg-white border border-neutral-200 p-0 z-50 flex flex-col shadow-xl min-w-[210px] max-h-[320px] overflow-y-auto animate-in fade-in zoom-in-95 duration-100 border-b border-neutral-100">
-                {categoryOptions.map((opt) => {
-                  const isSelected = selectedCategory.toLowerCase() === opt.value.toLowerCase();
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => {
-                        onCategoryChange(opt.value);
-                        setOpenDropdown(null);
-                      }}
-                      className={`w-full text-left px-[16px] py-[10px] text-[15px] font-normal uppercase tracking-wider border-b border-neutral-100 last:border-b-0 rounded-none transition-colors cursor-pointer ${
-                        isSelected
-                          ? 'bg-neutral-100 text-black font-medium'
-                          : 'bg-white text-neutral-700 hover:bg-neutral-50 hover:text-black'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
+            );
+          })}
         </div>
-
-        {/* Right Product Count Display (100% Identical to Search Page styling) */}
-        <p className="font-sans text-[15px] uppercase tracking-[0.8px] text-neutral-500 font-medium m-0">
-          {totalCount} PRODUCTS
+        <p className="t-small m-0 px-[var(--lv-gutter)] sm:px-0 uppercase tracking-[0.08em] text-neutral-500 whitespace-nowrap">
+          {totalCount} {totalCount === 1 ? 'product' : 'products'}
         </p>
       </div>
+
+      {openFilter && menuPos && (
+        <div
+          role="listbox"
+          className="fixed z-[60] flex flex-col bg-white border border-[#e2e2e2] shadow-xl w-max max-w-[calc(100vw-32px)] max-h-[320px] overflow-y-auto"
+          style={{ top: menuPos.top, left: menuPos.left, right: menuPos.right, minWidth: menuPos.minWidth }}
+        >
+          {openFilter.options.map((opt) => {
+            const isSelected = openFilter.value.toLowerCase() === opt.value.toLowerCase();
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                role="option"
+                aria-selected={isSelected}
+                onClick={() => {
+                  openFilter.onChange(opt.value);
+                  setOpenDropdown(null);
+                }}
+                className={`w-full text-left h-11 px-4 text-[14px] uppercase tracking-[0.08em] whitespace-nowrap border-b border-neutral-100 last:border-b-0 cursor-pointer transition-colors ${
+                  isSelected ? 'bg-neutral-100 text-black' : 'bg-white text-neutral-700 hover:bg-neutral-50 hover:text-black'
+                }`}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

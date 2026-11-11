@@ -144,7 +144,7 @@ function Frame189Status() {
   return (
     <div className="[word-break:break-word] content-stretch flex items-center justify-between leading-[24px] relative shrink-0 text-[#1c1c1c] w-full whitespace-nowrap" data-name="Frame 189/Status3">
       <p className="font-serif font-semibold relative shrink-0 text-[24px]">Order Summary</p>
-      <p className="[text-underline-position:from-font] decoration-from-font decoration-solid font-sans not-italic relative shrink-0 text-[17px] tracking-[-0.085px] underline">Clear All</p>
+      <p className="[text-underline-position:from-font] decoration-from-font decoration-solid font-sans not-italic relative shrink-0 text-[17px] tracking-normal underline">Clear All</p>
     </div>
   );
 }
@@ -172,9 +172,9 @@ function Frame14() {
 function Frame48() {
   return (
     <div className="content-stretch flex flex-col font-sans items-start justify-center not-italic relative shrink-0">
-      <p className="relative shrink-0 text-[17px] font-medium tracking-[-0.34px]">OWAYO - CROSS FADE</p>
-      <p className="relative shrink-0 text-[17px] tracking-[-0.085px]">{`Color: Black & White`}</p>
-      <p className="relative shrink-0 text-[17px] tracking-[-0.085px]">Size: XL</p>
+      <p className="relative shrink-0 text-[17px] font-medium tracking-normal">OWAYO - CROSS FADE</p>
+      <p className="relative shrink-0 text-[17px] tracking-normal">{`Color: Black & White`}</p>
+      <p className="relative shrink-0 text-[17px] tracking-normal">Size: XL</p>
     </div>
   );
 }
@@ -183,7 +183,7 @@ function Frame18() {
   return (
     <div className="[word-break:break-word] content-stretch flex items-start justify-between leading-[24px] relative shrink-0 text-[#1c1c1c] w-full whitespace-nowrap">
       <Frame48 />
-      <p className="font-['Barlow Semi Condensed:Medium','Noto_Sans_Bengali:Medium',sans-serif] relative shrink-0 text-[18px]" style={{ fontVariationSettings: '"wdth" 100, "wght" 500' }}>
+      <p className="font-['Overused Grotesk:Medium','Noto_Sans_Bengali:Medium',sans-serif] relative shrink-0 text-[18px]" style={{ fontVariationSettings: '"wdth" 100, "wght" 500' }}>
         ৳899 BDT
       </p>
     </div>
@@ -210,7 +210,7 @@ function Frame49() {
   return (
     <div className="content-stretch flex gap-[16px] items-center relative shrink-0">
       <Frame2 />
-      <p className="[word-break:break-word] font-sans leading-[20px] not-italic relative shrink-0 text-[#1c1c1c] text-[17px] tracking-[-0.34px] whitespace-nowrap">1</p>
+      <p className="[word-break:break-word] font-sans leading-[20px] not-italic relative shrink-0 text-[#1c1c1c] text-[17px] tracking-normal whitespace-nowrap">1</p>
       <Frame3 />
     </div>
   );
@@ -220,7 +220,7 @@ function Frame19() {
   return (
     <div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
       <Frame49 />
-      <p className="[text-underline-position:from-font] [word-break:break-word] decoration-from-font decoration-solid font-sans leading-[24px] not-italic relative shrink-0 text-[#1c1c1c] text-[17px] tracking-[-0.085px] underline whitespace-nowrap">Remove</p>
+      <p className="[text-underline-position:from-font] [word-break:break-word] decoration-from-font decoration-solid font-sans leading-[24px] not-italic relative shrink-0 text-[#1c1c1c] text-[17px] tracking-normal underline whitespace-nowrap">Remove</p>
     </div>
   );
 }
@@ -270,9 +270,9 @@ function Frame15() {
 function Frame54() {
   return (
     <div className="content-stretch flex flex-col font-sans items-start justify-center not-italic relative shrink-0">
-      <p className="relative shrink-0 text-[17px] font-medium tracking-[-0.34px]">NIXON - TIME TELLER</p>
-      <p className="relative shrink-0 text-[17px] tracking-[-0.085px]">Color: Rose Gold</p>
-      <p className="relative shrink-0 text-[17px] tracking-[-0.085px]">Size: M</p>
+      <p className="relative shrink-0 text-[17px] font-medium tracking-normal">NIXON - TIME TELLER</p>
+      <p className="relative shrink-0 text-[17px] tracking-normal">Color: Rose Gold</p>
+      <p className="relative shrink-0 text-[17px] tracking-normal">Size: M</p>
     </div>
   );
 }
@@ -281,7 +281,7 @@ function Frame20() {
   return (
     <div className="[word-break:break-word] content-stretch flex items-start justify-between leading-[24px] relative shrink-0 text-[#1c1c1c] w-full whitespace-nowrap">
       <Frame54 />
-      <p className="font-['Barlow Semi Condensed:Medium','Noto_Sans_Bengali:Medium',sans-serif] relative shrink-0 text-[18px]" style={{ fontVariationSettings: '"wdth" 100, "wght" 500' }}>
+      <p className="font-['Overused Grotesk:Medium','Noto_Sans_Bengali:Medium',sans-serif] relative shrink-0 text-[18px]" style={{ fontVariationSettings: '"wdth" 100, "wght" 500' }}>
         ৳790 BDT
       </p>
     </div>
@@ -317,7 +317,7 @@ function Frame55() {
   return (
     <div className="content-stretch flex gap-[16px] items-center relative shrink-0">
       <Frame4 />
-      <p className="[word-break:break-word] font-sans leading-[20px] not-italic relative shrink-0 text-[#1c1c1c] text-[17px] tracking-[-0.34px] whitespace-nowrap">2</p>
+      <p className="[word-break:break-word] font-sans leading-[20px] not-italic relative shrink-0 text-[#1c1c1c] text-[17px] tracking-normal whitespace-nowrap">2</p>
       <Frame5 />
     </div>
   );
@@ -327,7 +327,7 @@ function Frame21() {
   return (
     <div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
       <Frame55 />
-      <p className="[text-underline-position:from-font] [word-break:break-word] decoration-from-font decoration-solid font-sans leading-[24px] not-italic relative shrink-0 text-[#1c1c1c] text-[17px] tracking-[-0.085px] underline whitespace-nowrap">Remove</p>
+      <p className="[text-underline-position:from-font] [word-break:break-word] decoration-from-font decoration-solid font-sans leading-[24px] not-italic relative shrink-0 text-[#1c1c1c] text-[17px] tracking-normal underline whitespace-nowrap">Remove</p>
     </div>
   );
 }
@@ -358,7 +358,7 @@ function Frame22() {
   return (
     <div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
       <p className="font-sans not-italic relative shrink-0">Subtotal</p>
-      <p className="font-['Barlow Semi Condensed:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
+      <p className="font-['Overused Grotesk:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
         ৳ 1790.00
       </p>
     </div>
@@ -369,7 +369,7 @@ function Frame23() {
   return (
     <div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
       <p className="font-sans not-italic relative shrink-0">VAT</p>
-      <p className="font-['Barlow Semi Condensed:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
+      <p className="font-['Overused Grotesk:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
         ৳ 90.00
       </p>
     </div>
@@ -380,7 +380,7 @@ function Frame26() {
   return (
     <div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
       <p className="font-sans not-italic relative shrink-0">Delivery Charge</p>
-      <p className="font-['Barlow Semi Condensed:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
+      <p className="font-['Overused Grotesk:Regular','Noto_Sans_Bengali:Regular',sans-serif] relative shrink-0" style={{ fontVariationSettings: '"wdth" 100, "wght" 400' }}>
         ৳ 150.00
       </p>
     </div>
@@ -389,7 +389,7 @@ function Frame26() {
 
 function Frame57() {
   return (
-    <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] items-start leading-[24px] relative shrink-0 text-[#1c1c1c] text-[17px] tracking-[-0.34px] w-full whitespace-nowrap">
+    <div className="[word-break:break-word] content-stretch flex flex-col gap-[8px] items-start leading-[24px] relative shrink-0 text-[#1c1c1c] text-[17px] tracking-normal w-full whitespace-nowrap">
       <Frame22 />
       <Frame23 />
       <Frame26 />
@@ -399,7 +399,7 @@ function Frame57() {
 
 function Frame27() {
   return (
-    <div className="[word-break:break-word] content-stretch flex items-center justify-between leading-[24px] relative shrink-0 text-[#1c1c1c] text-[17px] tracking-[-0.34px] w-full whitespace-nowrap">
+    <div className="[word-break:break-word] content-stretch flex items-center justify-between leading-[24px] relative shrink-0 text-[#1c1c1c] text-[17px] tracking-normal w-full whitespace-nowrap">
       <p className="font-sans font-medium relative shrink-0">Total</p>
       <p className="font-sans font-medium relative shrink-0">
         ৳ 2130.00
@@ -640,7 +640,7 @@ function Frame10() {
 function Frame51() {
   return (
     <div className="content-stretch flex flex-col gap-[36px] items-start relative shrink-0 w-[1200px]">
-      <p className="[word-break:break-word] font-serif font-semibold leading-[56px] relative shrink-0 text-[#1a1a1a] text-[48px] tracking-[-1.44px] whitespace-nowrap">Checkout</p>
+      <p className="[word-break:break-word] font-serif font-semibold leading-[56px] relative shrink-0 text-[#1a1a1a] text-[48px] tracking-normal whitespace-nowrap">Checkout</p>
       <Frame10 />
     </div>
   );

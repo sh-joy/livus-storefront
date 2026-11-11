@@ -1,10 +1,13 @@
 'use client';
 
+import { Minus, Plus } from 'lucide-react';
+
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useDrawer } from "./DrawerContext";
 import { useCartStore, getCartItemKey } from "@/lib/store/cart-store";
+import { useStoreSettings, freeDeliveryThreshold } from "@/lib/hooks/use-store-settings";
 import imgImage114 from "@/imports/Cart/71b3cd582dab7174e13346a8d88abe33548d2aa7.png";
 
 function ProductImage({ src }: { src?: string | null }) {
@@ -28,6 +31,7 @@ export function CartDrawer() {
   const clearCart = useCartStore((state) => state.clearCart);
 
   const isVisible = cartOpen || storeIsOpen;
+  const threshold = freeDeliveryThreshold(useStoreSettings());
 
   const handleClose = () => {
     closeCart();
@@ -65,80 +69,40 @@ export function CartDrawer() {
             transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex flex-col justify-between p-[20px] size-full">
-              {/* Top: header + items */}
-              <div className="flex flex-col gap-[20px] items-start w-full overflow-y-auto max-h-[calc(100dvh-140px)]">
-                {/* Header */}
-                <div className="flex items-center justify-between w-full shrink-0">
-                  <p className="font-sans leading-[28px] text-[20px] text-[#1a1a1a] whitespace-nowrap font-normal">
-                    Cart ({items.reduce((sum, item) => sum + item.quantity, 0)})
-                  </p>
-                  <div className="flex gap-[20px] items-center">
-                    {items.length > 0 && (
-                      <p
-                        onClick={clearCart}
-                        className="font-sans text-[17px] tracking-[-0.085px] underline text-[#1c1c1c] cursor-pointer"
-                      >
-                        Clear All
-                      </p>
-                    )}
-                    <button onClick={handleClose} className="shrink-0 size-[20px] cursor-pointer" aria-label="Close cart">
-                      <svg fill="none" height="20" viewBox="0 0 20 20" width="20" className="block size-full">
-                        <path d="M15 5L5 15" stroke="black" strokeLinejoin="round" strokeWidth="1.2" />
-                        <path d="M5 5L15 15" stroke="black" strokeLinejoin="round" strokeWidth="1.2" />
-                      </svg>
+            <div className="flex flex-col h-full min-h-0">
+              {/* Header: stays at the top */}
+              <div className="flex items-center justify-between w-full shrink-0 h-16 px-5 border-b border-[#e2e2e2]">
+                <p className="font-sans text-[20px] text-[#1a1a1a] m-0">
+                  Cart ({items.reduce((sum, item) => sum + item.quantity, 0)})
+                </p>
+                <div className="flex gap-4 items-center">
+                  {items.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={clearCart}
+                      className="text-[15px] underline underline-offset-4 text-[#5c5c5c] hover:text-black bg-transparent border-none p-0 cursor-pointer"
+                    >
+                      Clear all
                     </button>
-                  </div>
+                  )}
+                  <button type="button" onClick={handleClose} className="size-10 -mr-2 flex items-center justify-center bg-transparent border-none cursor-pointer" aria-label="Close cart">
+                    <svg fill="none" height="20" viewBox="0 0 20 20" width="20" className="block size-5">
+                      <path d="M15 5L5 15" stroke="black" strokeLinejoin="round" strokeWidth="1.2" />
+                      <path d="M5 5L15 15" stroke="black" strokeLinejoin="round" strokeWidth="1.2" />
+                    </svg>
+                  </button>
                 </div>
+              </div>
 
-                {/* Free Shipping Progress Indicator */}
-                {items.length > 0 && (
-                  <div className="w-full bg-[#f8f8f8] border border-[#e5e5e5] p-3 flex flex-col gap-1.5 shrink-0">
-                    <div className="flex items-center justify-between text-xs font-sans tracking-wide">
-                      <span className="font-semibold text-neutral-900 uppercase">
-                        {subtotal >= 2500 ? (
-                          <span className="text-emerald-700 flex items-center gap-1 font-bold">
-                            ✓ You unlocked FREE Delivery!
-                          </span>
-                        ) : (
-                          <span>
-                            Add <strong className="text-black">৳{(2500 - subtotal).toFixed(0)} BDT</strong> more for <span className="underline font-bold">FREE Delivery</span>
-                          </span>
-                        )}
-                      </span>
-                      <span className="text-neutral-500 font-mono text-[11px]">
-                        {Math.min(100, Math.round((subtotal / 2500) * 100))}%
-                      </span>
-                    </div>
-                    <div className="w-full h-1.5 bg-neutral-200 overflow-hidden rounded-none">
-                      <div
-                        className="h-full bg-black transition-all duration-300 ease-out"
-                        style={{ width: `${Math.min(100, Math.round((subtotal / 2500) * 100))}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
-
+              {/* Items: the only part that scrolls */}
+              <div className="flex-1 min-h-0 overflow-y-auto px-5 pt-5 pb-8 flex flex-col gap-5">
                 {/* Items List / Empty State */}
                 {items.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center text-center gap-[4px] p-[48px_24px] border border-dashed border-[#d0d0d0] w-full bg-[#fafafa] my-[20px]">
-                    <p
-                      className="text-[#1c1c1c]"
-                      style={{
-                        fontFamily: "var(--font-display, 'Big Shoulders', sans-serif)",
-                        fontSize: "24px",
-                        fontWeight: 500,
-                        lineHeight: "32px",
-                      }}
-                    >
-                      Your cart is empty
-                    </p>
-                    <Link
-                      href="/"
-                      onClick={handleClose}
-                      className="inline-flex items-center justify-center gap-[8px] bg-[#050505] text-white border-none cursor-pointer px-[16px] py-[7px] font-sans text-[15px] font-medium tracking-[0.75px] uppercase transition-opacity hover:opacity-90 mt-[4px]"
-                    >
-                      CONTINUE SHOPPING
+                  <div className="flex-1 flex flex-col items-center justify-center text-center gap-3 py-16">
+                    <p className="t-h3 m-0">Your cart is empty</p>
+                    <p className="t-body m-0 text-[#5c5c5c]">Find something you love and it will show up here.</p>
+                    <Link href="/all-products" onClick={handleClose} className="lv-btn lv-btn--solid mt-3">
+                      Shop all products
                     </Link>
                   </div>
                 ) : (
@@ -152,47 +116,40 @@ export function CartDrawer() {
                           <div className="flex-1 flex flex-col justify-between py-[3px] self-stretch min-w-0">
                             <div className="flex items-start justify-between gap-[8px] w-full leading-[24px] text-[#1c1c1c]">
                               <div className="font-sans flex flex-col items-start min-w-0">
-                                <p className="text-[17px] font-medium tracking-[-0.34px]">{item.product.name}</p>
-                                {item.product.color && <p className="text-[17px] tracking-[-0.085px]">Color: {item.product.color}</p>}
-                                {item.product.size && <p className="text-[17px] tracking-[-0.085px]">Size: {item.product.size}</p>}
+                                <p className="text-[16px] font-medium leading-snug">{item.product.name}</p>
+                                {item.product.color && <p className="text-[14px] text-[#5c5c5c]">Color: {item.product.color}</p>}
+                                {item.product.size && <p className="text-[14px] text-[#5c5c5c]">Size: {item.product.size}</p>}
                               </div>
-                              <p className="font-sans text-[17px] font-medium shrink-0 whitespace-nowrap">{item.product.price}</p>
+                              <p className="font-sans text-[16px] font-medium shrink-0 whitespace-nowrap">{item.product.price}</p>
                             </div>
                             <div className="flex items-center justify-between w-full shrink-0">
-                              <div className="flex gap-[16px] items-center">
+                              <div className="flex items-center border border-[#e2e2e2] h-10">
                                 <button
                                   type="button"
                                   disabled={item.quantity <= 1}
                                   onClick={() => updateQuantity(itemKey, item.quantity - 1)}
-                                  className={`size-[20px] flex items-center justify-center transition-opacity ${
-                                    item.quantity <= 1 ? "opacity-30 cursor-not-allowed" : "cursor-pointer hover:opacity-75"
-                                  }`}
+                                  className="size-10 flex items-center justify-center bg-transparent border-none cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#f5f5f5]"
                                   aria-label="Decrease quantity"
                                 >
-                                  <svg fill="none" height="20" viewBox="0 0 20 20" width="20" className="block size-full">
-                                    <path d="M2.92893 10H17.0711" stroke="black" strokeLinejoin="round" strokeWidth="1.2" />
-                                  </svg>
+                                  <Minus className="size-4 stroke-[1.5]" aria-hidden />
                                 </button>
-                                <p className="font-sans leading-[20px] text-[17px] tracking-[-0.34px] text-[#1c1c1c]">
-                                  {item.quantity}
-                                </p>
+                                <span className="w-9 text-center text-[16px] tabular-nums text-[#1c1c1c]">{item.quantity}</span>
                                 <button
                                   type="button"
                                   onClick={() => updateQuantity(itemKey, item.quantity + 1)}
-                                  className="size-[20px] flex items-center justify-center cursor-pointer"
+                                  className="size-10 flex items-center justify-center bg-transparent border-none cursor-pointer hover:bg-[#f5f5f5]"
+                                  aria-label="Increase quantity"
                                 >
-                                  <svg fill="none" height="20" viewBox="0 0 20 20" width="20" className="block size-full">
-                                    <path d="M10 2.92893V17.0711" stroke="black" strokeWidth="1.2" strokeLinejoin="round" />
-                                    <path d="M2.92893 10H17.0711" stroke="black" strokeWidth="1.2" strokeLinejoin="round" />
-                                  </svg>
+                                  <Plus className="size-4 stroke-[1.5]" aria-hidden />
                                 </button>
                               </div>
-                              <p
+                              <button
+                                type="button"
                                 onClick={() => removeItem(itemKey)}
-                                className="font-sans leading-[24px] text-[17px] tracking-[-0.085px] underline text-[#1c1c1c] cursor-pointer"
+                                className="text-[15px] underline underline-offset-4 text-[#5c5c5c] hover:text-black bg-transparent border-none p-0 cursor-pointer"
                               >
                                 Remove
-                              </p>
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -202,21 +159,29 @@ export function CartDrawer() {
                 )}
               </div>
 
-              {/* Bottom: subtotal + checkout (Only rendered when items exist) */}
+              {/* Footer: delivery progress, subtotal, checkout */}
               {items.length > 0 && (
-                <div className="flex flex-col gap-[20px] items-start w-full shrink-0 pt-[20px] border-t border-[#e2e2e2]">
-                  <div className="flex items-center justify-between w-full text-[#1c1c1c] text-[20px] font-medium tracking-[-0.4px] leading-[24px] whitespace-nowrap">
-                    <p className="font-sans font-medium text-[20px]">Subtotal</p>
-                    <p className="font-sans font-medium text-[20px]">৳{subtotal.toFixed(0)} BDT</p>
+                <div className="shrink-0 px-5 pt-4 pb-5 border-t border-[#e2e2e2] flex flex-col gap-4">
+                  {threshold > 0 && (
+                    <div className="flex flex-col gap-2">
+                      <p className="t-small m-0 text-[#1a1a1a]">
+                        {subtotal >= threshold ? (
+                          <span className="text-[#1f7a3a]">You&apos;ve unlocked free delivery</span>
+                        ) : (
+                          <>Add <strong className="font-semibold">৳{Math.ceil(threshold - subtotal)}</strong> more for free delivery</>
+                        )}
+                      </p>
+                      <div className="w-full h-1 bg-neutral-200 overflow-hidden">
+                        <div className="h-full bg-[#0d0d0d] transition-all duration-300" style={{ width: `${Math.min(100, Math.round((subtotal / threshold) * 100))}%` }} />
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between w-full text-[#1c1c1c]">
+                    <p className="font-sans text-[18px] font-medium m-0">Subtotal</p>
+                    <p className="font-sans text-[18px] font-medium m-0">৳{subtotal.toFixed(0)} BDT</p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleCheckout}
-                    className="bg-[#050505] w-full flex items-center justify-center px-[20px] py-[12px] transition-opacity cursor-pointer hover:opacity-90"
-                  >
-                    <p className="font-sans leading-[24px] text-[17px] text-white whitespace-nowrap uppercase font-normal">
-                      PROCEED TO PAYMENT
-                    </p>
+                  <button type="button" onClick={handleCheckout} className="lv-btn lv-btn--solid lv-btn--block">
+                    Proceed to checkout
                   </button>
                 </div>
               )}

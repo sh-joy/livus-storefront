@@ -356,6 +356,8 @@ export async function fetchAdminOrders() {
           totalAmount: parseFloat(o.totalAmount) || 0,
           paymentMethod: o.paymentMethod || 'Cash on Delivery',
           paymentStatus: o.paymentStatus || 'Unpaid (COD)',
+          paymentTrxId: o.paymentTrxId || '',
+          paymentSenderPhone: o.paymentSenderPhone || '',
           status: o.status || 'Pending',
           createdAt: o.createdAt ? new Date(o.createdAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : 'Just now',
           items: o.items || [],

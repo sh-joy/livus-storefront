@@ -14,6 +14,10 @@ const CartDrawer = dynamic(() => import("./CartDrawer").then((mod) => mod.CartDr
 const PromoPopup = dynamic(() => import("./PromoPopup").then((mod) => mod.PromoPopup), {
   ssr: false,
 });
+const CookieConsentBanner = dynamic(
+  () => import("@/components/storefront/CookieConsentBanner").then((mod) => mod.CookieConsentBanner),
+  { ssr: false }
+);
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { openMenu, openCart, openSizingGuide } = useDrawer();
@@ -59,6 +63,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <Suspense fallback={null}>
         <PromoPopup />
       </Suspense>
+      <CookieConsentBanner />
     </div>
   );
 }

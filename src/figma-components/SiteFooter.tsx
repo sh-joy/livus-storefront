@@ -10,6 +10,7 @@ import { getSiteContentAction } from "@/app/actions/site-content";
 import { type NewsletterCtaConfig, DEFAULT_NEWSLETTER_CTA } from "@/content/site-content-defaults";
 import { RichText } from "@/components/storefront/RichText";
 import { trackLead } from "@/lib/analytics";
+import { openCookieConsentBanner } from "@/lib/cookie-consent";
 
 // Brand icons
 function Facebook({ className }: { className?: string }) {
@@ -69,7 +70,7 @@ interface SiteFooterProps {
   compact?: boolean;
 }
 
-const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
+const COLUMNS: { title: string; links: { label: string; href: string; isCookieSettings?: boolean }[] }[] = [
   {
     title: "Shop",
     links: [
@@ -97,6 +98,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
       { label: "Privacy policy", href: "/privacy" },
       { label: "Terms & conditions", href: "/terms" },
       { label: "Cookie policy", href: "/cookies" },
+      { label: "Cookie settings", href: "#", isCookieSettings: true },
     ],
   },
 ];
@@ -328,11 +330,22 @@ export function SiteFooter({ compact = false }: SiteFooterProps) {
             {[
               ...COLUMNS.map((col) => ({
                 title: col.title,
-                items: col.links.map((l) => (
-                  <Link key={l.label} href={l.href} className="lv-link t-body text-[#1a1a1a]">
-                    {l.label}
-                  </Link>
-                )),
+                items: col.links.map((l) =>
+                  l.isCookieSettings ? (
+                    <button
+                      key={l.label}
+                      type="button"
+                      onClick={() => openCookieConsentBanner()}
+                      className="lv-link t-body text-[#1a1a1a] bg-transparent border-none p-0 text-left cursor-pointer"
+                    >
+                      {l.label}
+                    </button>
+                  ) : (
+                    <Link key={l.label} href={l.href} className="lv-link t-body text-[#1a1a1a]">
+                      {l.label}
+                    </Link>
+                  )
+                ),
               })),
               ...(socials.length > 0
                 ? [

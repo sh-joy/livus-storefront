@@ -285,6 +285,20 @@ export default function AdminContentPage() {
             onRestore={() => restoreDefault('cookies_page')}
             viewUrl="/cookies"
           />
+
+          {/* Cookie Consent Banner */}
+          <ContentBlockCard
+            title="Cookie Consent Banner Text"
+            description="Text displayed on the first-visit cookie consent banner and footer manage modal."
+            contentKey="cookie_banner_text"
+            value={contents.cookie_banner_text?.value || ''}
+            isCustom={contents.cookie_banner_text?.isCustom || false}
+            saving={savingKey === 'cookie_banner_text'}
+            onChange={(val) => updateText('cookie_banner_text', val)}
+            onSave={() => saveText('cookie_banner_text')}
+            onRestore={() => restoreDefault('cookie_banner_text')}
+            viewUrl="/cookies"
+          />
         </div>
       )}
 

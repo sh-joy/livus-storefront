@@ -1,7 +1,10 @@
 /**
  * Safe client-side analytics helpers for Meta Pixel and Google Analytics 4 (GA4).
- * All methods safely no-op when running on the server or when tracking IDs/scripts are absent.
+ * All methods safely no-op when running on the server, when tracking IDs/scripts are absent,
+ * or when the user has not granted matching cookie consent.
  */
+
+import { getClientConsent } from '@/lib/cookie-consent';
 
 declare global {
   interface Window {
@@ -26,17 +29,18 @@ function parsePrice(raw: number | string): number {
 
 /**
  * 1. Product Page Viewed
- * Meta Pixel: ViewContent
- * GA4: view_item
+ * Meta Pixel: ViewContent (requires marketing consent)
+ * GA4: view_item (requires analytics consent)
  */
 export function trackViewContent(item: AnalyticsItem) {
   if (typeof window === 'undefined') return;
+  const consent = getClientConsent();
 
   const value = parsePrice(item.price);
   const currency = 'BDT';
 
   // Meta Pixel
-  if (window.fbq) {
+  if (consent?.marketing && window.fbq) {
     window.fbq('track', 'ViewContent', {
       content_ids: [item.id],
       content_name: item.name,
@@ -48,7 +52,7 @@ export function trackViewContent(item: AnalyticsItem) {
   }
 
   // Google Analytics 4
-  if (window.gtag) {
+  if (consent?.analytics && window.gtag) {
     window.gtag('event', 'view_item', {
       currency,
       value,
@@ -67,11 +71,12 @@ export function trackViewContent(item: AnalyticsItem) {
 
 /**
  * 2. Add To Cart
- * Meta Pixel: AddToCart
- * GA4: add_to_cart
+ * Meta Pixel: AddToCart (requires marketing consent)
+ * GA4: add_to_cart (requires analytics consent)
  */
 export function trackAddToCart(item: AnalyticsItem) {
   if (typeof window === 'undefined') return;
+  const consent = getClientConsent();
 
   const price = parsePrice(item.price);
   const quantity = item.quantity || 1;
@@ -79,7 +84,7 @@ export function trackAddToCart(item: AnalyticsItem) {
   const currency = 'BDT';
 
   // Meta Pixel
-  if (window.fbq) {
+  if (consent?.marketing && window.fbq) {
     window.fbq('track', 'AddToCart', {
       content_ids: [item.id],
       content_name: item.name,
@@ -91,7 +96,7 @@ export function trackAddToCart(item: AnalyticsItem) {
   }
 
   // Google Analytics 4
-  if (window.gtag) {
+  if (consent?.analytics && window.gtag) {
     window.gtag('event', 'add_to_cart', {
       currency,
       value,
@@ -110,8 +115,8 @@ export function trackAddToCart(item: AnalyticsItem) {
 
 /**
  * 3. Checkout Page Opened with Items
- * Meta Pixel: InitiateCheckout
- * GA4: begin_checkout
+ * Meta Pixel: InitiateCheckout (requires marketing consent)
+ * GA4: begin_checkout (requires analytics consent)
  */
 export function trackInitiateCheckout({
   total,
@@ -121,12 +126,13 @@ export function trackInitiateCheckout({
   items: AnalyticsItem[];
 }) {
   if (typeof window === 'undefined') return;
+  const consent = getClientConsent();
 
   const currency = 'BDT';
   const content_ids = items.map((i) => i.id);
 
   // Meta Pixel
-  if (window.fbq) {
+  if (consent?.marketing && window.fbq) {
     window.fbq('track', 'InitiateCheckout', {
       content_ids,
       content_type: 'product',
@@ -137,7 +143,7 @@ export function trackInitiateCheckout({
   }
 
   // Google Analytics 4
-  if (window.gtag) {
+  if (consent?.analytics && window.gtag) {
     window.gtag('event', 'begin_checkout', {
       currency,
       value: total,
@@ -153,8 +159,8 @@ export function trackInitiateCheckout({
 
 /**
  * 4. Order Confirmed / Placed
- * Meta Pixel: Purchase
- * GA4: purchase
+ * Meta Pixel: Purchase (requires marketing consent)
+ * GA4: purchase (requires analytics consent)
  * Guarded with sessionStorage so page reloads do not duplicate purchase events.
  */
 export function trackPurchase({
@@ -167,6 +173,7 @@ export function trackPurchase({
   items: AnalyticsItem[];
 }) {
   if (typeof window === 'undefined') return;
+  const consent = getClientConsent();
 
   const sessionKey = `livus_tracked_order_${orderId}`;
   try {
@@ -180,7 +187,7 @@ export function trackPurchase({
   const content_ids = items.map((i) => i.id);
 
   // Meta Pixel
-  if (window.fbq) {
+  if (consent?.marketing && window.fbq) {
     window.fbq('track', 'Purchase', {
       content_ids,
       content_type: 'product',
@@ -191,7 +198,7 @@ export function trackPurchase({
   }
 
   // Google Analytics 4
-  if (window.gtag) {
+  if (consent?.analytics && window.gtag) {
     window.gtag('event', 'purchase', {
       transaction_id: orderId,
       value: total,
@@ -208,14 +215,15 @@ export function trackPurchase({
 
 /**
  * 5. Lead Generation / Newsletter Sign-up
- * Meta Pixel: Lead
- * GA4: sign_up
+ * Meta Pixel: Lead (requires marketing consent)
+ * GA4: sign_up (requires analytics consent)
  */
 export function trackLead({ formName, email }: { formName: string; email?: string }) {
   if (typeof window === 'undefined') return;
+  const consent = getClientConsent();
 
   // Meta Pixel
-  if (window.fbq) {
+  if (consent?.marketing && window.fbq) {
     window.fbq('track', 'Lead', {
       content_name: formName,
       status: 'success',
@@ -223,7 +231,7 @@ export function trackLead({ formName, email }: { formName: string; email?: strin
   }
 
   // Google Analytics 4
-  if (window.gtag) {
+  if (consent?.analytics && window.gtag) {
     window.gtag('event', 'sign_up', {
       method: formName,
     });

@@ -22,6 +22,7 @@ export const SITE_CONTENT_KEYS = [
   'category_for_her_intro',
   'category_unisex_intro',
   'category_accessories_intro',
+  'cookie_banner_text',
 ] as const;
 
 export type SiteContentKey = (typeof SITE_CONTENT_KEYS)[number];
@@ -112,6 +113,9 @@ export const DEFAULT_CONTENT: Record<SiteContentKey, string> = {
 
   category_accessories_intro:
     "Sports accessories in Bangladesh to complete your look on and off the field. Practical athletic essentials engineered for daily training. Check out our latest [men's sportswear](/for-him) and [women's sportswear](/for-her).",
+
+  cookie_banner_text:
+    'Essential cookies keep your cart and sign-in working. With your OK, we also use analytics and advertising cookies to improve the shop and show relevant sports styles. You can change your choices any time via Cookie settings in the footer.',
 };
 
 /** Build policy context dynamically from site profile with fallback to storeSettings */

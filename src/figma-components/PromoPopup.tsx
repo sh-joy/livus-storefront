@@ -6,6 +6,7 @@ import { X } from 'lucide-react';
 import { getPromoPopupAction, type PromoPopupConfig } from '@/app/actions/promo-popup';
 import { addNewsletterSubscriberAction } from '@/app/actions/subscribers';
 import { SmartImage } from '@/components/storefront/SmartImage';
+import { hasConsentBeenDecided, CONSENT_UPDATED_EVENT } from '@/lib/cookie-consent';
 
 const STORAGE_KEY = 'livus_promo_popup';
 const DAY = 24 * 60 * 60 * 1000;
@@ -48,6 +49,7 @@ export function PromoPopup() {
 
   const [cfg, setCfg] = useState<PromoPopupConfig | null>(null);
   const [open, setOpen] = useState(false);
+  const [consentDecided, setConsentDecided] = useState(false);
   const [email, setEmail] = useState('');
   const [state, setState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
   const [message, setMessage] = useState('');
@@ -65,15 +67,23 @@ export function PromoPopup() {
     };
   }, [preview]);
 
-  // Open after the configured delay, only on allowed pages.
+  // Check cookie consent state; the promo popup must not open until consent choice is made.
   useEffect(() => {
-    if (!cfg || hidden || open || (!preview && !shouldShow(cfg))) return;
+    setConsentDecided(hasConsentBeenDecided());
+    const onConsentUpdate = () => setConsentDecided(true);
+    window.addEventListener(CONSENT_UPDATED_EVENT, onConsentUpdate);
+    return () => window.removeEventListener(CONSENT_UPDATED_EVENT, onConsentUpdate);
+  }, []);
+
+  // Open after the configured delay, only on allowed pages and after consent is decided.
+  useEffect(() => {
+    if (!cfg || hidden || open || (!preview && (!consentDecided || !shouldShow(cfg)))) return;
     const t = window.setTimeout(() => {
       lastFocus.current = document.activeElement as HTMLElement | null;
       setOpen(true);
     }, preview ? 300 : Math.max(0, cfg.delaySeconds) * 1000);
     return () => window.clearTimeout(t);
-  }, [cfg, hidden, open, preview]);
+  }, [cfg, hidden, open, preview, consentDecided]);
 
   const close = (subscribed = false) => {
     if (cfg && !preview) writeSeen({ version: cfg.version, at: Date.now(), subscribed });

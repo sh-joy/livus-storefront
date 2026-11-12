@@ -12,7 +12,7 @@
  * have it reviewed before you rely on it.
  */
 
-export const POLICY_LAST_UPDATED = '11 November 2026';
+export const POLICY_LAST_UPDATED = '12 November 2026';
 
 /** Shared shipping and return parameters across policy text and Schema.org JSON-LD. */
 export const SHIPPING_POLICY_DEFAULTS = {
@@ -250,33 +250,37 @@ export function cookiesPolicyText(c: PolicyContext = {}): string {
     '**1. What cookies are**',
     'Cookies are small text files that a website saves in your browser. Similar technologies include local storage (data saved in your browser) and pixels (tiny pieces of code that tell a service a page was viewed). In this policy we call all of these "cookies".',
 
-    '**2. Cookies we use**',
+    '**2. Cookie consent banner**',
+    `When you first visit our shop, a cookie banner gives you the choice to accept or decline non-essential cookies. You can accept all cookies, decline non-essential cookies, or manage your preferences individually. Your choice is stored in a first-party cookie for 6 months (180 days), after which we ask again. You can reopen and change your cookie preferences at any time by clicking **Cookie settings** in the website footer.`,
+
+    '**3. Cookie categories we use**',
     [
-      '- **Strictly necessary:** keep you signed in, keep the admin area secure, remember what is in your cart and protect forms from abuse. The website cannot work properly without these, so they cannot be switched off.',
-      '- **Functional:** remember your choices, for example that you closed an offer popup, your saved checkout details and the products you recently viewed, so we can show relevant suggestions.',
-      '- **Analytics:** help us understand how visitors use the website — which pages are visited, how people find us and where they leave — so we can improve it (for example Google Analytics).',
-      '- **Advertising:** measure how well our ads work and show you relevant LIVUS ads on other websites and apps (for example the Meta Pixel for Facebook and Instagram, and Google advertising tags). They record events such as viewing a product, adding to cart, starting checkout and placing an order.',
+      '- **Strictly necessary cookies:** essential for operating the shop. They keep you signed in, secure the checkout, maintain items in your cart, and remember your cookie consent preferences. Because the website cannot function properly without them, they cannot be switched off.',
+      '- **Analytics cookies:** help us measure and understand how athletes and shoppers navigate our site, which training gear is viewed, and where drop-offs happen, so we can improve site speed and browsing experience (Google Analytics 4). These load only with your explicit consent.',
+      '- **Marketing & advertising cookies:** help us measure the performance of our sportswear campaigns and show relevant new product drops on platforms like Facebook and Instagram (Meta Pixel). These load only with your explicit consent.',
     ].join('\n'),
 
-    '**3. Cookies set by other companies**',
-    'Some cookies are set by the services we use, such as Google (analytics and Google sign-in), Meta (Facebook and Instagram pixel and Facebook sign-in) and our website hosting provider. These companies handle the information under their own privacy policies.',
+    '**4. Specific cookies and storage used on LIVUS**',
+    [
+      '- **livus_consent:** first-party cookie storing your cookie choices (version, analytics allowed, marketing allowed, timestamp). Valid for 180 days (6 months). Category: Strictly Necessary.',
+      '- **better-auth.session_token:** first-party session cookie that keeps you securely signed in to your account. Category: Strictly Necessary.',
+      '- **livus_cart & checkout storage:** browser local storage keeping your cart items and uncommitted checkout progress so you do not lose items. Category: Strictly Necessary.',
+      '- **_ga, _ga_*:** third-party Google Analytics 4 cookies used to distinguish unique visitors and measure page journeys. Valid for up to 2 years. Category: Analytics (loaded only when analytics consent is granted).',
+      '- **_fbp:** third-party Meta Pixel cookie used by Meta to deliver and measure advertisements. Valid for up to 90 days. Category: Marketing (loaded only when marketing consent is granted).',
+    ].join('\n'),
 
-    '**4. How long cookies last**',
+    '**5. How long cookies last**',
     [
       '- **Session cookies** are deleted when you close your browser.',
-      '- **Persistent cookies** stay for a set time, from a few days (for example your sign-in) up to around two years for some analytics and advertising cookies, unless you delete them sooner.',
-      '- Your cart and saved checkout details stay in your browser until you clear them or complete your order.',
+      '- **Consent preference** lasts for 180 days (6 months) or until you reset your choice or clear browser cookies.',
+      '- **Persistent analytics and advertising cookies** stay for their defined durations (up to 2 years) unless cleared or revoked.',
     ].join('\n'),
 
-    '**5. How to control cookies**',
+    '**6. How to manage or revoke your choices**',
     [
-      '- Most browsers let you see, block and delete cookies in their settings (for example Chrome: Settings → Privacy and security → Cookies; Safari: Settings → Safari → Advanced). Blocking all cookies may stop sign-in, the cart or checkout from working.',
-      '- To limit advertising, you can change your ad settings in your Facebook / Instagram and Google accounts, and turn on "Limit ad tracking" or "Delete advertising ID" on your phone.',
-      '- To opt out of Google Analytics on all websites, you can install the Google Analytics opt-out browser add-on.',
+      '- **On our site:** click **Cookie settings** at the bottom of any page in the footer to review or update your choices at any time. If you turn off previously allowed categories, tracking ceases immediately.',
+      '- **In your browser:** all modern browsers allow you to view, block, or clear cookies through settings. Please note that blocking all cookies may disable cart, checkout, or account sign-in functionality.',
     ].join('\n'),
-
-    '**6. Changes to this policy**',
-    'We may update this policy when we add or change the tools we use. The "Last updated" date at the top shows when it last changed.',
 
     '**7. Contact us**',
     contactLines(c),

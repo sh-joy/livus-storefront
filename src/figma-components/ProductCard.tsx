@@ -8,6 +8,7 @@ import type { ProductItem } from '@/app/actions/products';
 import imgFrame1597881192 from "@/imports/ForHim-2/cd8123b8a9ab8a34443daf47f95966a2cb8719ce.png";
 import imgImage114 from "@/imports/ForHim-2/71b3cd582dab7174e13346a8d88abe33548d2aa7.png";
 import { SmartImage } from '@/components/storefront/SmartImage';
+import { formatBdt } from '@/lib/utils';
 
 // Mobile-first responsive card sizes: 2 cols on mobile (<640px), 3 cols on tablet (<1024px), 4 cols on desktop.
 const PRODUCT_CARD_SIZES = '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw';
@@ -168,11 +169,11 @@ export function ProductCard({ product }: { product: any }) {
         </p>
         <div className="flex gap-x-2 gap-y-0 items-center flex-wrap">
           <p className="text-[20px] font-medium text-black whitespace-nowrap">
-            ৳{product.priceBdt} BDT
+            {formatBdt(product.priceBdt)}
           </p>
           {hasDiscount && (
             <p className="text-[18px] line-through text-gray-500 font-normal whitespace-nowrap">
-              ৳{product.compareAtPriceBdt} BDT
+              {formatBdt(product.compareAtPriceBdt)}
             </p>
           )}
         </div>

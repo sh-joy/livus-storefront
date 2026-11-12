@@ -12,6 +12,22 @@ import { and, eq, gte, sql } from 'drizzle-orm';
 export const VAT_PERCENT = Number(process.env.VAT_PERCENT ?? 10);
 export const DELIVERY_CHARGE_BDT = Number(process.env.DELIVERY_CHARGE_BDT ?? 150);
 
+/**
+ * Returns the effective default delivery charge in BDT from storeSettings,
+ * falling back to DELIVERY_CHARGE_BDT (150). Used across checkout, shipping text and JSON-LD.
+ */
+export async function getDefaultDeliveryChargeBdt(): Promise<number> {
+  try {
+    const settings = await db.query.storeSettings.findFirst({ where: eq(storeSettings.id, 'general') });
+    if (settings && typeof settings.defaultDeliveryChargeBdt === 'number' && settings.defaultDeliveryChargeBdt > 0) {
+      return settings.defaultDeliveryChargeBdt;
+    }
+  } catch {
+    // fallback
+  }
+  return DELIVERY_CHARGE_BDT;
+}
+
 export interface QuoteItemInput {
   productId: string; // product UUID (or slug / legacy "slug-color" cart id)
   variantName?: string;

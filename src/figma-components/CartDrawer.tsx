@@ -10,6 +10,7 @@ import { useCartStore, getCartItemKey } from "@/lib/store/cart-store";
 import { useStoreSettings, freeDeliveryThreshold } from "@/lib/hooks/use-store-settings";
 import imgImage114 from "@/imports/Cart/71b3cd582dab7174e13346a8d88abe33548d2aa7.png";
 import { SmartImage } from "@/components/storefront/SmartImage";
+import { formatBdt } from "@/lib/utils";
 
 function ProductImage({ src }: { src?: string | null }) {
   const imgSrc = src || (typeof imgImage114 === 'string' ? imgImage114 : imgImage114?.src);
@@ -189,7 +190,7 @@ export function CartDrawer() {
                         {subtotal >= threshold ? (
                           <span className="text-[#1f7a3a]">You&apos;ve unlocked free delivery</span>
                         ) : (
-                          <>Add <strong className="font-semibold">৳{Math.ceil(threshold - subtotal)}</strong> more for free delivery</>
+                          <>Add <strong className="font-semibold">{formatBdt(Math.ceil(threshold - subtotal))}</strong> more for free delivery</>
                         )}
                       </p>
                       <div className="w-full h-1 bg-neutral-200 overflow-hidden">
@@ -199,7 +200,7 @@ export function CartDrawer() {
                   )}
                   <div className="flex items-center justify-between w-full text-[#1c1c1c]">
                     <p className="font-sans text-[18px] font-medium m-0">Subtotal</p>
-                    <p className="font-sans text-[18px] font-medium m-0">৳{subtotal.toFixed(0)} BDT</p>
+                    <p className="font-sans text-[18px] font-medium m-0">{formatBdt(subtotal)}</p>
                   </div>
                   <button type="button" onClick={handleCheckout} className="lv-btn lv-btn--solid lv-btn--block">
                     Proceed to checkout

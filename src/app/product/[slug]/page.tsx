@@ -5,6 +5,8 @@ import { getProductBySlugAction, getProducts } from '@/app/actions/products';
 import ProductDetailClient from './ProductDetailClient';
 import { getSiteContentAction } from '@/app/actions/site-content';
 import { BreadcrumbJsonLd } from '@/components/seo/JsonLd';
+import { SHIPPING_POLICY_DEFAULTS } from '@/content/policy-defaults';
+import { getDefaultDeliveryChargeBdt, DELIVERY_CHARGE_BDT } from '@/lib/order-pricing';
 
 const siteUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/+$/, '');
 
@@ -13,7 +15,7 @@ export const revalidate = 60;
 // Shared between generateMetadata and the page so the product is fetched once per request.
 const getProduct = cache((slug: string) => getProductBySlugAction(slug));
 
-type Product = NonNullable<Awaited<ReturnType<typeof getProductBySlugAction>>>;
+export type Product = NonNullable<Awaited<ReturnType<typeof getProductBySlugAction>>>;
 
 function toAbsoluteUrl(url: string) {
   if (/^https?:\/\//i.test(url)) return url;
@@ -39,31 +41,82 @@ function isInStock(product: Product) {
   );
 }
 
-function getProductTitle(product: Product): { absolute: string } {
-  const base = `${product.name} | LIVUS Athletic Wear BD`;
+export function getProductTitle(product: {
+  name: string;
+  categorySlug?: string;
+  collectionTag?: string;
+}): { absolute: string } {
+  const gender =
+    product.categorySlug === 'for-her'
+      ? "Women's"
+      : product.categorySlug === 'for-him'
+      ? "Men's"
+      : product.categorySlug === 'accessories'
+      ? "Sports"
+      : (product.name.toLowerCase().includes('women') ? "Women's" : "Men's");
+
+  const rawType = (product.collectionTag && product.collectionTag !== 'Minimal')
+    ? product.collectionTag
+    : (product.name.toLowerCase().includes('jersey')
+      ? 'Jersey'
+      : product.name.toLowerCase().includes('tee') || product.name.toLowerCase().includes('t-shirt')
+      ? 'Training Tee'
+      : 'Sportswear');
+
+  const base = `${product.name} | ${gender} ${rawType} | LIVUS`;
   if (base.length >= 50 && base.length <= 60) return { absolute: base };
   if (base.length < 50) {
-    const padded = `${product.name} — LIVUS Athletic Streetwear BD`;
-    if (padded.length >= 50 && padded.length <= 60) return { absolute: padded.slice(0, 60) };
-    const longPadded = `${product.name} — LIVUS Premium Athletic Streetwear BD`;
-    return { absolute: longPadded.slice(0, 60) };
+    const longer = `${product.name} | ${gender} Athletic ${rawType} | LIVUS`;
+    if (longer.length >= 50 && longer.length <= 60) return { absolute: longer };
+    const longest = `${product.name} | ${gender} Performance ${rawType} | LIVUS`;
+    if (longest.length >= 50 && longest.length <= 60) return { absolute: longest.slice(0, 60) };
+    const padded = `${product.name} | ${gender} Sportswear & Athletic Jerseys | LIVUS`;
+    if (padded.length <= 60) return { absolute: padded };
+    return { absolute: base };
   }
-  return { absolute: `${base.slice(0, 57)}...` };
+  return { absolute: base.slice(0, 60) };
 }
 
-function getDescription(product: Product) {
-  const raw = (product.description || '').replace(/\s+/g, ' ').trim();
-  const base = raw && raw !== product.name
-    ? raw
-    : `${product.name} by LIVUS. Crafted for athletic performance and street culture.`;
-  const suffix = ' Delivered nationwide in Bangladesh with Cash on Delivery.';
-  const max = 155 - suffix.length;
-  const truncated = base.length > max ? `${base.slice(0, max - 1).trimEnd()}…` : base;
-  let result = `${truncated}${suffix}`;
-  if (result.length < 140) {
-    result = `${result.replace(/\.$/, '')} and verified dispatch.`;
+export function getDescription(product: Product) {
+  const colours = (product.colorVariants || []).map((v) => v.name).filter(Boolean);
+  const colourText = colours.length ? ` in ${colours.slice(0, 2).join(' and ')}` : '';
+
+  let fabric = '';
+  let fit = '';
+  if (product.specifications) {
+    const fabricMatch = product.specifications.match(/Fabric:\s*([^\n;]+)/i);
+    if (fabricMatch) fabric = fabricMatch[1].trim();
+    const fitMatch = product.specifications.match(/Fit:\s*([^\n;]+)/i);
+    if (fitMatch) fit = fitMatch[1].trim();
   }
-  return result.length > 160 ? `${result.slice(0, 157)}…` : result;
+
+  const specParts = [fit, fabric].filter(Boolean);
+  const specText = specParts.length ? ` Featuring ${specParts.join(', ')}.` : '';
+
+  const suffix = ' Delivery across Bangladesh.';
+  const prefix = `Shop the ${product.name}${colourText} by LIVUS.${specText} Built for training and athletic movement.`;
+
+  let text = `${prefix.trim()}${suffix}`;
+  if (text.length > 160) {
+    const maxPrefixLen = 160 - suffix.length;
+    text = `${prefix.slice(0, maxPrefixLen - 1).trimEnd()}…${suffix}`;
+  } else if (text.length < 140) {
+    const padding = ' Nationwide Cash on Delivery.';
+    if (text.length + padding.length <= 160) {
+      text = `${prefix.trim()}${padding}${suffix}`;
+    } else {
+      text = `${prefix.trim()} with COD.${suffix}`;
+    }
+  }
+
+  if (text.length < 140) {
+    text = text.replace(suffix, ` Fast shipping and COD.${suffix}`);
+  }
+  if (text.length > 160) {
+    text = `${text.slice(0, 159 - suffix.length).trimEnd()}…${suffix}`;
+  }
+
+  return text;
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -111,15 +164,23 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-function buildProductJsonLd(product: Product) {
+export function buildProductJsonLd(product: Product, deliveryChargeBdt: number = DELIVERY_CHARGE_BDT) {
   const url = `${siteUrl}/product/${product.slug}`;
   const images = getProductImages(product).map(toAbsoluteUrl);
   const sku = product.colorVariants?.[0]?.sizes?.[0]?.sku || product.slug;
+  const rawType = (product.collectionTag && product.collectionTag !== 'Minimal')
+    ? product.collectionTag
+    : (product.name.toLowerCase().includes('jersey')
+      ? 'Jerseys'
+      : product.name.toLowerCase().includes('tee') || product.name.toLowerCase().includes('t-shirt')
+      ? 'Training Tees'
+      : 'Jerseys');
 
   return {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
+    category: `Sportswear > ${rawType}`,
     description: (product.description || product.name).replace(/\s+/g, ' ').trim(),
     url,
     image: images.length ? images : [`${siteUrl}/opengraph-image`],
@@ -143,7 +204,7 @@ function buildProductJsonLd(product: Product) {
         '@type': 'OfferShippingDetails',
         shippingRate: {
           '@type': 'MonetaryAmount',
-          value: '120',
+          value: String(deliveryChargeBdt),
           currency: 'BDT',
         },
         shippingDestination: {
@@ -154,14 +215,14 @@ function buildProductJsonLd(product: Product) {
           '@type': 'ShippingDeliveryTime',
           handlingTime: {
             '@type': 'QuantitativeValue',
-            minValue: 1,
-            maxValue: 2,
+            minValue: SHIPPING_POLICY_DEFAULTS.handlingDaysMin,
+            maxValue: SHIPPING_POLICY_DEFAULTS.handlingDaysMax,
             unitCode: 'd',
           },
           transitTime: {
             '@type': 'QuantitativeValue',
-            minValue: 2,
-            maxValue: 5,
+            minValue: SHIPPING_POLICY_DEFAULTS.transitDaysMin,
+            maxValue: SHIPPING_POLICY_DEFAULTS.transitDaysMax,
             unitCode: 'd',
           },
         },
@@ -170,7 +231,7 @@ function buildProductJsonLd(product: Product) {
         '@type': 'MerchantReturnPolicy',
         applicableCountry: 'BD',
         returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
-        merchantReturnDays: 7,
+        merchantReturnDays: SHIPPING_POLICY_DEFAULTS.returnDays,
         returnMethod: 'https://schema.org/ReturnByMail',
         returnFees: 'https://schema.org/ReturnFeesCustomerResponsibility',
       },
@@ -181,17 +242,18 @@ function buildProductJsonLd(product: Product) {
 export default async function DynamicProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
 
-  const [productData, allProducts, shippingText] = await Promise.all([
+  const [productData, allProducts, shippingText, defaultDelivery] = await Promise.all([
     getProduct(resolvedParams.slug),
     getProducts(),
     getSiteContentAction('shipping_returns'),
+    getDefaultDeliveryChargeBdt(),
   ]);
 
   if (!productData) {
     notFound();
   }
 
-  const jsonLd = buildProductJsonLd(productData);
+  const jsonLd = buildProductJsonLd(productData, defaultDelivery);
 
   return (
     <>

@@ -721,7 +721,7 @@ export default function Homepage({
   return (
     <div className="bg-white content-stretch flex flex-col items-start relative size-full" data-name="Homepage">
       <SiteNav />
-      <h1 className="sr-only">LIVUS — jerseys and streetwear for him and her</h1>
+      <h1 className="sr-only">LIVUS — Sportswear & Jerseys in Bangladesh</h1>
       <div className="h-2 md:h-3" aria-hidden />
       <CategoryPanels />
       <div className="h-[clamp(80px,10.3vw,148px)]" aria-hidden />

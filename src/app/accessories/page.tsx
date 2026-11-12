@@ -9,25 +9,25 @@ const siteUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://mylivus.vercel.app'
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: { absolute: "Streetwear & Athletic Accessories Online | LIVUS BD" },
+  title: { absolute: "Sports Accessories Bangladesh | Match Day Gear | LIVUS" },
   description:
-    "Complete your athletic look with premium LIVUS caps, sports socks, gym bags, and everyday lifestyle accessories. Fast shipping throughout Bangladesh.",
+    "Shop sports accessories in Bangladesh from LIVUS. Athletic essentials to complete your look. Fast nationwide delivery with Cash on Delivery. Find your gear.",
   alternates: { canonical: '/accessories' },
   openGraph: {
-    title: "Streetwear & Athletic Accessories Online | LIVUS BD",
+    title: "Sports Accessories Bangladesh | Match Day Gear | LIVUS",
     description:
-      "Complete your athletic look with premium LIVUS caps, sports socks, gym bags, and everyday lifestyle accessories. Fast shipping throughout Bangladesh.",
+      "Shop sports accessories in Bangladesh from LIVUS. Athletic essentials to complete your look. Fast nationwide delivery with Cash on Delivery. Find your gear.",
     url: `${siteUrl}/accessories`,
     siteName: 'LIVUS',
     locale: 'en_BD',
     type: 'website',
-    images: [{ url: `${siteUrl}/opengraph-image`, width: 1200, height: 630, alt: "Athletic Accessories | LIVUS" }],
+    images: [{ url: `${siteUrl}/opengraph-image`, width: 1200, height: 630, alt: "Sports Accessories Bangladesh | LIVUS" }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: "Streetwear & Athletic Accessories Online | LIVUS BD",
+    title: "Sports Accessories Bangladesh | Match Day Gear | LIVUS",
     description:
-      "Complete your athletic look with premium LIVUS caps, sports socks, gym bags, and everyday lifestyle accessories. Fast shipping throughout Bangladesh.",
+      "Shop sports accessories in Bangladesh from LIVUS. Athletic essentials to complete your look. Fast nationwide delivery with Cash on Delivery. Find your gear.",
     images: [`${siteUrl}/opengraph-image`],
   },
 };

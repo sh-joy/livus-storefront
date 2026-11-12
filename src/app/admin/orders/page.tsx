@@ -14,6 +14,7 @@ import {
 } from "@/app/actions/admin-actions";
 import { getAllInventorySkusAction } from "@/app/actions/products";
 import { OrderDetailsDrawer } from "@/components/OrderDetailsDrawer";
+import { formatBdt } from "@/lib/utils";
 import {
   Search,
   SlidersHorizontal,
@@ -656,7 +657,7 @@ export default function AdminOrdersPage() {
 
                       {/* Total Price */}
                       <TableCell className="py-3 font-semibold text-xs text-foreground">
-                        ৳{ord.totalAmount.toLocaleString()} BDT
+                        {formatBdt(ord.totalAmount)}
                       </TableCell>
 
                       {/* Status */}
@@ -712,7 +713,7 @@ export default function AdminOrdersPage() {
               variant: i.variantName || 'Primary',
               size: i.size || 'M',
               quantity: i.quantity,
-              price: `৳${(i.priceBdt || 0).toLocaleString()} BDT`,
+              price: formatBdt(i.priceBdt || 0),
               priceBdt: i.priceBdt || 0,
               thumbnailUrl: i.thumbnailUrl || '/images/for_him.jpg',
             })),
@@ -762,7 +763,7 @@ export default function AdminOrdersPage() {
                 variant: it.variant || it.variantName || 'Primary',
                 size: it.size || 'M',
                 quantity: it.quantity,
-                price: `৳${it.priceBdt} BDT`,
+                price: formatBdt(it.priceBdt),
                 priceBdt: it.priceBdt,
                 thumbnailUrl: it.thumbnailUrl,
               }));
@@ -981,7 +982,7 @@ export default function AdminOrdersPage() {
                             </div>
                           </div>
                           <div className="text-right">
-                            <span className="font-bold text-xs text-neutral-900 block">৳{s.priceBdt} BDT</span>
+                            <span className="font-bold text-xs text-neutral-900 block">{formatBdt(s.priceBdt)}</span>
                             <span className={`text-[10px] font-mono ${s.quantity > 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
                               {s.quantity > 0 ? `Stock: ${s.quantity} Units` : 'Out of stock'}
                             </span>
@@ -1005,7 +1006,7 @@ export default function AdminOrdersPage() {
                     <option value="">-- Choose an existing Product SKU --</option>
                     {inventorySkus.map((s) => (
                       <option key={s.sku} value={s.sku}>
-                        {s.sku} — {s.productName} ({s.variantName} / {s.size}) — ৳{s.priceBdt} BDT (Stock: {s.quantity} Units)
+                        {s.sku} — {s.productName} ({s.variantName} / {s.size}) — {formatBdt(s.priceBdt)} (Stock: {s.quantity} Units)
                       </option>
                     ))}
                   </select>
@@ -1018,7 +1019,7 @@ export default function AdminOrdersPage() {
                   <div>
                     <span className="font-bold text-xs text-neutral-900 block">{itemTitle}</span>
                     <span className="text-[11px] text-neutral-500 block">{itemVariant} / Size: {itemSize}</span>
-                    <span className="text-xs font-semibold text-neutral-800 mt-0.5 block">Price: ৳{itemPrice} BDT</span>
+                    <span className="text-xs font-semibold text-neutral-800 mt-0.5 block">Price: {formatBdt(itemPrice)}</span>
                   </div>
 
                   <div className="text-right">
@@ -1071,7 +1072,7 @@ export default function AdminOrdersPage() {
                           <span className="font-bold text-xs text-neutral-900 block">{itemTitle}</span>
                           <span className="text-[10px] font-mono text-neutral-500 block">{selectedSku || 'DEFAULT-SKU'}</span>
                         </TableCell>
-                        <TableCell className="py-2 text-right font-mono text-xs">৳{itemPrice} BDT</TableCell>
+                        <TableCell className="py-2 text-right font-mono text-xs">{formatBdt(itemPrice)}</TableCell>
                         {/* Quantity Stepper in Table */}
                         <TableCell className="py-2 text-center">
                           <div className="flex items-center justify-center gap-2">
@@ -1093,7 +1094,7 @@ export default function AdminOrdersPage() {
                           </div>
                         </TableCell>
                         <TableCell className="py-2 text-right font-bold text-xs text-neutral-900">
-                          ৳{(itemPrice * itemQty).toLocaleString()} BDT
+                          {formatBdt(itemPrice * itemQty)}
                         </TableCell>
                       </TableRow>
                     </TableBody>

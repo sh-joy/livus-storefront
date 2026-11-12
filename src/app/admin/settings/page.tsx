@@ -20,6 +20,7 @@ import {
   updateAdminShippingRegionAction,
 } from "@/app/actions/admin-actions";
 import { Save, UserPlus, Trash2, Shield, Eye, EyeOff, Loader2, KeyRound, AlertTriangle, Check, Edit2 } from "lucide-react";
+import { formatBdt } from "@/lib/utils";
 
 interface AdminUserRecord {
   id: string;
@@ -878,7 +879,7 @@ export default function AdminSettingsPage() {
                         ) : (
                           <div className="flex items-center justify-end gap-2">
                             <span className="font-semibold text-xs text-emerald-600 font-mono">
-                              ৳{r.deliveryChargeBdt} BDT
+                              {formatBdt(r.deliveryChargeBdt)}
                             </span>
                             <button
                               type="button"

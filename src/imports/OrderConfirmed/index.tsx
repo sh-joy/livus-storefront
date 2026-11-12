@@ -7,6 +7,7 @@ import { SiteFooter } from '@/figma-components/SiteFooter';
 import { SiteNav } from '@/figma-components/SiteNav';
 import { getConfirmedOrderDetailsAction } from "@/app/actions/orders";
 import { trackPurchase } from "@/lib/analytics";
+import { formatBdt } from "@/lib/utils";
 
 interface VerifiedOrderDetails {
   authorized: boolean;
@@ -71,7 +72,7 @@ export default function OrderConfirmed() {
     ? ([
         orderData.location ? ["Delivery to", orderData.location] : null,
         orderData.paymentMethod ? ["Payment", orderData.paymentMethod] : null,
-        typeof orderData.totalAmount === "number" ? ["Total", `৳${orderData.totalAmount.toLocaleString()} BDT`] : null,
+        typeof orderData.totalAmount === "number" ? ["Total", formatBdt(orderData.totalAmount)] : null,
       ].filter(Boolean) as Array<[string, string]>)
     : [];
 

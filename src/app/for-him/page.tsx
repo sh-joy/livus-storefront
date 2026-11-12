@@ -9,25 +9,25 @@ const siteUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://mylivus.vercel.app'
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: { absolute: "Men's Athletic Streetwear, Tees & Jerseys | LIVUS BD" },
+  title: { absolute: "Men's Sportswear Bangladesh | Jerseys & Gym Wear | LIVUS" },
   description:
-    "Explore LIVUS men's collection of athletic streetwear, training jerseys, relaxed tees, and activewear crafted for comfort and style across Bangladesh.",
+    "Shop men's sportswear in Bangladesh at LIVUS. Breathable men's jerseys, gym t-shirts and training wear. Nationwide delivery with Cash on Delivery. Shop now.",
   alternates: { canonical: '/for-him' },
   openGraph: {
-    title: "Men's Athletic Streetwear, Tees & Jerseys | LIVUS BD",
+    title: "Men's Sportswear Bangladesh | Jerseys & Gym Wear | LIVUS",
     description:
-      "Explore LIVUS men's collection of athletic streetwear, training jerseys, relaxed tees, and activewear crafted for comfort and style across Bangladesh.",
+      "Shop men's sportswear in Bangladesh at LIVUS. Breathable men's jerseys, gym t-shirts and training wear. Nationwide delivery with Cash on Delivery. Shop now.",
     url: `${siteUrl}/for-him`,
     siteName: 'LIVUS',
     locale: 'en_BD',
     type: 'website',
-    images: [{ url: `${siteUrl}/opengraph-image`, width: 1200, height: 630, alt: "Men's Athletic Streetwear | LIVUS" }],
+    images: [{ url: `${siteUrl}/opengraph-image`, width: 1200, height: 630, alt: "Men's Sportswear Bangladesh | LIVUS" }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: "Men's Athletic Streetwear, Tees & Jerseys | LIVUS BD",
+    title: "Men's Sportswear Bangladesh | Jerseys & Gym Wear | LIVUS",
     description:
-      "Explore LIVUS men's collection of athletic streetwear, training jerseys, relaxed tees, and activewear crafted for comfort and style across Bangladesh.",
+      "Shop men's sportswear in Bangladesh at LIVUS. Breathable men's jerseys, gym t-shirts and training wear. Nationwide delivery with Cash on Delivery. Shop now.",
     images: [`${siteUrl}/opengraph-image`],
   },
 };

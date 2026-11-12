@@ -66,16 +66,22 @@ export const DEFAULT_FAQS: FaqItem[] = [
 ];
 
 export const DEFAULT_NEWSLETTER_CTA: NewsletterCtaConfig = {
-  heading: 'Made for the game.\nBuilt for the street.',
-  text: 'New drops, restocks and members-only offers first. No spam — unsubscribe any time.',
+  heading: 'Built for sport.\nMade for Bangladesh.',
+  text: 'Get first access to new jersey drops, restocks and team releases. No spam — unsubscribe any time.',
   buttonLabel: 'Subscribe',
   imageUrl: '/figma-assets/71b3cd582dab7174e13346a8d88abe33548d2aa7.png',
 };
 
 export const DEFAULT_CONTENT: Record<SiteContentKey, string> = {
   about_page: [
-    'LIVUS is a contemporary Bangladeshi streetwear atelier focused on architectural silhouettes, heavy cotton fabrications, and minimalist luxury.',
-    'Designed in Dhaka, our pieces bridge functional sports performance with runway aesthetic standards.',
+    '**Built for sport.**',
+    'LIVUS is a Bangladeshi sportswear brand made for people who play, train and move. Founded in [OWNER: founding year, e.g. 2024], we build match-day jerseys, training tops and activewear for the pitch, the gym, the court and the street. We believe athletic apparel should work when you train hard and still look sharp when you walk out.',
+    '**Made for here.**',
+    'Playing sport in Bangladesh means facing heat, humidity and sudden rain. We choose lightweight, breathable fabrics [OWNER: specific fabric blend or mill] that pull sweat away from your skin and dry fast. Our cuts are athletic but comfortable, tested on local athletes so you get an honest fit on match day and rest days alike.',
+    '**How we make it.**',
+    "We produce in small batches with trusted manufacturing partners in [OWNER: factory location, e.g. Gazipur / Narayanganj]. Every seam, collar and rib is built to handle repeated wash and wear without losing shape. Releasing limited runs keeps quality tight and ensures you wear something distinct. Explore our latest drops in [men's sportswear](/for-him), [women's sportswear](/for-her), and [new sportswear arrivals](/latest).",
+    '**Join the team.**',
+    'Sport brings people together across Bangladesh. Follow our journey on social media, join our training community, and subscribe to our newsletter for first word on new drops and restocks. Train hard, move free.',
   ].join('\n\n'),
 
   privacy_page: '', // Computed dynamically with getPolicyContext()
@@ -89,23 +95,23 @@ export const DEFAULT_CONTENT: Record<SiteContentKey, string> = {
   contact_faqs: JSON.stringify(DEFAULT_FAQS),
 
   home_collection_text:
-    'Our most-loved jerseys, shirts and everyday athletic wear right now. New styles land with every drop.',
+    'Performance jerseys, training tops and activewear made to move in Bangladesh. Built for the pitch, the gym and the street.',
 
   newsletter_cta: JSON.stringify(DEFAULT_NEWSLETTER_CTA),
 
   shipping_returns: '', // Built dynamically with storeSettings
 
   category_for_him_intro:
-    'Engineered athletic wear, training jerseys and relaxed streetwear tees for men. Designed in Dhaka and delivered across Bangladesh.',
+    "Men's sportswear in Bangladesh built for match-day intensity and daily training. Breathable jerseys, athletic tops and gym wear made for our heat. Also explore our [unisex sportswear](/unisex) for relaxed fits.",
 
   category_for_her_intro:
-    'Comfort-first athletic streetwear, versatile oversized tops and performance jerseys for women. Designed in Dhaka and delivered across Bangladesh.',
+    "Women's sportswear in Bangladesh designed for training, movement and everyday active style. Light, breathable activewear and sports tops made to keep you cool. Also explore our [unisex sportswear](/unisex) collection.",
 
   category_unisex_intro:
-    'Contemporary unisex athletic streetwear and casual jerseys designed for an effortless fit. Delivered nationwide across Bangladesh.',
+    "Unisex sportswear made for everyone who plays, trains and moves. Relaxed athletic cuts and sports tees built for easy layering and everyday wear. Pair them with our [sports accessories](/accessories).",
 
   category_accessories_intro:
-    'Athletic lifestyle essentials, sports caps and gear to complete your streetwear look. Delivered nationwide across Bangladesh.',
+    "Sports accessories in Bangladesh to complete your look on and off the field. Practical athletic essentials engineered for daily training. Check out our latest [men's sportswear](/for-him) and [women's sportswear](/for-her).",
 };
 
 /** Build policy context dynamically from site profile with fallback to storeSettings */

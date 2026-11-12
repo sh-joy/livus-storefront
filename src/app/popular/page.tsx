@@ -8,25 +8,25 @@ const siteUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://mylivus.vercel.app'
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: { absolute: "Best Sellers: Most-Loved Streetwear & Tops | LIVUS" },
+  title: { absolute: "Best-Selling Sportswear | Popular Jerseys & Tops | LIVUS" },
   description:
-    "Discover top-rated customer favorites and trending jerseys from LIVUS. Authentic athletic streetwear crafted for peak comfort and style in Bangladesh.",
+    "Shop best-selling sportswear at LIVUS. Explore popular jerseys and training gear chosen by players across Bangladesh. Fast delivery with Cash on Delivery.",
   alternates: { canonical: '/popular' },
   openGraph: {
-    title: "Best Sellers: Most-Loved Streetwear & Tops | LIVUS",
+    title: "Best-Selling Sportswear | Popular Jerseys & Tops | LIVUS",
     description:
-      "Discover top-rated customer favorites and trending jerseys from LIVUS. Authentic athletic streetwear crafted for peak comfort and style in Bangladesh.",
+      "Shop best-selling sportswear at LIVUS. Explore popular jerseys and training gear chosen by players across Bangladesh. Fast delivery with Cash on Delivery.",
     url: `${siteUrl}/popular`,
     siteName: 'LIVUS',
     locale: 'en_BD',
     type: 'website',
-    images: [{ url: `${siteUrl}/opengraph-image`, width: 1200, height: 630, alt: "Best Sellers | LIVUS" }],
+    images: [{ url: `${siteUrl}/opengraph-image`, width: 1200, height: 630, alt: "Best-Selling Sportswear | LIVUS" }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: "Best Sellers: Most-Loved Streetwear & Tops | LIVUS",
+    title: "Best-Selling Sportswear | Popular Jerseys & Tops | LIVUS",
     description:
-      "Discover top-rated customer favorites and trending jerseys from LIVUS. Authentic athletic streetwear crafted for peak comfort and style in Bangladesh.",
+      "Shop best-selling sportswear at LIVUS. Explore popular jerseys and training gear chosen by players across Bangladesh. Fast delivery with Cash on Delivery.",
     images: [`${siteUrl}/opengraph-image`],
   },
 };
@@ -39,7 +39,7 @@ export default async function PopularPage() {
       <ForHim
         products={products}
         title="Popular."
-        subtitle="Top rated designs and trending pieces loved by our community."
+        subtitle="Most-loved match jerseys and performance activewear chosen by players across Bangladesh."
       />
     </NavigationWrapper>
   );

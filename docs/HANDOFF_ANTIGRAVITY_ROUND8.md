@@ -127,3 +127,100 @@ Report a table: route, title, description length.
 ## Paste-ready prompt
 
 > Read `docs/HANDOFF_ANTIGRAVITY_ROUND8.md` fully and follow it. Round 7 live ops are paused: do NOT touch Neon production, Vercel or live admin data. Code only, testing against `.env.test`. Start with step 0: push only the `claude-first-change` branch to get a Vercel Preview URL, and run the baseline Lighthouse there (3 runs per page, median), not on localhost, then run Agents P (performance), S (SEO) and Q (quality/accessibility). Only one agent may edit a file at a time, and each agent commits separately with tsc, tests and build green. The site must look exactly the same: no design changes, no offers in text, no visible scrollbars, never push to main. Finish with the before/after comparison in `docs/ROUND8_REPORT.md` and stop.
+
+---
+
+## 8.1 Claude's review fixes (12 Nov 2026), do these and stop
+
+Round 8 is approved: tsc is clean, 25/25 tests pass, the build passes, and the site looks the same. Fix these 4 items in one commit, then stop:
+
+1. **Wrong delivery price in Google product data.** In `src/app/product/[slug]/page.tsx`, JSON-LD `shippingRate.value` is hard-coded `'120'`, but the real charge is ৳150. Read it from the same source checkout uses (store settings / `DELIVERY_CHARGE_BDT`), never hard-coded. Put `merchantReturnDays` (7) and transit days (2–5) in one shared constant next to the policy defaults, so the policy text and the JSON-LD can't drift apart. Add a test that the JSON-LD rate equals the checkout delivery charge.
+2. **Meta description wording:**
+   - Remove the word **"authentic"** (homepage and `/about`): it implies officially licensed team kits.
+   - The `/accessories` description lists "caps, sports socks, gym bags", which we don't sell. Keep it generic ("accessories to complete your look").
+   - Never name products or offers that may not exist.
+3. **Price format:** the product page shows `৳1450 BDT`. Use a thousands separator everywhere prices appear (product page, cards, cart, checkout, order confirmed, admin): `৳1,450`. Use one shared `formatBdt()` helper.
+4. **Admin sign-in font:** `src/app/admin/sign-in/page.tsx` still references `--font-geist-sans`, which was removed. Switch it to the site font.
+
+5. **Rewrite the LIVUS brand copy as a SPORTSWEAR brand.** The current text is generic ("premium", "streetwear culture", "crafted for comfort and style"). Rewrite it using the brief below.
+
+   **Brand brief:**
+   - **What LIVUS is:** a Bangladeshi sportswear brand. Jerseys, training tops, tees and activewear made to move in, for the pitch, the gym, the court and the street.
+   - **Who it's for:** young people in Bangladesh who play, train and follow sport, and who wear sport as everyday style. For him and her.
+   - **What we stand for:** performance you can wear daily, which means breathable fabrics, athletic cuts, and designs that look good on and off the field. Made for Bangladesh's heat and humidity. Accessible prices, with drops released in limited runs.
+   - **Voice:** short, confident, energetic, plain English. Speak like a coach, not a luxury brand. Use active verbs: train, play, move, wear. No clichés like "elevate", "curated", "premium quality", "crafted with love", "unleash".
+   - **Never:**
+     - claim official or licensed team kits, sponsorships, athletes or awards;
+     - invent facts such as a founding year, factories or fabric tech names;
+     - write offers or prices into the text.
+
+     If a fact is needed, write `[OWNER: …]` as a placeholder and list it in the report.
+
+   **Where to rewrite:**
+   - **`about_page` default (`src/content/site-content-defaults.ts`):** 4 short sections, each with a bold heading:
+     1. **Built for sport.** What LIVUS is.
+     2. **Made for here.** Bangladesh weather, fit, everyday wear.
+     3. **How we make it.** Fabric and fit focus, small drops. Only claims that are true; use placeholders where unsure.
+     4. **Join the team.** Newsletter and socials.
+
+     About 180–250 words in total.
+   - **Homepage:**
+     - the "Explore the collection" line (`home_collection_text` default): one sentence, sport-first;
+     - the footer brand line or newsletter CTA (`newsletter_cta`) if it is generic.
+   - **The 4 category intros:**
+     - For Him: training and match-day;
+     - For Her: training and active lifestyle;
+     - Unisex: shared fits;
+     - Accessories: generic.
+   - **Meta titles and descriptions** for `/`, `/about` and the category pages: lead with "sportswear" and "jerseys". Example title: `LIVUS | Sportswear & Jerseys in Bangladesh`.
+   - **Organization JSON-LD `description`** and the default site description in `site-profile.ts`: one sentence, the same positioning.
+
+   **Example tone** (adapt it, don't copy it blindly):
+   > *LIVUS is sportswear from Bangladesh. Jerseys, training tops and tees built to move in: on the pitch, in the gym, and everywhere after. Light fabrics for our heat, athletic cuts that fit, and designs you'll want to wear on rest days too.*
+
+   **All of this copy must be SEO-optimized.** Readable first, keywords second.
+
+   **Keyword map** (one main keyword per page, so pages don't compete with each other):
+
+   | Page | Main keyword | Supporting keywords (use 1–3 naturally) |
+   |---|---|---|
+   | `/` | sportswear Bangladesh | jerseys BD, activewear, gym wear, online sportswear shop |
+   | `/for-him` | men's sportswear Bangladesh | men's jerseys, gym t-shirts for men, training wear |
+   | `/for-her` | women's sportswear Bangladesh | women's activewear, gym wear for women, sports tops |
+   | `/unisex` | unisex sportswear | unisex jerseys, oversized sports tees |
+   | `/accessories` | sports accessories Bangladesh | gym accessories |
+   | `/about` | LIVUS sportswear brand | Bangladeshi sportswear brand |
+   | `/latest` | new sportswear arrivals | new jerseys, latest drops |
+   | `/popular` | best-selling sportswear | popular jerseys |
+   | product pages | the product name plus its type ("… jersey", "… training tee") | colour, fit, men's/women's |
+
+   **Rules:**
+   - **Placement:** the main keyword goes in the `<title>` (near the start), the meta description, the page `<h1>` or category intro, and the **first sentence** of the intro or body text. Use it once or twice per page. **No keyword stuffing.** It must read like a person wrote it.
+   - **Titles:**
+     - 50–60 characters, format `Main keyword | LIVUS`, except the homepage, which uses `LIVUS | Sportswear & Jerseys in Bangladesh`.
+     - Every title is unique.
+   - **Descriptions:**
+     - 140–160 characters, each with one benefit (fabric, fit, delivery nationwide, COD/bKash/Nagad);
+     - a soft call to action ("Shop now", "Find your fit");
+     - every description is unique, with no offers and no prices.
+   - **Headings:**
+     - one `<h1>` per page containing the main keyword or a natural variant;
+     - About page sections use `<h2>`.
+   - **Product pages:**
+     - **Title template:** `{Product name} | {Men's/Women's} {type} | LIVUS`, trimmed to 60 characters.
+     - **Description template:** built from the product's own fields (name, colour, fit, fabric if present) and ending with "Delivery across Bangladesh."
+     - Image `alt` = `{Product name} – {colour} – view {n}`.
+   - **Internal links:**
+     - **About:** link to /for-him, /for-her and /latest with descriptive anchor text, e.g. "men's sportswear", never "click here".
+     - **Category intros:** link to one related category.
+   - **Bangla:** English only for now (one language per URL). Bangla pages would come later, with `hreflang`. Don't mix languages on one page.
+   - **Schema:**
+     - Organization JSON-LD: `description` (same positioning), `slogan` only if the owner provides one, and `sameAs` from the social links in the site profile.
+     - Product JSON-LD: `category` set to `Sportswear > {type}`.
+   - **Verify:**
+     - Run the existing metadata-uniqueness test across all pages, plus a test that every title is ≤ 60 characters and every description is 140–160.
+     - Add a table to the report: page, main keyword, title, description, and the h1.
+
+   All of this stays editable in `/admin/content` and `/admin/site`. You are only changing the defaults. **Also check the live `site_content` table:** if `about_page` or other keys were saved there earlier, the old text will override the new defaults, so list those keys in the report for the owner. Do not overwrite live data.
+
+Run tsc, tests and build. Commit (copy changes may be a separate commit). Add lines to `ROUND8_REPORT.md` under "8.1 fixes" with the commit hashes, plus the list of `[OWNER: …]` placeholders. Stop.

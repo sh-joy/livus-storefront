@@ -9,25 +9,25 @@ const siteUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://mylivus.vercel.app'
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: { absolute: 'LIVUS — Premium Athletic Streetwear & Jerseys BD Shop' },
+  title: { absolute: 'LIVUS | Sportswear & Jerseys in Bangladesh' },
   description:
-    'Shop LIVUS athletic streetwear, authentic jerseys and lifestyle apparel in Bangladesh. Fast nationwide delivery with Cash on Delivery, bKash and Nagad.',
+    'Shop sportswear in Bangladesh from LIVUS. Breathable jerseys, gym wear and activewear built to move. Fast nationwide delivery with Cash on Delivery. Shop now.',
   alternates: { canonical: '/' },
   openGraph: {
-    title: 'LIVUS — Premium Athletic Streetwear & Jerseys BD Shop',
+    title: 'LIVUS | Sportswear & Jerseys in Bangladesh',
     description:
-      'Shop LIVUS athletic streetwear, authentic jerseys and lifestyle apparel in Bangladesh. Fast nationwide delivery with Cash on Delivery, bKash and Nagad.',
+      'Shop sportswear in Bangladesh from LIVUS. Breathable jerseys, gym wear and activewear built to move. Fast nationwide delivery with Cash on Delivery. Shop now.',
     url: siteUrl,
     siteName: 'LIVUS',
     locale: 'en_BD',
     type: 'website',
-    images: [{ url: `${siteUrl}/opengraph-image`, width: 1200, height: 630, alt: 'LIVUS Athletic Streetwear' }],
+    images: [{ url: `${siteUrl}/opengraph-image`, width: 1200, height: 630, alt: 'LIVUS Sportswear Bangladesh' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'LIVUS — Premium Athletic Streetwear & Jerseys BD',
+    title: 'LIVUS | Sportswear & Jerseys in Bangladesh',
     description:
-      'Shop LIVUS athletic streetwear, authentic jerseys and lifestyle apparel in Bangladesh. Fast nationwide delivery with Cash on Delivery, bKash and Nagad.',
+      'Shop sportswear in Bangladesh from LIVUS. Breathable jerseys, gym wear and activewear built to move. Fast nationwide delivery with Cash on Delivery. Shop now.',
     images: [`${siteUrl}/opengraph-image`],
   },
 };
@@ -36,9 +36,9 @@ const organizationJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
   name: 'LIVUS',
+  description: 'LIVUS is a Bangladeshi sportswear brand designing jerseys and activewear built to move in.',
   url: siteUrl,
   logo: `${siteUrl}/favicon.ico`,
-  // Social profile URLs (Facebook, Instagram, ...) to be added by the owner.
   sameAs: [] as string[],
 };
 

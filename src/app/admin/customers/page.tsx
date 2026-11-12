@@ -5,6 +5,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { fetchAdminCustomersAction, deleteAdminCustomerAction, createAdminCustomerAction } from "@/app/actions/admin-actions";
+import { formatBdt } from "@/lib/utils";
 import {
   Users,
   Search,
@@ -607,7 +608,7 @@ export default function AdminCustomersPage() {
 
                     <div className="p-3 bg-neutral-50 border border-neutral-200 flex flex-col gap-1">
                       <span className="text-[11px] text-neutral-500 uppercase font-medium">Total Lifetime Spend</span>
-                      <span className="text-sm font-semibold text-emerald-600">৳{selectedCustomer.totalSpentBdt.toLocaleString()} BDT</span>
+                      <span className="text-sm font-semibold text-emerald-600">{formatBdt(selectedCustomer.totalSpentBdt)}</span>
                     </div>
                   </div>
 
@@ -689,7 +690,7 @@ export default function AdminCustomersPage() {
 
         <div className="border border-neutral-200 bg-white p-4 font-sans rounded-none shadow-none">
           <p className="text-xs uppercase font-medium text-neutral-500">Total LTV Revenue</p>
-          <p className="text-2xl font-bold mt-1 text-neutral-900">৳{totalLtv.toLocaleString()} BDT</p>
+          <p className="text-2xl font-bold mt-1 text-neutral-900">{formatBdt(totalLtv)}</p>
         </div>
       </div>
 
@@ -843,7 +844,7 @@ export default function AdminCustomersPage() {
                     </TableCell>
 
                     <TableCell className="font-medium text-xs text-emerald-600 py-3.5">
-                      ৳{c.totalSpentBdt.toLocaleString()} BDT
+                      {formatBdt(c.totalSpentBdt)}
                     </TableCell>
 
                     <TableCell className="font-medium text-xs text-neutral-700 py-3.5">

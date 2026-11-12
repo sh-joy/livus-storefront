@@ -8,25 +8,25 @@ const siteUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://mylivus.vercel.app'
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: { absolute: "New Arrivals: Latest Drops & Fresh Jerseys | LIVUS" },
+  title: { absolute: "New Sportswear Arrivals | Latest Drops & Gear | LIVUS" },
   description:
-    "Check out the newest athletic streetwear drops and freshest jersey designs from LIVUS. Explore modern cuts and seasonal pieces available in Bangladesh.",
+    "Discover new sportswear arrivals at LIVUS. Shop our latest drops of breathable match-day jerseys and training tops released in limited runs across Bangladesh.",
   alternates: { canonical: '/latest' },
   openGraph: {
-    title: "New Arrivals: Latest Drops & Fresh Jerseys | LIVUS",
+    title: "New Sportswear Arrivals | Latest Drops & Gear | LIVUS",
     description:
-      "Check out the newest athletic streetwear drops and freshest jersey designs from LIVUS. Explore modern cuts and seasonal pieces available in Bangladesh.",
+      "Discover new sportswear arrivals at LIVUS. Shop our latest drops of breathable match-day jerseys and training tops released in limited runs across Bangladesh.",
     url: `${siteUrl}/latest`,
     siteName: 'LIVUS',
     locale: 'en_BD',
     type: 'website',
-    images: [{ url: `${siteUrl}/opengraph-image`, width: 1200, height: 630, alt: "New Arrivals | LIVUS" }],
+    images: [{ url: `${siteUrl}/opengraph-image`, width: 1200, height: 630, alt: "New Sportswear Arrivals | LIVUS" }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: "New Arrivals: Latest Drops & Fresh Jerseys | LIVUS",
+    title: "New Sportswear Arrivals | Latest Drops & Gear | LIVUS",
     description:
-      "Check out the newest athletic streetwear drops and freshest jersey designs from LIVUS. Explore modern cuts and seasonal pieces available in Bangladesh.",
+      "Discover new sportswear arrivals at LIVUS. Shop our latest drops of breathable match-day jerseys and training tops released in limited runs across Bangladesh.",
     images: [`${siteUrl}/opengraph-image`],
   },
 };
@@ -39,7 +39,7 @@ export default async function LatestPage() {
       <ForHim
         products={products}
         title="Latest."
-        subtitle="Fresh arrivals and newest drops directly from our design studio."
+        subtitle="New sportswear arrivals and match-day drops released in limited runs."
       />
     </NavigationWrapper>
   );

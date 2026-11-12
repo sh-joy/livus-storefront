@@ -15,7 +15,7 @@ import { useDrawer } from '@/figma-components/DrawerContext';
 import { useCartStore } from '@/lib/store/cart-store';
 import { trackViewContent, trackAddToCart } from '@/lib/analytics';
 import type { ProductItem } from '@/app/actions/products';
-import { generateCleanSku } from '@/lib/utils';
+import { generateCleanSku, formatBdt } from '@/lib/utils';
 import imgImage115 from "./147bb3d7a50a487cfcb2163c878fc1a5c25e19e6.png";
 import imgImage114 from "./71b3cd582dab7174e13346a8d88abe33548d2aa7.png";
 import imgFrame1597881192 from "./cd8123b8a9ab8a34443daf47f95966a2cb8719ce.png";
@@ -186,9 +186,9 @@ export default function ProductDetails({ product, allProducts = [], shippingText
 
   // Determine active dynamic or default product data
   const productName = product?.name || 'Oakwood Long sleeve';
-  const priceBdt = product ? `৳${product.priceBdt} BDT` : '৳899 BDT';
+  const priceBdt = product ? formatBdt(product.priceBdt) : '৳899';
   // Only show a struck-through "was" price when it is actually higher than the selling price.
-  const compareAtPriceBdt = product?.compareAtPriceBdt && product.compareAtPriceBdt > product.priceBdt ? `৳${product.compareAtPriceBdt}` : (product ? undefined : '৳1199');
+  const compareAtPriceBdt = product?.compareAtPriceBdt && product.compareAtPriceBdt > product.priceBdt ? formatBdt(product.compareAtPriceBdt) : (product ? undefined : '৳1,199');
 
   // Format Color Variants
   const activeColorVariants = (product?.colorVariants && product.colorVariants.length > 0)
@@ -366,7 +366,7 @@ export default function ProductDetails({ product, allProducts = [], shippingText
               className="w-full aspect-[3/4] max-lg:min-w-full max-lg:snap-center bg-[#f0f0f0] relative overflow-hidden shrink-0"
             >
               <SmartImage
-                alt={`${productName} - View ${idx + 1}`}
+                alt={`${productName} – ${activeColor?.name || 'Classic'} – view ${idx + 1}`}
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover z-10"

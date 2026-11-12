@@ -9,7 +9,7 @@ describe('Site Profile Data Model & Validation', () => {
   it('provides safe defaults when input is empty', () => {
     const profile = mergeSiteProfile({});
     expect(profile.brand.name).toBe('LIVUS');
-    expect(profile.brand.tagline).toBe('Athletic Streetwear & Jerseys');
+    expect(profile.brand.tagline).toBe('Sportswear & Jerseys in Bangladesh');
     expect(profile.contact.email).toBe('support@livus.com.bd');
     expect(profile.contact.hours).toBe('Sat–Thu, 10 AM – 8 PM');
     expect(profile.social.facebook).toBe('https://www.facebook.com/livus.bd');
@@ -39,7 +39,7 @@ describe('Site Profile Data Model & Validation', () => {
     expect(merged.seo.twitterHandle).toBe('@livusbd');
 
     // Untouched fields maintain defaults
-    expect(merged.brand.tagline).toBe('Athletic Streetwear & Jerseys');
+    expect(merged.brand.tagline).toBe('Sportswear & Jerseys in Bangladesh');
     expect(merged.contact.email).toBe('support@livus.com.bd');
     expect(merged.social.facebook).toBe('https://www.facebook.com/livus.bd');
   });

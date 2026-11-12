@@ -25,3 +25,14 @@ export function generateCleanSku(productName: string, size?: string, index = 0) 
   }
   return `${initials}-${baseNum}`;
 }
+
+/**
+ * Format an amount in Bangladeshi Taka with a thousands separator, e.g. 1450 -> "৳1,450".
+ * Handles numbers, numeric strings, and null/undefined safely.
+ */
+export function formatBdt(amount: number | string | null | undefined): string {
+  if (amount == null || amount === '') return '৳0';
+  const num = typeof amount === 'number' ? amount : Number(amount);
+  if (isNaN(num)) return '৳0';
+  return `৳${Math.round(num).toLocaleString('en-US')}`;
+}

@@ -9,25 +9,25 @@ const siteUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://mylivus.vercel.app'
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: { absolute: "Women's Athletic Streetwear & Sportswear | LIVUS BD" },
+  title: { absolute: "Women's Sportswear Bangladesh | Activewear Tops | LIVUS" },
   description:
-    "Discover LIVUS women's athletic streetwear, oversized tees, modern jerseys, and performance essentials designed for everyday movement in Bangladesh.",
+    "Shop women's sportswear in Bangladesh at LIVUS. Breathable activewear, gym wear and sports tops. Nationwide delivery with Cash on Delivery. Find your fit.",
   alternates: { canonical: '/for-her' },
   openGraph: {
-    title: "Women's Athletic Streetwear & Sportswear | LIVUS BD",
+    title: "Women's Sportswear Bangladesh | Activewear Tops | LIVUS",
     description:
-      "Discover LIVUS women's athletic streetwear, oversized tees, modern jerseys, and performance essentials designed for everyday movement in Bangladesh.",
+      "Shop women's sportswear in Bangladesh at LIVUS. Breathable activewear, gym wear and sports tops. Nationwide delivery with Cash on Delivery. Find your fit.",
     url: `${siteUrl}/for-her`,
     siteName: 'LIVUS',
     locale: 'en_BD',
     type: 'website',
-    images: [{ url: `${siteUrl}/opengraph-image`, width: 1200, height: 630, alt: "Women's Athletic Streetwear | LIVUS" }],
+    images: [{ url: `${siteUrl}/opengraph-image`, width: 1200, height: 630, alt: "Women's Sportswear Bangladesh | LIVUS" }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: "Women's Athletic Streetwear & Sportswear | LIVUS BD",
+    title: "Women's Sportswear Bangladesh | Activewear Tops | LIVUS",
     description:
-      "Discover LIVUS women's athletic streetwear, oversized tees, modern jerseys, and performance essentials designed for everyday movement in Bangladesh.",
+      "Shop women's sportswear in Bangladesh at LIVUS. Breathable activewear, gym wear and sports tops. Nationwide delivery with Cash on Delivery. Find your fit.",
     images: [`${siteUrl}/opengraph-image`],
   },
 };

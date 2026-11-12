@@ -53,7 +53,7 @@ export default function AdminSignInPage() {
   return (
     <div
       className="min-h-screen w-full bg-[#0a0a0a] text-white flex flex-col items-center justify-center p-6"
-      style={{ fontFamily: "var(--font-geist-sans), Geist, system-ui, sans-serif" }}
+      style={{ fontFamily: "var(--font-sans), 'Overused Grotesk', system-ui, sans-serif" }}
     >
       {/* Background Subtle Overlay */}
       <div className="absolute inset-0 bg-radial from-neutral-900/50 to-black pointer-events-none" />

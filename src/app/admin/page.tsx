@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { fetchAdminOrders, updateOrderStatusAction, deleteAdminOrderAction } from "@/app/actions/admin-actions";
 import { OrderDetailsDrawer } from "@/components/OrderDetailsDrawer";
+import { formatBdt } from "@/lib/utils";
 import {
   TrendingUp,
   Search,
@@ -290,7 +291,7 @@ export default function AdminDashboardPage() {
         <div className="border border-neutral-200 bg-white p-4 font-sans rounded-none shadow-none flex flex-col justify-between">
           <p className="text-xs uppercase font-medium text-neutral-500">Order Value</p>
           <div className="flex items-center gap-2 mt-2">
-            <p className="text-2xl font-bold text-neutral-900 font-mono">৳{totalGrossRevenue.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-neutral-900 font-mono">{formatBdt(totalGrossRevenue)}</p>
           </div>
           <p className="text-[11px] text-neutral-400 mt-1">All non-cancelled orders</p>
         </div>
@@ -518,7 +519,7 @@ export default function AdminDashboardPage() {
 
                       {/* Total Price */}
                       <TableCell className="py-3 font-semibold text-xs text-foreground">
-                        ৳{ord.totalAmount.toLocaleString()} BDT
+                        {formatBdt(ord.totalAmount)}
                       </TableCell>
 
                       {/* Status */}
@@ -624,7 +625,7 @@ export default function AdminDashboardPage() {
               size: it.size || 'M',
               quantity: it.quantity,
               priceBdt: it.priceBdt || parseFloat(it.price || '0') || 0,
-              price: `৳${(it.priceBdt || parseFloat(it.price || '0') || 0).toLocaleString()} BDT`,
+              price: formatBdt(it.priceBdt || parseFloat(it.price || '0') || 0),
               thumbnailUrl: it.thumbnailUrl || '/images/for_him.jpg',
             })),
           }}

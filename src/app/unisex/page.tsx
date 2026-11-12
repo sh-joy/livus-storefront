@@ -9,25 +9,25 @@ const siteUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://mylivus.vercel.app'
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: { absolute: "Unisex Athletic Streetwear & Casual Jerseys | LIVUS" },
+  title: { absolute: "Unisex Sportswear | Shared Fits & Sports Tees | LIVUS" },
   description:
-    "Shop versatile unisex athletic wear, relaxed-fit jerseys, and everyday street style essentials designed for everyone. Fast delivery across Bangladesh.",
+    "Shop unisex sportswear at LIVUS. Relaxed unisex jerseys and oversized sports tees built for training and daily wear. Nationwide delivery with COD. Shop now.",
   alternates: { canonical: '/unisex' },
   openGraph: {
-    title: "Unisex Athletic Streetwear & Casual Jerseys | LIVUS",
+    title: "Unisex Sportswear | Shared Fits & Sports Tees | LIVUS",
     description:
-      "Shop versatile unisex athletic wear, relaxed-fit jerseys, and everyday street style essentials designed for everyone. Fast delivery across Bangladesh.",
+      "Shop unisex sportswear at LIVUS. Relaxed unisex jerseys and oversized sports tees built for training and daily wear. Nationwide delivery with COD. Shop now.",
     url: `${siteUrl}/unisex`,
     siteName: 'LIVUS',
     locale: 'en_BD',
     type: 'website',
-    images: [{ url: `${siteUrl}/opengraph-image`, width: 1200, height: 630, alt: "Unisex Athletic Streetwear | LIVUS" }],
+    images: [{ url: `${siteUrl}/opengraph-image`, width: 1200, height: 630, alt: "Unisex Sportswear | LIVUS" }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: "Unisex Athletic Streetwear & Casual Jerseys | LIVUS",
+    title: "Unisex Sportswear | Shared Fits & Sports Tees | LIVUS",
     description:
-      "Shop versatile unisex athletic wear, relaxed-fit jerseys, and everyday street style essentials designed for everyone. Fast delivery across Bangladesh.",
+      "Shop unisex sportswear at LIVUS. Relaxed unisex jerseys and oversized sports tees built for training and daily wear. Nationwide delivery with COD. Shop now.",
     images: [`${siteUrl}/opengraph-image`],
   },
 };

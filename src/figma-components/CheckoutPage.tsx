@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { InputField } from "./InputField";
 import { SiteNav } from "./SiteNav";
 import { SiteFooter } from "./SiteFooter";
+import { formatBdt } from "@/lib/utils";
 import productImg from "@/imports/Cart/71b3cd582dab7174e13346a8d88abe33548d2aa7.png";
 
 function CardIcon() {
@@ -759,7 +760,7 @@ export function CheckoutPage() {
                       </div>
                       <ol className="t-small m-0 pl-5 list-decimal flex flex-col gap-1 text-[#3a3a3a]">
                         <li>Open the {wallet} app (or dial {ussd}) and choose <strong>Send Money</strong>.</li>
-                        <li>Send exactly <strong>৳{totalVal.toFixed(0)}</strong> to <strong>{number}</strong>.</li>
+                        <li>Send exactly <strong>{formatBdt(totalVal)}</strong> to <strong>{number}</strong>.</li>
                         <li>Enter the Transaction ID (TrxID) from your confirmation SMS below, then confirm your order.</li>
                       </ol>
                       <div className="flex flex-col sm:flex-row gap-3">
@@ -916,7 +917,7 @@ export function CheckoutPage() {
                       <span className="text-[#1f7a3a]">You&apos;ve unlocked free delivery</span>
                     ) : (
                       <>
-                        Add <strong className="font-semibold">৳{(quote?.amountNeededForFreeShippingBdt ?? 0).toLocaleString()}</strong> more for free delivery
+                        Add <strong className="font-semibold">{formatBdt(quote?.amountNeededForFreeShippingBdt ?? 0)}</strong> more for free delivery
                       </>
                     )}
                   </p>
@@ -1004,17 +1005,17 @@ export function CheckoutPage() {
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <p style={{ ...base, letterSpacing: "0", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>Subtotal</p>
-                    <p style={{ ...base, letterSpacing: "0", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>৳ {subtotalVal.toFixed(0)} BDT</p>
+                    <p style={{ ...base, letterSpacing: "0", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>{formatBdt(subtotalVal)}</p>
                   </div>
                   {appliedDiscount && (
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
                       <p style={{ ...base, letterSpacing: "0", color: "#d4183d" }}>Discount ({appliedDiscount.code})</p>
-                      <p style={{ ...base, letterSpacing: "0", color: "#d4183d", fontWeight: 500 }}>-৳ {discountVal.toFixed(0)} BDT</p>
+                      <p style={{ ...base, letterSpacing: "0", color: "#d4183d", fontWeight: 500 }}>-{formatBdt(discountVal)}</p>
                     </div>
                   )}
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <p style={{ ...base, letterSpacing: "0", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>VAT</p>
-                    <p style={{ ...base, letterSpacing: "0", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>৳ {vatVal.toFixed(0)} BDT</p>
+                    <p style={{ ...base, letterSpacing: "0", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>{formatBdt(vatVal)}</p>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <p style={{ ...base, letterSpacing: "0", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>Delivery Charge</p>
@@ -1022,12 +1023,12 @@ export function CheckoutPage() {
                       {deliveryVal === 0 && quote?.freeShippingEligible ? (
                         <>
                           <span style={{ textDecoration: "line-through", color: "var(--ink-muted)", marginRight: "8px" }}>
-                            ৳ {(quote?.standardDeliveryChargeBdt ?? 0).toFixed(0)} BDT
+                            {formatBdt(quote?.standardDeliveryChargeBdt ?? 0)}
                           </span>
                           Free
                         </>
                       ) : (
-                        `৳ ${deliveryVal.toFixed(0)} BDT`
+                        formatBdt(deliveryVal)
                       )}
                     </p>
                   </div>
@@ -1035,7 +1036,7 @@ export function CheckoutPage() {
 
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <p style={{ ...base, fontWeight: 500, letterSpacing: "0", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>Total</p>
-                  <p style={{ ...base, fontWeight: 500, letterSpacing: "0", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>৳ {totalVal.toFixed(0)} BDT</p>
+                  <p style={{ ...base, fontWeight: 500, letterSpacing: "0", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>{formatBdt(totalVal)}</p>
                 </div>
 
                 {quoteError && !errors.form && (

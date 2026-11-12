@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import Link from 'next/link';
 
 /**
  * A line that starts with a short label ending in ":" gets the label in bold,
@@ -12,18 +13,50 @@ function autoBoldLabel(line: string): string {
   return `${m[1]}**${m[2]}:**${line.slice(m[0].length - m[3].length)}`;
 }
 
-/** Render **bold** spans inside one line of text. */
+/** Render **bold** spans and markdown [links](url) inside one line of text. */
 function inline(rawLine: string): ReactNode[] {
   const line = autoBoldLabel(rawLine);
-  return line.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
-    part.startsWith('**') && part.endsWith('**') && part.length > 4 ? (
-      <strong key={i} className="font-semibold text-[#0d0d0d]">
-        {part.slice(2, -2)}
-      </strong>
-    ) : (
-      part
-    )
-  );
+  // Match either **bold** or [text](url)
+  const regex = /(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/g;
+  const parts = line.split(regex);
+
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+      return (
+        <strong key={i} className="font-semibold text-[#0d0d0d]">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    if (linkMatch) {
+      const [, label, href] = linkMatch;
+      const isInternal = href.startsWith('/');
+      if (isInternal) {
+        return (
+          <Link
+            key={i}
+            href={href}
+            className="underline underline-offset-4 text-[#0d0d0d] hover:text-black font-medium transition-colors"
+          >
+            {label}
+          </Link>
+        );
+      }
+      return (
+        <a
+          key={i}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline underline-offset-4 text-[#0d0d0d] hover:text-black font-medium transition-colors"
+        >
+          {label}
+        </a>
+      );
+    }
+    return part;
+  });
 }
 
 /**

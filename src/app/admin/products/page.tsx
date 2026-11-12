@@ -6,6 +6,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { formatBdt } from "@/lib/utils";
 import {
   getAdminProducts,
   deleteProductAction,
@@ -1067,7 +1068,7 @@ export default function AdminProductsPage() {
                           </Badge>
                         </TableCell>
                         <TableCell className="py-2 px-3 text-right font-semibold text-xs text-foreground">
-                          ৳{prod.priceBdt} BDT
+                          {formatBdt(prod.priceBdt)}
                         </TableCell>
                         <TableCell className="py-2 px-3 text-right">
                           <Button
@@ -1538,10 +1539,10 @@ export default function AdminProductsPage() {
 
                         <TableCell className="py-2.5 px-3">
                           <div className="flex flex-col gap-0.5">
-                            <span className="font-semibold text-foreground text-xs">৳{prod.priceBdt} BDT</span>
+                            <span className="font-semibold text-foreground text-xs">{formatBdt(prod.priceBdt)}</span>
                             {prod.compareAtPriceBdt && prod.compareAtPriceBdt > prod.priceBdt && (
                               <span className="text-xs line-through text-muted-foreground">
-                                ৳{prod.compareAtPriceBdt} BDT
+                                {formatBdt(prod.compareAtPriceBdt)}
                               </span>
                             )}
                           </div>

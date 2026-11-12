@@ -12,6 +12,7 @@ import {
   deleteAdminAbandonedCartAction,
   type AbandonedCartRow,
 } from "@/app/actions/abandoned-carts";
+import { formatBdt } from "@/lib/utils";
 
 export default function AdminAbandonedCartsPage() {
   const [carts, setCarts] = useState<AbandonedCartRow[]>([]);
@@ -141,7 +142,7 @@ export default function AdminAbandonedCartsPage() {
                       {cart.itemsSummary}
                     </TableCell>
                     <TableCell className="font-semibold text-xs whitespace-nowrap">
-                      ৳{cart.totalBdt.toLocaleString()} BDT
+                      {formatBdt(cart.totalBdt)}
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
                       {cart.date}

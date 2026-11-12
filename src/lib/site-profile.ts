@@ -23,7 +23,7 @@ const httpsUrlSchema = z
 
 export const DEFAULT_BRAND = {
   name: 'LIVUS',
-  tagline: 'Athletic Streetwear & Jerseys',
+  tagline: 'Sportswear & Jerseys in Bangladesh',
   logoUrl: '',
   logoDarkUrl: '',
   faviconUrl: '',
@@ -49,23 +49,22 @@ export const DEFAULT_SOCIAL = {
 
 export const DEFAULT_FOOTER = {
   about:
-    'LIVUS is a Bangladeshi sportswear brand. We design jerseys and everyday athletic wear for him and her in Dhaka, and deliver across Bangladesh.',
+    'LIVUS is a Bangladeshi sportswear brand. We design jerseys, training tops and activewear for him and her in Dhaka, and deliver across Bangladesh.',
 };
 
 export const DEFAULT_SEO = {
   titleTemplate: '%s | LIVUS',
-  defaultTitle: 'LIVUS — Athletic Streetwear & Jerseys | Bangladesh',
+  defaultTitle: 'LIVUS | Sportswear & Jerseys in Bangladesh',
   defaultDescription:
-    'Shop LIVUS athletic streetwear, jerseys and accessories for him and her. Nationwide delivery across Bangladesh with Cash on Delivery, bKash and Nagad.',
+    'Shop LIVUS sportswear, jerseys and activewear made to move in. Breathable training gear delivered nationwide across Bangladesh with Cash on Delivery.',
   shareImageUrl: '',
   keywords: [
     'LIVUS',
-    'athletic streetwear',
-    'jerseys Bangladesh',
     'sportswear Bangladesh',
-    'streetwear Dhaka',
+    'jerseys BD',
     'activewear',
-    't-shirts',
+    'gym wear',
+    'online sportswear shop',
     'Cash on Delivery',
     'bKash',
     'Nagad',

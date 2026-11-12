@@ -14,6 +14,7 @@ import {
 } from "@/app/actions/orders";
 import productImg from "@/imports/ProductDetails/71b3cd582dab7174e13346a8d88abe33548d2aa7.png";
 import { SmartImage } from "@/components/storefront/SmartImage";
+import { formatBdt } from "@/lib/utils";
 
 const base: CSSProperties = {
   fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
@@ -57,26 +58,26 @@ const sampleOrders: Order[] = [
   {
     id: "#ORD-9428",
     date: "July 24, 2026",
-    total: "৳ 2,130.00",
+    total: formatBdt(2130),
     status: "Pending",
-    subtotal: "৳ 1,790.00",
-    vat: "৳ 90.00",
-    delivery: "৳ 150.00",
+    subtotal: formatBdt(1790),
+    vat: formatBdt(90),
+    delivery: formatBdt(150),
     items: [
-      { name: "OWAYO - CROSS FADE", meta: "Color: Black & White · Size: XL · Qty: 1", price: "৳ 899 BDT" },
-      { name: "NIXON - TIME TELLER", meta: "Color: Rose Gold · Size: M · Qty: 2", price: "৳ 790 BDT" },
+      { name: "OWAYO - CROSS FADE", meta: "Color: Black & White · Size: XL · Qty: 1", price: formatBdt(899) },
+      { name: "NIXON - TIME TELLER", meta: "Color: Rose Gold · Size: M · Qty: 2", price: formatBdt(790) },
     ],
   },
   {
     id: "#ORD-8102",
     date: "June 12, 2026",
-    total: "৳ 1,450.00",
+    total: formatBdt(1450),
     status: "Delivered",
-    subtotal: "৳ 1,250.00",
-    vat: "৳ 50.00",
-    delivery: "৳ 150.00",
+    subtotal: formatBdt(1250),
+    vat: formatBdt(50),
+    delivery: formatBdt(150),
     items: [
-      { name: "APEX - GEOMETRIC MESH", meta: "Color: White & Gold · Size: L · Qty: 1", price: "৳ 1,250 BDT" },
+      { name: "APEX - GEOMETRIC MESH", meta: "Color: White & Gold · Size: L · Qty: 1", price: formatBdt(1250) },
     ],
   },
 ];

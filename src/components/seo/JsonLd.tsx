@@ -17,9 +17,11 @@ export function OrganizationJsonLd({ profile }: { profile: SiteProfile }) {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: profile.brand.name || 'LIVUS',
+    description: profile.seo.defaultDescription || 'LIVUS is a Bangladeshi sportswear brand designing jerseys and activewear built to move in.',
     url: siteUrl,
     logo: profile.brand.logoUrl || `${siteUrl}/favicon.ico`,
     sameAs,
+    ...(profile.brand.tagline ? { slogan: profile.brand.tagline } : {}),
     contactPoint: [
       {
         '@type': 'ContactPoint',

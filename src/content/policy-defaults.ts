@@ -14,6 +14,15 @@
 
 export const POLICY_LAST_UPDATED = '11 November 2026';
 
+/** Shared shipping and return parameters across policy text and Schema.org JSON-LD. */
+export const SHIPPING_POLICY_DEFAULTS = {
+  returnDays: 7,
+  handlingDaysMin: 1,
+  handlingDaysMax: 2,
+  transitDaysMin: 2,
+  transitDaysMax: 5,
+} as const;
+
 export type PolicyContext = {
   storeName?: string;
   supportEmail?: string;

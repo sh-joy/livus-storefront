@@ -28,7 +28,7 @@ describe('About Page Redesign & Layout Model (Agent A)', () => {
 
     // Story
     expect(layout.story.enabled).toBe(true);
-    expect(layout.story.headline).toContain('Every piece we make has one job');
+    expect(layout.story.headline).toContain('We make sportswear for the way you really move');
     expect(layout.story.headline + layout.story.body).not.toMatch(/Dhaka|64 districts|founded/i); // no unverified facts
     // Golden rule: founding year must NEVER have a placeholder or invented year
     expect(layout.story.foundingYear).toBe('');

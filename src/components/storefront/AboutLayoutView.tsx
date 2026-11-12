@@ -97,8 +97,8 @@ export function AboutLayoutView({ layout }: { layout: AboutLayout }) {
 
       {/* 3 ─ One big two-tone statement, centred */}
       {story.enabled && story.headline && (
-        <section className="flex flex-col items-center justify-center min-h-[78vh] px-[var(--lv-gutter)] py-[clamp(64px,8vw,120px)]">
-          <p className="t-display m-0 mx-auto max-w-[1280px] text-center" style={{ fontSize: 'clamp(40px, 6.4vw, 104px)', lineHeight: 1.02 }}>
+        <section className="flex flex-col items-center justify-center min-h-[80vh] px-[var(--lv-gutter)] py-[clamp(64px,8vw,120px)]">
+          <p className="t-display m-0 mx-auto max-w-[1280px] text-center" style={{ fontSize: 'clamp(34px, 4.6vw, 72px)', lineHeight: 1.08 }}>
             {story.foundingYear ? `Since ${story.foundingYear}, ` : ''}
             <TwoTone text={story.headline} />
           </p>

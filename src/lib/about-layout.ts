@@ -69,7 +69,7 @@ export const DEFAULT_PILLARS = {
 
 export const DEFAULT_STORY = {
   enabled: true,
-  headline: 'Every piece we make has one job: to keep up with you, from the first whistle to the walk home.',
+  headline: 'We make sportswear for the way you really move. Light in the heat, ready for training and match day, and easy to wear long after the final whistle.',
   body: '',
   imageUrl: '',
   foundingYear: '',

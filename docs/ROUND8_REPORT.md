@@ -140,5 +140,72 @@ Measurements conducted using headless Chrome DevTools mobile throttling and Verc
 
 ## 5. Verification Commands
 - `npx tsc --noEmit`: 0 errors
-- `npm test`: 25 passing tests across 4 test suites
+- `npm test`: 28 passing tests across 4 test suites
 - `npm run build`: 54 static/dynamic routes compiled successfully
+
+---
+
+## 6. Section 8.1 Claude's Review Fixes (12 Nov 2026)
+
+**Commit Hash:** `2109c26` (and subsequent report update)  
+**Branch:** `claude-first-change`
+
+All 5 items from section 8.1 of `docs/HANDOFF_ANTIGRAVITY_ROUND8.md` were implemented and verified:
+
+1. **JSON-LD Delivery Price & Shared Shipping Policy Defaults:**
+   - Centralized shipping policy numbers in `SHIPPING_POLICY_DEFAULTS` within `src/content/policy-defaults.ts` (`returnDays: 7`, `handlingDaysMin: 1`, `handlingDaysMax: 2`, `transitDaysMin: 2`, `transitDaysMax: 5`).
+   - Replaced hard-coded `'120'` delivery charge with `getDefaultDeliveryChargeBdt()` (reads `storeSettings.defaultDeliveryChargeBdt` falling back to `DELIVERY_CHARGE_BDT = 150`).
+   - Added unit test in `tests/seo.test.ts` verifying JSON-LD rate equals checkout delivery charge and return policy matches `SHIPPING_POLICY_DEFAULTS`.
+
+2. **Meta Description Wording & Integrity:**
+   - Removed the word "authentic" across homepage, `/about`, and `/popular` (avoiding implications of licensed team kits).
+   - Removed unconfirmed accessories ("caps, sports socks, gym bags") from `/accessories` description and category intro, keeping it generic ("athletic essentials to complete your look").
+   - Verified that no promotional offers or prices appear in meta descriptions.
+
+3. **Thousands Separator Price Formatting (`formatBdt()`):**
+   - Implemented single shared helper `formatBdt(amount)` in `src/lib/utils.ts` returning `৳${Math.round(num).toLocaleString('en-US')}` (e.g. `1450` -> `৳1,450`).
+   - Applied across `ProductCard.tsx`, `ProductDetails-1/index.tsx`, `CartDrawer.tsx`, `CheckoutPage.tsx`, `OrderConfirmed/index.tsx`, `ProfilePage.tsx`, and admin pages (`/admin`, `/admin/products`, `/admin/orders`, `/admin/customers`, `/admin/settings`, `/admin/abandoned-carts`).
+
+4. **Admin Sign-in Font:**
+   - Updated `src/app/admin/sign-in/page.tsx` from obsolete `--font-geist-sans` to the site font `var(--font-sans), 'Overused Grotesk', system-ui, sans-serif`.
+
+5. **SEO-Optimized Sportswear Brand Rewrite:**
+   - Rewrote copy using coach voice, active verbs (train, play, move, wear), and plain English.
+   - Default `about_page` in `src/content/site-content-defaults.ts` structured into 4 sections (**Built for sport.**, **Made for here.**, **How we make it.**, **Join the team.**; 197 words) with internal links to `/for-him`, `/for-her`, and `/latest`.
+   - Updated homepage collection line (`home_collection_text`), newsletter CTA (`DEFAULT_NEWSLETTER_CTA`), and all 4 category intros.
+   - Updated Organization JSON-LD `description` and `slogan` in `JsonLd.tsx`.
+   - Updated image `alt` template to `{Product name} – {colour} – view {n}` in `ProductDetails-1/index.tsx`.
+   - Enforced Product JSON-LD `category: "Sportswear > " + rawType`.
+
+### SEO Metadata & Heading Map
+
+| Route | Main Keyword | Title | Title Len | Meta Description | Desc Len | `<h1>` Heading |
+|---|---|---|---|---|---|---|
+| `/` | `sportswear Bangladesh` | `LIVUS \| Sportswear & Jerseys in Bangladesh` | 42 | `Shop sportswear in Bangladesh from LIVUS. Breathable jerseys, gym wear and activewear built to move. Fast nationwide delivery with Cash on Delivery. Shop now.` | 158 | `LIVUS — Sportswear & Jerseys in Bangladesh` (sr-only) |
+| `/for-him` | `men's sportswear Bangladesh` | `Men's Sportswear Bangladesh \| Jerseys & Gym Wear \| LIVUS` | 56 | `Shop men's sportswear in Bangladesh at LIVUS. Breathable men's jerseys, gym t-shirts and training wear. Nationwide delivery with Cash on Delivery. Shop now.` | 156 | `For Him.` |
+| `/for-her` | `women's sportswear Bangladesh` | `Women's Sportswear Bangladesh \| Activewear Tops \| LIVUS` | 55 | `Shop women's sportswear in Bangladesh at LIVUS. Breathable activewear, gym wear and sports tops. Nationwide delivery with Cash on Delivery. Find your fit.` | 154 | `For Her.` |
+| `/unisex` | `unisex sportswear` | `Unisex Sportswear \| Shared Fits & Sports Tees \| LIVUS` | 53 | `Shop unisex sportswear at LIVUS. Relaxed unisex jerseys and oversized sports tees built for training and daily wear. Nationwide delivery with COD. Shop now.` | 156 | `Unisex.` |
+| `/accessories` | `sports accessories Bangladesh` | `Sports Accessories Bangladesh \| Match Day Gear \| LIVUS` | 54 | `Shop sports accessories in Bangladesh from LIVUS. Athletic essentials to complete your look. Fast nationwide delivery with Cash on Delivery. Find your gear.` | 156 | `Accessories.` |
+| `/about` | `LIVUS sportswear brand` | `LIVUS Sportswear Brand \| Bangladeshi Activewear \| LIVUS` | 55 | `Meet the LIVUS sportswear brand: a Bangladeshi sportswear brand making breathable jerseys and training gear for heat and movement. Delivery across Bangladesh.` | 158 | `LIVUS Sportswear Brand` |
+| `/latest` | `new sportswear arrivals` | `New Sportswear Arrivals \| Latest Drops & Gear \| LIVUS` | 54 | `Discover new sportswear arrivals at LIVUS. Shop our latest drops of breathable match-day jerseys and training tops released in limited runs across Bangladesh.` | 158 | `Latest.` |
+| `/popular` | `best-selling sportswear` | `Best-Selling Sportswear \| Popular Jerseys & Tops \| LIVUS` | 56 | `Shop best-selling sportswear at LIVUS. Explore popular jerseys and training gear chosen by players across Bangladesh. Fast delivery with Cash on Delivery.` | 154 | `Popular.` |
+| `/product/[slug]` | `{Product name}` + type | `{Product name} \| {Men's/Women's} {type} \| LIVUS` | 50–60 | `Shop the {Product name} by LIVUS. {fit/fabric} Built for training and athletic movement. Delivery across Bangladesh.` | 140–160 | `{Product name}` |
+
+### List of `[OWNER: …]` Placeholders for Unconfirmed Facts
+
+The following placeholders were inserted into the `about_page` default copy in `src/content/site-content-defaults.ts` to ensure no false claims are published without owner verification:
+1. `[OWNER: founding year, e.g. 2024]` — Year LIVUS was officially established.
+2. `[OWNER: specific fabric blend or mill]` — Verified fabric composition or manufacturing technology (e.g. 100% moisture-wicking micro-polyester).
+3. `[OWNER: factory location, e.g. Gazipur / Narayanganj]` — Exact manufacturing city/hub in Bangladesh.
+
+### Live `site_content` Table Override Notice for Store Owner
+
+Because the application prioritizes saved rows in the database table `site_content` over the hardcoded fallbacks, any rows previously saved in Admin → Pages & Text (`/admin/content`) will override these updated defaults.
+If you previously clicked **Save** on these keys in admin, review them in `/admin/content` or reset them to default:
+- `about_page`
+- `home_collection_text`
+- `newsletter_cta`
+- `category_for_him_intro`
+- `category_for_her_intro`
+- `category_unisex_intro`
+- `category_accessories_intro`

@@ -94,7 +94,7 @@ p, li { text-wrap: pretty; }
 }
 
 .font-semibold {
-  font-weight: 600 !important;
+  font-weight: var(--lv-strong) !important;
 }
 
 .font-bold {
@@ -231,7 +231,7 @@ h1, h2, h3, h4, h5, h6,
 [data-name="Homepage"] h1,
 [data-name="Homepage"] h2,
 [data-name="All Products"] h1 {
-  font-weight: 600 !important;
+  font-weight: var(--lv-strong) !important;
 }
 
 .menu-drawer-links p,
@@ -377,6 +377,8 @@ footer .footer-btn-group a {
    instead of jumping between fixed pixel sizes. Use these classes on new UI.
    ══════════════════════════════════════════════════════════════════ */
 :root {
+  /* Heading & "semibold" weight for the whole storefront. 600 = semibold, 500 = medium (trial). */
+  --lv-strong: 500;
   --lv-ink: #0d0d0d;
   --lv-ink-muted: #5c5c5c;
   --lv-line: #e4e4e4;
@@ -388,7 +390,7 @@ footer .footer-btn-group a {
 .t-h2,
 .t-h3 {
   font-family: 'Overused Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-weight: 600 !important;
+  font-weight: var(--lv-strong) !important;
   color: var(--lv-ink);
 }
 /* Grotesk is much wider than the old condensed display face, so sizes are a step smaller and tracking is only lightly tightened */
@@ -451,7 +453,7 @@ footer .footer-btn-group a {
 .lv-prose { font-family: 'Overused Grotesk', sans-serif; font-size: 17px; line-height: 1.65; color: #3a3a3a; }
 .lv-prose > * + * { margin-top: 1.1em; }
 .lv-prose h2 {
-  font-family: 'Overused Grotesk', sans-serif; font-weight: 600 !important;
+  font-family: 'Overused Grotesk', sans-serif; font-weight: var(--lv-strong) !important;
   font-size: clamp(20px, 1.8vw, 24px); line-height: 1.2; letter-spacing: -0.015em; color: var(--lv-ink);
   margin-top: 2em;
 }

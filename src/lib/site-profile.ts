@@ -29,12 +29,18 @@ export const DEFAULT_BRAND = {
   faviconUrl: '',
 };
 
+/** The original seed value in store_settings, never a real number: treat as empty. */
+const PLACEHOLDER_PHONES = ['+880 1711 000000', '+8801711000000', '01711000000'];
+export function isPlaceholderPhone(v?: string | null): boolean {
+  return !!v && PLACEHOLDER_PHONES.includes(v.trim());
+}
+
 export const DEFAULT_CONTACT = {
   email: '',
   phones: [] as string[],
   whatsapp: '',
   hours: 'Sat–Thu, 10 AM – 8 PM',
-  address: 'House 24, Road 7, Dhanmondi, Dhaka 1205',
+  address: '',
   mapUrl: '',
 };
 
@@ -186,7 +192,7 @@ export const getSiteProfile = cache(async (): Promise<SiteProfile> => {
       if (settingsRow) {
         fallbackSettings = {
           email: settingsRow.supportEmail || undefined,
-          phone: settingsRow.supportPhone || undefined,
+          phone: isPlaceholderPhone(settingsRow.supportPhone) ? undefined : settingsRow.supportPhone || undefined,
         };
       }
     }

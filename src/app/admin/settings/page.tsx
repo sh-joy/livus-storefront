@@ -42,7 +42,7 @@ interface ShippingRegionRecord {
 export default function AdminSettingsPage() {
   const [storeName, setStoreName] = useState("LIVUS");
   const [supportEmail, setSupportEmail] = useState("support@livus.com.bd");
-  const [supportPhone, setSupportPhone] = useState("+880 1711 000000");
+  const [supportPhone, setSupportPhone] = useState("");
   const [currency, setCurrency] = useState("BDT");
   const [vatPercent, setVatPercent] = useState("10");
   const [freeShippingThreshold, setFreeShippingThreshold] = useState("2500");

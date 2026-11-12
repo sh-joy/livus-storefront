@@ -146,7 +146,7 @@ export function SiteFooter({ compact = false }: SiteFooterProps) {
   const [contact, setContact] = useState<{ email: string; phones: string[]; address: string }>({
     email: "support@livus.com.bd",
     phones: [],
-    address: "House 24, Road 7, Dhanmondi, Dhaka 1205",
+    address: "",
   });
   const [socials, setSocials] = useState<Array<{ label: string; href: string; icon: any }>>([
     { label: "Facebook", href: "https://www.facebook.com/livus.bd", icon: Facebook },
@@ -165,7 +165,7 @@ export function SiteFooter({ compact = false }: SiteFooterProps) {
         setContact({
           email: p.contact?.email || "support@livus.com.bd",
           phones: p.contact?.phones || [],
-          address: p.contact?.address || "House 24, Road 7, Dhanmondi, Dhaka 1205",
+          address: p.contact?.address || "",
         });
 
         const activeSocials: Array<{ label: string; href: string; icon: any }> = [];

@@ -144,7 +144,7 @@ export function AboutLayoutView({ layout }: { layout: AboutLayout }) {
 
       {/* 6 ─ Last: two photos; on hover a centred "For Men →" / "For Women →" (always visible on touch screens) */}
       {cta.enabled && cta.heading && (
-        <h2 className="t-h2 m-0 text-center px-[var(--lv-gutter)] pt-[clamp(8px,2vw,24px)] pb-[clamp(28px,3.5vw,48px)]">{cta.heading}</h2>
+        <h2 className="t-h2 m-0 text-center px-[var(--lv-gutter)] pt-0 pb-[clamp(16px,2vw,28px)]">{cta.heading}</h2>
       )}
       {cta.enabled && (
         <section className="grid grid-cols-1 sm:grid-cols-2">
@@ -156,7 +156,7 @@ export function AboutLayoutView({ layout }: { layout: AboutLayout }) {
               key={c.href}
               href={c.href}
               aria-label={c.label}
-              className="group relative block aspect-[4/5] sm:aspect-square overflow-hidden bg-[#f0f0f0] no-underline"
+              className="group relative block aspect-[4/5] sm:aspect-auto sm:h-[min(80vh,calc(100svh-180px))] overflow-hidden bg-[#f0f0f0] no-underline"
             >
               <Image
                 src={c.src}

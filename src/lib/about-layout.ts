@@ -110,7 +110,7 @@ export const DEFAULT_STATS = {
 
 export const DEFAULT_CTA = {
   enabled: true,
-  heading: 'Ready to train?',
+  heading: 'Explore the collection',
   lead: 'Find your kit for match day, training and everything in between.',
   buttonMenText: "Shop men's sportswear",
   buttonMenHref: '/for-him',

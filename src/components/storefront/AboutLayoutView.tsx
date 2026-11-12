@@ -97,8 +97,8 @@ export function AboutLayoutView({ layout }: { layout: AboutLayout }) {
 
       {/* 3 ─ One big two-tone statement, centred */}
       {story.enabled && story.headline && (
-        <section className="px-[var(--lv-gutter)] pt-[clamp(72px,9vw,140px)] pb-[clamp(48px,6vw,88px)]">
-          <p className="t-h2 m-0 mx-auto max-w-[1080px] text-center" style={{ fontSize: 'clamp(32px, 4.4vw, 64px)' }}>
+        <section className="flex flex-col items-center justify-center min-h-[78vh] px-[var(--lv-gutter)] py-[clamp(64px,8vw,120px)]">
+          <p className="t-display m-0 mx-auto max-w-[1280px] text-center" style={{ fontSize: 'clamp(40px, 6.4vw, 104px)', lineHeight: 1.02 }}>
             {story.foundingYear ? `Since ${story.foundingYear}, ` : ''}
             <TwoTone text={story.headline} />
           </p>
@@ -108,7 +108,7 @@ export function AboutLayoutView({ layout }: { layout: AboutLayout }) {
 
       {/* 4 ─ Four benefits as shaded cards, divided by a thin gap */}
       {why.enabled && whyItems.length > 0 && (
-        <section className="px-[var(--lv-gutter)] pb-[clamp(72px,9vw,140px)]">
+        <section className="px-[var(--lv-gutter)] pb-[clamp(64px,8vw,120px)]">
           {why.heading && <h2 className="t-h2 m-0 mb-[clamp(32px,4vw,56px)] text-center">{why.heading}</h2>}
           <div className="grid gap-2 sm:grid-cols-2">
             {whyItems.map((w, i) => {
@@ -116,12 +116,12 @@ export function AboutLayoutView({ layout }: { layout: AboutLayout }) {
               return (
                 <div
                   key={i}
-                  className="flex flex-col justify-between gap-[clamp(40px,5vw,72px)] bg-[#f4f4f2] p-[clamp(24px,3.2vw,48px)] min-h-[clamp(220px,22vw,320px)]"
+                  className="flex flex-col justify-between gap-[clamp(28px,3vw,48px)] bg-[#f4f4f2] p-[clamp(20px,2.4vw,36px)] min-h-[clamp(170px,15vw,220px)]"
                 >
-                  <Icon className="size-[clamp(28px,2.4vw,36px)] stroke-[1.25]" aria-hidden />
+                  <Icon className="size-6 stroke-[1.5]" aria-hidden />
                   <div className="flex flex-col gap-3">
-                    <h3 className="t-h3 m-0" style={{ fontSize: 'clamp(26px, 2.6vw, 38px)' }}>{w.title}</h3>
-                    {w.description && <p className="t-lead m-0 max-w-[440px]">{w.description}</p>}
+                    <h3 className="t-h3 m-0">{w.title}</h3>
+                    {w.description && <p className="t-body m-0 text-neutral-600 max-w-[400px]">{w.description}</p>}
                   </div>
                 </div>
               );
@@ -143,6 +143,9 @@ export function AboutLayoutView({ layout }: { layout: AboutLayout }) {
       )}
 
       {/* 6 ─ Last: two photos; on hover a centred "For Men →" / "For Women →" (always visible on touch screens) */}
+      {cta.enabled && cta.heading && (
+        <h2 className="t-h2 m-0 text-center px-[var(--lv-gutter)] pt-[clamp(8px,2vw,24px)] pb-[clamp(28px,3.5vw,48px)]">{cta.heading}</h2>
+      )}
       {cta.enabled && (
         <section className="grid grid-cols-1 sm:grid-cols-2">
           {[

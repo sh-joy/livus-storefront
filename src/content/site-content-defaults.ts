@@ -75,13 +75,13 @@ export const DEFAULT_NEWSLETTER_CTA: NewsletterCtaConfig = {
 export const DEFAULT_CONTENT: Record<SiteContentKey, string> = {
   about_page: [
     '**Built for sport.**',
-    'LIVUS is a Bangladeshi sportswear brand made for people who play, train and move. Founded in [OWNER: founding year, e.g. 2024], we build match-day jerseys, training tops and activewear for the pitch, the gym, the court and the street. We believe athletic apparel should work when you train hard and still look sharp when you walk out.',
+    "LIVUS is a Bangladeshi sportswear brand for people who play, train and move. We make jerseys, training tops and activewear for the pitch, the gym, the court and the street: kit that works when you train hard and still looks sharp when you walk out.",
     '**Made for here.**',
-    'Playing sport in Bangladesh means facing heat, humidity and sudden rain. We choose lightweight, breathable fabrics [OWNER: specific fabric blend or mill] that pull sweat away from your skin and dry fast. Our cuts are athletic but comfortable, tested on local athletes so you get an honest fit on match day and rest days alike.',
+    "Sport in Bangladesh means heat, humidity and sudden rain, so we design for it. Light, breathable fabrics and athletic cuts that stay comfortable from the first whistle to the walk home. Find your fit in [men's sportswear](/for-him) and [women's sportswear](/for-her).",
     '**How we make it.**',
-    "We produce in small batches with trusted manufacturing partners in [OWNER: factory location, e.g. Gazipur / Narayanganj]. Every seam, collar and rib is built to handle repeated wash and wear without losing shape. Releasing limited runs keeps quality tight and ensures you wear something distinct. Explore our latest drops in [men's sportswear](/for-him), [women's sportswear](/for-her), and [new sportswear arrivals](/latest).",
+    "We release in small, limited runs. That keeps every drop focused: the right fabric, the right fit and details made to be worn hard. See what just landed in our [new sportswear arrivals](/latest).",
     '**Join the team.**',
-    'Sport brings people together across Bangladesh. Follow our journey on social media, join our training community, and subscribe to our newsletter for first word on new drops and restocks. Train hard, move free.',
+    'Sport brings people together. Follow LIVUS on social media and join our newsletter to hear first about new drops and restocks. Train hard. Move free.',
   ].join('\n\n'),
 
   privacy_page: '', // Computed dynamically with getPolicyContext()

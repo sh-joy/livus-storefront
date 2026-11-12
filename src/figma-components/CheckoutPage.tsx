@@ -549,10 +549,10 @@ export function CheckoutPage() {
           }}>
 
             {/* ── LEFT: Form ── */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "40px" }}>
 
               {/* Personal information (Reordered: Full name, Phone number, Email address optional) */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                 <p style={sectionLabel}>Personal information</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                   <InputField
@@ -582,7 +582,7 @@ export function CheckoutPage() {
               </div>
 
               {/* Delivery address */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                 <p style={sectionLabel}>Delivery address</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                   <InputField
@@ -750,7 +750,6 @@ export function CheckoutPage() {
                         <RadioCircle selected={payment === "cash"} />
                         <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
                           <span style={{ ...base, fontSize: "16px", fontWeight: payment === "cash" ? 500 : 400, color: "var(--ink)" }}>Cash on delivery</span>
-                          <span className="t-small text-[var(--lv-ink-muted)]">Pay when your parcel arrives</span>
                         </div>
                       </div>
                       <TruckIcon />
@@ -783,10 +782,8 @@ export function CheckoutPage() {
                       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                         <RadioCircle selected={payment === "bkash"} />
                         <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                          <span style={{ ...base, fontSize: "16px", fontWeight: payment === "bkash" ? 500 : 400, color: "var(--ink)" }}>bKash</span>
-                          <span className="t-small text-[var(--lv-ink-muted)]">
-                            {!isBkashConfigured ? "Not available right now" : "Send Money, then enter the Transaction ID"}
-                          </span>
+                          <span style={{ ...base, fontSize: "16px", fontWeight: payment === "bkash" ? 500 : 400, color: "var(--ink)" }}>Pay with bKash</span>
+                          {!isBkashConfigured && <span className="t-small text-[var(--lv-ink-muted)]">Not available right now</span>}
                         </div>
                       </div>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -823,10 +820,8 @@ export function CheckoutPage() {
                       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                         <RadioCircle selected={payment === "nagad"} />
                         <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                          <span style={{ ...base, fontSize: "16px", fontWeight: payment === "nagad" ? 500 : 400, color: "var(--ink)" }}>Nagad</span>
-                          <span className="t-small text-[var(--lv-ink-muted)]">
-                            {!isNagadConfigured ? "Not available right now" : "Send Money, then enter the Transaction ID"}
-                          </span>
+                          <span style={{ ...base, fontSize: "16px", fontWeight: payment === "nagad" ? 500 : 400, color: "var(--ink)" }}>Pay with Nagad</span>
+                          {!isNagadConfigured && <span className="t-small text-[var(--lv-ink-muted)]">Not available right now</span>}
                         </div>
                       </div>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -843,9 +838,9 @@ export function CheckoutPage() {
             </div>
 
             {/* ── RIGHT: Order summary ── */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
 
-              <h2 className="t-h3 m-0">Order summary</h2>
+              <h2 className="m-0" style={sectionLabel}>Order summary</h2>
 
               {/* Cart items */}
               <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
@@ -988,7 +983,7 @@ export function CheckoutPage() {
               )}
 
               {/* Gift Card / Promo Code Input Section */}
-              <div style={{ width: "100%", paddingTop: "16px", paddingBottom: "16px", borderTop: "1px dashed #d0d0d0", borderBottom: "1px dashed #d0d0d0", margin: "4px 0", opacity: cartItems.length === 0 ? 0.4 : 1, pointerEvents: cartItems.length === 0 ? "none" : "auto" }}>
+              <div style={{ width: "100%", paddingTop: "16px", paddingBottom: "16px", borderTop: "1px dashed #d0d0d0", borderBottom: "1px dashed #d0d0d0", margin: 0, opacity: cartItems.length === 0 ? 0.4 : 1, pointerEvents: cartItems.length === 0 ? "none" : "auto" }}>
                 <div style={{ display: "flex", width: "100%", height: "44px", background: "#f4f4f4" }}>
                   <input
                     type="text"
@@ -1071,12 +1066,14 @@ export function CheckoutPage() {
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <p style={{ ...base, letterSpacing: "0", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>Delivery Charge</p>
                     <p style={{ ...base, letterSpacing: "0", color: cartItems.length === 0 ? "#808080" : "var(--ink)" }}>
-                      {deliveryVal === 0 && quote?.freeShippingEligible ? (
+                      {cartItems.length > 0 && quote && deliveryVal === 0 ? (
                         <>
-                          <span style={{ textDecoration: "line-through", color: "var(--ink-muted)", marginRight: "8px" }}>
-                            {formatBdt(quote?.standardDeliveryChargeBdt ?? 0)}
-                          </span>
-                          Free
+                          {(quote.standardDeliveryChargeBdt ?? 0) > 0 && (
+                            <span style={{ textDecoration: "line-through", color: "var(--ink-muted)", marginRight: "8px" }}>
+                              {formatBdt(quote.standardDeliveryChargeBdt ?? 0)}
+                            </span>
+                          )}
+                          <span style={{ color: "#1f7a3a", fontWeight: 500 }}>Free</span>
                         </>
                       ) : (
                         formatBdt(deliveryVal)

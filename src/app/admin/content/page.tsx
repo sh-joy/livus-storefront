@@ -35,8 +35,16 @@ import {
   DEFAULT_NEWSLETTER_CTA,
   DEFAULT_CONTENT,
 } from '@/content/site-content-defaults';
+import {
+  AboutLayoutEditor,
+} from './AboutLayoutEditor';
+import {
+  type AboutLayout,
+  DEFAULT_ABOUT_LAYOUT,
+  mergeAboutLayout,
+} from '@/lib/about-layout';
 
-type TabType = 'info' | 'storefront' | 'contact';
+type TabType = 'about' | 'info' | 'storefront' | 'contact';
 
 export default function AdminContentPage() {
   const [activeTab, setActiveTab] = useState<TabType>('info');
@@ -46,6 +54,7 @@ export default function AdminContentPage() {
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
 
   // Parsed structured states
+  const [aboutLayout, setAboutLayout] = useState<AboutLayout>(DEFAULT_ABOUT_LAYOUT);
   const [faqs, setFaqs] = useState<FaqItem[]>(DEFAULT_FAQS);
   const [newsletterCta, setNewsletterCta] = useState<NewsletterCtaConfig>(DEFAULT_NEWSLETTER_CTA);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -56,6 +65,18 @@ export default function AdminContentPage() {
       const res = await getAllAdminSiteContentAction();
       setContents(res.contents);
       setTableReady(res.tableReady);
+
+      // Parse About Page Layout
+      try {
+        const rawAbout = res.contents.about_layout?.value;
+        if (rawAbout && rawAbout.trim()) {
+          setAboutLayout(mergeAboutLayout(rawAbout));
+        } else {
+          setAboutLayout(DEFAULT_ABOUT_LAYOUT);
+        }
+      } catch {
+        setAboutLayout(DEFAULT_ABOUT_LAYOUT);
+      }
 
       // Parse FAQs
       try {
@@ -180,6 +201,17 @@ export default function AdminContentPage() {
       <div className="flex border-b border-border gap-2">
         <button
           type="button"
+          onClick={() => setActiveTab('about')}
+          className={`pb-3 px-3 text-sm font-semibold border-b-2 transition-colors cursor-pointer ${
+            activeTab === 'about'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          About Page
+        </button>
+        <button
+          type="button"
           onClick={() => setActiveTab('info')}
           className={`pb-3 px-3 text-sm font-semibold border-b-2 transition-colors cursor-pointer ${
             activeTab === 'info'
@@ -213,13 +245,29 @@ export default function AdminContentPage() {
         </button>
       </div>
 
+      {/* TAB 0: ABOUT PAGE DESIGN LAYOUT */}
+      {activeTab === 'about' && (
+        <AboutLayoutEditor
+          layout={aboutLayout}
+          onChange={setAboutLayout}
+          saving={savingKey === 'about_layout'}
+          onSave={async () => {
+            await saveText('about_layout', JSON.stringify(aboutLayout));
+          }}
+          onRestoreDefault={async () => {
+            setAboutLayout(DEFAULT_ABOUT_LAYOUT);
+            await saveText('about_layout', JSON.stringify(DEFAULT_ABOUT_LAYOUT));
+          }}
+        />
+      )}
+
       {/* TAB 1: INFO & LEGAL PAGES */}
       {activeTab === 'info' && (
         <div className="space-y-6">
-          {/* About Us */}
+          {/* About Us (Fallback) */}
           <ContentBlockCard
-            title="About Us (/about)"
-            description="Brand history and atelier introduction on the About page."
+            title="About Us Plain Text Fallback (/about)"
+            description="Fallback text used only if the structured About Page Layout is empty."
             contentKey="about_page"
             value={contents.about_page?.value || ''}
             isCustom={contents.about_page?.isCustom || false}

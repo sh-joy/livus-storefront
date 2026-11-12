@@ -1,4 +1,5 @@
 import { eq } from 'drizzle-orm';
+import { DEFAULT_ABOUT_LAYOUT } from '@/lib/about-layout';
 import {
   privacyPolicyText,
   termsText,
@@ -23,6 +24,7 @@ export const SITE_CONTENT_KEYS = [
   'category_unisex_intro',
   'category_accessories_intro',
   'cookie_banner_text',
+  'about_layout',
 ] as const;
 
 export type SiteContentKey = (typeof SITE_CONTENT_KEYS)[number];
@@ -116,6 +118,8 @@ export const DEFAULT_CONTENT: Record<SiteContentKey, string> = {
 
   cookie_banner_text:
     'Essential cookies keep your cart and sign-in working. With your OK, we also use analytics and advertising cookies to improve the shop and show relevant sports styles. You can change your choices any time via Cookie settings in the footer.',
+
+  about_layout: JSON.stringify(DEFAULT_ABOUT_LAYOUT),
 };
 
 /** Build policy context dynamically from site profile with fallback to storeSettings */

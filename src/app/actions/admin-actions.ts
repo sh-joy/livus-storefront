@@ -552,7 +552,11 @@ export async function updateOrderStatusAction(orderId: string, newStatus: string
 /**
  * P0.3 & E6: Explicit admin verification for manual mobile wallet payments (bKash / Nagad)
  */
-export async function verifyOrderPaymentAction(orderId: string, action: 'verify' | 'reject', cancelOrder?: boolean) {
+export async function verifyOrderPaymentAction(
+  orderId: string,
+  action: 'verify' | 'not_received' | 'reject',
+  cancelOrder?: boolean
+) {
   const admin = await requireAdmin();
   try {
     if (!db) return { success: false, message: 'Database not initialized' };
@@ -576,12 +580,19 @@ export async function verifyOrderPaymentAction(orderId: string, action: 'verify'
 
     let newPaymentStatus: string;
     if (action === 'verify') {
-      newPaymentStatus = method.includes('bkash') ? 'Paid (bKash Verified)' : 'Paid (Nagad Verified)';
+      newPaymentStatus = 'Paid (Verified)';
       await db.update(orders).set({ paymentStatus: newPaymentStatus }).where(eq(orders.id, orderId));
+      try {
+        await db.execute(
+          sql`UPDATE orders SET payment_verified_by = ${admin.email}, payment_verified_at = NOW() WHERE id = ${orderId}`
+        );
+      } catch {
+        // Safe fallback if migration 0009 has not yet been applied to database
+      }
     } else {
-      newPaymentStatus = 'Payment Failed / Rejected';
+      newPaymentStatus = 'Payment not received';
       if (cancelOrder) {
-        // Release stock and cancel order
+        // Release stock and cancel order if explicitly requested
         if (ord.items && ord.items.length > 0) {
           await restoreStockForOrderItems(
             ord.items.map((i) => ({
@@ -597,6 +608,7 @@ export async function verifyOrderPaymentAction(orderId: string, action: 'verify'
           paymentStatus: newPaymentStatus,
         }).where(eq(orders.id, orderId));
       } else {
+        // Order stays and is NOT cancelled automatically
         await db.update(orders).set({ paymentStatus: newPaymentStatus }).where(eq(orders.id, orderId));
       }
     }
@@ -802,6 +814,15 @@ export async function editAdminOrderAction(data: {
   }
   try {
     if (db) {
+      const existing = await db.query.orders.findFirst({ where: eq(orders.id, data.orderId) });
+      if (!existing) return { success: false, message: 'Order not found' };
+
+      const method = (existing.paymentMethod || '').toLowerCase();
+      let updatedPaymentStatus = existing.paymentStatus;
+      if (method.includes('cash') || method.includes('cod')) {
+        updatedPaymentStatus = data.status === 'Delivered' ? 'Paid (COD Collected)' : 'Unpaid (COD)';
+      }
+
       await db.update(orders).set({
         customerName: data.customerName.trim(),
         phone: data.phone.trim(),
@@ -810,7 +831,7 @@ export async function editAdminOrderAction(data: {
         city: data.city ? data.city.trim() : '',
         district: data.district ? data.district.trim() : '',
         status: data.status,
-        paymentStatus: data.status === 'Delivered' ? 'Paid (COD Collected)' : 'Unpaid (COD)',
+        paymentStatus: updatedPaymentStatus,
       }).where(eq(orders.id, data.orderId));
 
       revalidatePath('/admin/orders');

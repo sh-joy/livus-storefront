@@ -15,6 +15,9 @@ interface VerifiedOrderDetails {
   customerName?: string;
   location?: string;
   paymentMethod?: string;
+  paymentStatus?: string;
+  paymentTrxId?: string;
+  paymentSenderPhone?: string;
   totalAmount?: number;
   status?: string;
   itemsCount?: number;
@@ -68,10 +71,19 @@ export default function OrderConfirmed() {
   // The order number comes back in the confirmation link; only show it if it looks like one of ours.
   const displayOrderNumber = orderData?.orderNumber || (/^LIV-\d{4,10}$/i.test(rawOrderParam) ? rawOrderParam.toUpperCase() : "");
 
+  const isWallet = Boolean(
+    orderData?.paymentTrxId ||
+    orderData?.paymentMethod?.toLowerCase().includes('bkash') ||
+    orderData?.paymentMethod?.toLowerCase().includes('nagad')
+  );
+
   const rows: Array<[string, string]> = orderData?.authorized
     ? ([
         orderData.location ? ["Delivery to", orderData.location] : null,
-        orderData.paymentMethod ? ["Payment", orderData.paymentMethod] : null,
+        orderData.paymentMethod ? ["Payment method", orderData.paymentMethod] : null,
+        isWallet ? ["Payment status", "Payment received for verification"] : null,
+        isWallet && orderData.paymentTrxId ? ["Transaction ID (TrxID)", orderData.paymentTrxId] : null,
+        isWallet && orderData.paymentSenderPhone ? ["Sender number", orderData.paymentSenderPhone] : null,
         typeof orderData.totalAmount === "number" ? ["Total", formatBdt(orderData.totalAmount)] : null,
       ].filter(Boolean) as Array<[string, string]>)
     : [];
@@ -98,14 +110,23 @@ export default function OrderConfirmed() {
                 <p className="t-small m-0 px-6 py-4 border-t border-[var(--lv-line)] text-[var(--lv-ink-muted)]">Loading order details…</p>
               ) : (
                 rows.length > 0 && (
-                  <dl className="m-0 border-t border-[var(--lv-line)] text-left">
-                    {rows.map(([k, v]) => (
-                      <div key={k} className="flex items-center justify-between gap-4 px-6 py-3 border-b last:border-b-0 border-[var(--lv-line)]">
-                        <dt className="t-body text-[var(--lv-ink-muted)]">{k}</dt>
-                        <dd className="t-body m-0 text-right text-[#0d0d0d]">{v}</dd>
+                  <>
+                    <dl className="m-0 border-t border-[var(--lv-line)] text-left">
+                      {rows.map(([k, v]) => (
+                        <div key={k} className="flex items-center justify-between gap-4 px-6 py-3 border-b last:border-b-0 border-[var(--lv-line)]">
+                          <dt className="t-body text-[var(--lv-ink-muted)]">{k}</dt>
+                          <dd className="t-body m-0 text-right text-[#0d0d0d]">{v}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                    {isWallet && (
+                      <div className="p-4 bg-neutral-50 border-t border-[var(--lv-line)] text-center">
+                        <p className="t-small m-0 text-[var(--lv-ink-muted)]">
+                          We&apos;ll confirm once we&apos;ve checked it (usually within a few hours).
+                        </p>
                       </div>
-                    ))}
-                  </dl>
+                    )}
+                  </>
                 )
               )}
             </div>

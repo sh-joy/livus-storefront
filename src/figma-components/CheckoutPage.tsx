@@ -42,6 +42,18 @@ function CheckCircle() {
   );
 }
 
+function RadioCircle({ selected }: { selected: boolean }) {
+  return (
+    <span
+      className={`size-5 rounded-full border flex items-center justify-center shrink-0 transition-all ${
+        selected ? 'border-[#0d0d0d]' : 'border-neutral-300'
+      }`}
+    >
+      {selected && <span className="size-2.5 rounded-full bg-[#0d0d0d]" />}
+    </span>
+  );
+}
+
 const base: CSSProperties = {
   fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
   fontSize: "17px", lineHeight: "24px", letterSpacing: "0.17px",
@@ -64,39 +76,16 @@ import {
   saveAbandonedCheckoutAction,
   fetchStoreSettingsAction,
 } from "@/app/actions/checkout";
-
-const REGION_CITIES_MAP: Record<string, string[]> = {
-  "Dhaka Division": [
-    "Dhaka", "Gazipur", "Narayanganj", "Tangail", "Faridpur",
-    "Manikganj", "Munshiganj", "Narsingdi", "Rajbari", "Shariatpur",
-    "Gopalganj", "Madaripur"
-  ],
-  "Chittagong Division": [
-    "Chittagong", "Cox's Bazar", "Cumilla", "Feni", "Noakhali",
-    "Brahmanbaria", "Chandpur", "Khagrachhari", "Rangamati", "Bandarban"
-  ],
-  "Sylhet Division": [
-    "Sylhet", "Moulvibazar", "Habiganj", "Sunamganj"
-  ],
-  "Rajshahi Division": [
-    "Rajshahi", "Bogra", "Pabna", "Naogaon", "Natore",
-    "Nawabganj", "Joypurhat", "Sirajganj"
-  ],
-  "Khulna Division": [
-    "Khulna", "Jeshore", "Kushtia", "Satkhira", "Bagerhat",
-    "Chuadanga", "Jhenaidah", "Magura", "Meherpur", "Narail"
-  ],
-  "Barishal Division": [
-    "Barishal", "Bhola", "Barguna", "Jhalokati", "Patuakhali", "Pirojpur"
-  ],
-  "Rangpur Division": [
-    "Rangpur", "Dinajpur", "Gaibandha", "Kurigram", "Lalmonirhat",
-    "Nilphamari", "Panchagarh", "Thakurgaon"
-  ],
-  "Mymensingh Division": [
-    "Mymensingh", "Jamalpur", "Netrokona", "Sherpur"
-  ]
-};
+import {
+  BANGLADESH_DIVISIONS,
+  DIVISION_DISTRICTS_MAP,
+  normalizeDivision,
+  normalizeDistrict,
+  isValidBdMobile,
+  isValidTrxId,
+  normalizeBdPhone,
+  type BangladeshDivision,
+} from "@/lib/bangladesh-geo";
 
 export function CheckoutPage() {
   const router = useRouter();
@@ -108,19 +97,26 @@ export function CheckoutPage() {
   const [email, setEmail]       = useState("");
   const [address, setAddress]   = useState("");
   const [apt, setApt]           = useState("");
-  const [city, setCity]         = useState("");
-  const [region, setRegion]     = useState("");
+  const [district, setDistrict] = useState("");
+  const [division, setDivision] = useState<BangladeshDivision | "">("");
   const [postal, setPostal]     = useState("");
   const [delivery, setDelivery] = useState("");
   const [payment, setPayment]   = useState<"cash" | "bkash" | "nagad" | "online">("cash"); // Default to Cash on Delivery
   const [trxId, setTrxId]       = useState("");
   const [senderPhone, setSenderPhone] = useState("");
+  const [copiedField, setCopiedField] = useState<string | null>(null);
   const [promoCode, setPromoCode] = useState("");
   const [promoError, setPromoError] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState<{ code: string; amount: number; isPercentage?: boolean; description: string } | null>(null);
   const [errors, setErrors]     = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
+
+  const handleCopy = (text: string, field: string) => {
+    navigator.clipboard?.writeText(text).catch(() => {});
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
   // The cart is restored from this browser after the first render; wait for it before deciding "empty".
   const [cartReady, setCartReady] = useState(false);
   useEffect(() => {
@@ -182,8 +178,19 @@ export function CheckoutPage() {
           if (profile.email) setEmail(profile.email);
           if (profile.address) setAddress(profile.address);
           if (profile.apt) setApt(profile.apt);
-          if (profile.city) setCity(profile.city);
-          if (profile.district) setRegion(profile.district);
+          if (profile.district) {
+            const normDiv = normalizeDivision(profile.district);
+            if (normDiv) {
+              setDivision(normDiv);
+              if (profile.city) {
+                const normDist = normalizeDistrict(profile.city);
+                const validDistricts = DIVISION_DISTRICTS_MAP[normDiv] || [];
+                if (normDist && validDistricts.includes(normDist)) {
+                  setDistrict(normDist);
+                }
+              }
+            }
+          }
           if (profile.postalCode) setPostal(profile.postalCode);
         }
       });
@@ -197,7 +204,7 @@ export function CheckoutPage() {
     size: item.product.size || undefined,
     quantity: item.quantity,
   }));
-  const quoteKey = JSON.stringify(quoteItems) + "|" + (appliedDiscount?.code || "") + "|" + (region || "");
+  const quoteKey = JSON.stringify(quoteItems) + "|" + (appliedDiscount?.code || "") + "|" + (division || "");
 
   // Server-calculated summary with tiered shipping and free shipping check
   const [quote, setQuote] = useState<{
@@ -214,7 +221,7 @@ export function CheckoutPage() {
       return;
     }
     let cancelled = false;
-    getCheckoutQuoteAction(quoteItems, appliedDiscount?.code, region).then((res) => {
+    getCheckoutQuoteAction(quoteItems, appliedDiscount?.code, division).then((res) => {
       if (cancelled) return;
       if (res.success) {
         setQuote(res);
@@ -312,11 +319,10 @@ export function CheckoutPage() {
       newErrors.fullName = "Please enter a valid name (letters only, e.g. Alex Johnson)";
     }
 
-    const cleanPhone = phone.trim().replace(/[\s-]/g, '');
-    const bdPhoneRegex = /^(?:\+?88)?01[3-9]\d{8}$/;
-    if (!cleanPhone) {
+    const cleanPhone = normalizeBdPhone(phone);
+    if (!phone.trim()) {
       newErrors.phone = "Phone number is required";
-    } else if (!bdPhoneRegex.test(cleanPhone)) {
+    } else if (!isValidBdMobile(cleanPhone)) {
       newErrors.phone = "Please enter a valid 11-digit Bangladeshi phone number (e.g. 01712345678)";
     }
 
@@ -330,22 +336,28 @@ export function CheckoutPage() {
       newErrors.address = "Street address is required";
     }
 
-    if (!region) {
-      newErrors.region = "State / Region (District) is required";
+    if (!division) {
+      newErrors.division = "Please choose your division";
+    }
+
+    if (!district) {
+      newErrors.district = "Please choose your district";
     }
 
     if (payment === "bkash" || payment === "nagad") {
+      const walletName = payment === "bkash" ? "bKash" : "Nagad";
       const cleanTrx = trxId.trim().toUpperCase();
       if (!cleanTrx) {
-        newErrors.trxId = `Please enter your ${payment === "bkash" ? "bKash" : "Nagad"} Transaction ID (TrxID)`;
-      } else if (!/^[A-Za-z0-9]{8,16}$/.test(cleanTrx)) {
+        newErrors.trxId = `Please enter your ${walletName} Transaction ID (TrxID)`;
+      } else if (!isValidTrxId(cleanTrx)) {
         newErrors.trxId = "Transaction ID must be 8-16 alphanumeric characters.";
       }
-      if (senderPhone.trim()) {
-        const cleanSender = senderPhone.trim().replace(/\D/g, '');
-        if (!/^01[3-9]\d{8}$/.test(cleanSender)) {
-          newErrors.senderPhone = "Please enter a valid 11-digit Bangladeshi mobile number.";
-        }
+
+      const cleanSender = normalizeBdPhone(senderPhone);
+      if (!senderPhone.trim()) {
+        newErrors.senderPhone = "Please enter the mobile number you sent money from.";
+      } else if (!isValidBdMobile(cleanSender)) {
+        newErrors.senderPhone = "Please enter a valid 11-digit Bangladeshi mobile number.";
       }
     }
 
@@ -384,13 +396,15 @@ export function CheckoutPage() {
         email: email.trim() || undefined,
         streetAddress: address.trim(),
         aptSuite: apt.trim() || undefined,
-        stateRegion: region.trim(),
-        city: city.trim(),
+        division: division || undefined,
+        district: district || undefined,
+        stateRegion: division,
+        city: district,
         zipCode: postal.trim() || undefined,
         deliveryInstructions: delivery.trim() || undefined,
         paymentMethod: payment,
-        trxId: (payment === 'bkash' || payment === 'nagad') ? trxId.trim() : undefined,
-        senderPhone: (payment === 'bkash' || payment === 'nagad') ? senderPhone.trim() : undefined,
+        trxId: (payment === 'bkash' || payment === 'nagad') ? trxId.trim().toUpperCase() : undefined,
+        senderPhone: (payment === 'bkash' || payment === 'nagad') ? normalizeBdPhone(senderPhone) : undefined,
         cartItems: orderItemsInput,
         promoCode: appliedDiscount?.code,
       };
@@ -401,7 +415,7 @@ export function CheckoutPage() {
         setOrderPlaced(true);
         useCartStore.getState().clearCart();
         const ordNum = res.orderNumber || res.orderId || 'LIV-1042';
-        const locStr = [city.trim(), region.trim()].filter(Boolean).join(', ') || 'Dhaka, Bangladesh';
+        const locStr = [district, division].filter(Boolean).join(', ') || 'Dhaka, Bangladesh';
         router.push(`/order-confirmed?orderNumber=${encodeURIComponent(ordNum)}&total=${res.totalAmount || totalVal}&location=${encodeURIComponent(locStr)}&paymentMethod=${encodeURIComponent(res.paymentMethod || 'Cash on Delivery')}`);
       } else {
         setErrors({ form: res.message || 'Failed to place order. Please try again.' });
@@ -518,9 +532,9 @@ export function CheckoutPage() {
                     onChange={setApt}
                   />
                   <div className="max-[420px]:!grid-cols-1 max-[420px]:!gap-[16px]" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-                    {/* State / Region (District) dropdown */}
+                    {/* Division dropdown */}
                     <div style={{ display: "flex", flexDirection: "column", gap: "4px", position: "relative", paddingTop: "16px" }}>
-                      {region && (
+                      {division && (
                         <label
                           style={{
                             position: "absolute",
@@ -529,102 +543,98 @@ export function CheckoutPage() {
                             fontSize: "12px",
                             lineHeight: "16px",
                             fontWeight: 500,
-                            color: errors.region ? "#d4183d" : "#0d0d0d",
+                            color: errors.division ? "#d4183d" : "#0d0d0d",
                             fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
                             letterSpacing: "0.17px",
                           }}
                         >
-                          State / Region (District) *
+                          Division *
                         </label>
                       )}
-                      <div style={{ position: "relative", borderBottom: `1px solid ${errors.region ? "#d4183d" : "rgba(0, 0, 0, 0.2)"}` }}>
+                      <div style={{ position: "relative", borderBottom: `1px solid ${errors.division ? "#d4183d" : "rgba(0, 0, 0, 0.2)"}` }}>
                         <select
-                          value={region}
+                          value={division}
                           onChange={(e) => {
-                            const newRegion = e.target.value;
-                            setRegion(newRegion);
-                            const validCities = REGION_CITIES_MAP[newRegion] || [];
-                            if (city && !validCities.includes(city)) {
-                              setCity("");
-                            }
-                            if (errors.region) setErrors(prev => ({ ...prev, region: "" }));
+                            const newDivision = e.target.value as BangladeshDivision;
+                            setDivision(newDivision);
+                            setDistrict("");
+                            if (errors.division) setErrors((prev) => ({ ...prev, division: "" }));
+                            if (errors.district) setErrors((prev) => ({ ...prev, district: "" }));
                           }}
                           style={{
                             display: "block", width: "100%", padding: "8px 28px 6px 0",
                             fontSize: "16px", lineHeight: "22px",
-                            color: region ? "var(--ink)" : "#808080",
+                            color: division ? "var(--ink)" : "#808080",
                             fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
                             letterSpacing: "0.17px",
                             appearance: "none", background: "transparent", border: "none", outline: "none",
                           }}
                         >
-                          <option value="" disabled>State / Region (District) *</option>
-                          <option value="Dhaka Division">Dhaka Division</option>
-                          <option value="Chittagong Division">Chittagong Division</option>
-                          <option value="Sylhet Division">Sylhet Division</option>
-                          <option value="Rajshahi Division">Rajshahi Division</option>
-                          <option value="Khulna Division">Khulna Division</option>
-                          <option value="Barishal Division">Barishal Division</option>
-                          <option value="Rangpur Division">Rangpur Division</option>
-                          <option value="Mymensingh Division">Mymensingh Division</option>
-                        </select>
-                        <svg style={{ position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} width="24" height="24" viewBox="0 0 24 24" fill="none">
-                          <path d="M6 9L12 15L18 9" stroke="#808080" strokeWidth="1.2" strokeLinecap="square" strokeLinejoin="round" />
-                        </svg>
-                      </div>
-                      {errors.region && (
-                        <p style={{ fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)", fontSize: "12px", color: "#d4183d" }}>
-                          {errors.region}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* City dropdown (Dynamically filtered by selected region) */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: "4px", position: "relative", paddingTop: "16px" }}>
-                      {city && (
-                        <label
-                          style={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            fontSize: "12px",
-                            lineHeight: "16px",
-                            fontWeight: 500,
-                            color: errors.city ? "#d4183d" : "#0d0d0d",
-                            fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
-                            letterSpacing: "0.17px",
-                          }}
-                        >
-                          City *
-                        </label>
-                      )}
-                      <div style={{ position: "relative", borderBottom: `1px solid ${errors.city ? "#d4183d" : "rgba(0, 0, 0, 0.2)"}` }}>
-                        <select
-                          value={city}
-                          onChange={(e) => { setCity(e.target.value); if (errors.city) setErrors(prev => ({ ...prev, city: "" })); }}
-                          disabled={!region}
-                          style={{
-                            display: "block", width: "100%", padding: "8px 28px 6px 0",
-                            fontSize: "16px", lineHeight: "22px",
-                            color: city ? "var(--ink)" : "#808080",
-                            fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
-                            letterSpacing: "0.17px",
-                            appearance: "none", background: "transparent", border: "none", outline: "none",
-                            cursor: region ? "pointer" : "not-allowed",
-                          }}
-                        >
-                          <option value="" disabled>{region ? "Select City *" : "Select State / Region first *"}</option>
-                          {(REGION_CITIES_MAP[region] || []).map((cityName) => (
-                            <option key={cityName} value={cityName}>{cityName}</option>
+                          <option value="" disabled>Division *</option>
+                          {BANGLADESH_DIVISIONS.map((divName) => (
+                            <option key={divName} value={divName}>{divName}</option>
                           ))}
                         </select>
                         <svg style={{ position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} width="24" height="24" viewBox="0 0 24 24" fill="none">
                           <path d="M6 9L12 15L18 9" stroke="#808080" strokeWidth="1.2" strokeLinecap="square" strokeLinejoin="round" />
                         </svg>
                       </div>
-                      {errors.city && (
+                      {errors.division && (
                         <p style={{ fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)", fontSize: "12px", color: "#d4183d" }}>
-                          {errors.city}
+                          {errors.division}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* District dropdown (Dynamically filtered by selected division) */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "4px", position: "relative", paddingTop: "16px" }}>
+                      {district && (
+                        <label
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            fontSize: "12px",
+                            lineHeight: "16px",
+                            fontWeight: 500,
+                            color: errors.district ? "#d4183d" : "#0d0d0d",
+                            fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
+                            letterSpacing: "0.17px",
+                          }}
+                        >
+                          District *
+                        </label>
+                      )}
+                      <div style={{ position: "relative", borderBottom: `1px solid ${errors.district ? "#d4183d" : "rgba(0, 0, 0, 0.2)"}` }}>
+                        <select
+                          value={district}
+                          onChange={(e) => {
+                            setDistrict(e.target.value);
+                            if (errors.district) setErrors((prev) => ({ ...prev, district: "" }));
+                          }}
+                          disabled={!division}
+                          style={{
+                            display: "block", width: "100%", padding: "8px 28px 6px 0",
+                            fontSize: "16px", lineHeight: "22px",
+                            color: district ? "var(--ink)" : "#808080",
+                            fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
+                            letterSpacing: "0.17px",
+                            appearance: "none", background: "transparent", border: "none", outline: "none",
+                            cursor: division ? "pointer" : "not-allowed",
+                          }}
+                        >
+                          <option value="" disabled>{division ? "District *" : "Select a division first"}</option>
+                          {(division ? DIVISION_DISTRICTS_MAP[division] || [] : []).map((distName) => (
+                            <option key={distName} value={distName}>{distName}</option>
+                          ))}
+                        </select>
+                        <svg style={{ position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} width="24" height="24" viewBox="0 0 24 24" fill="none">
+                          <path d="M6 9L12 15L18 9" stroke="#808080" strokeWidth="1.2" strokeLinecap="square" strokeLinejoin="round" />
+                        </svg>
+                      </div>
+                      {errors.district && (
+                        <p style={{ fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)", fontSize: "12px", color: "#d4183d" }}>
+                          {errors.district}
                         </p>
                       )}
                     </div>
@@ -647,146 +657,263 @@ export function CheckoutPage() {
               {/* Payment method */}
               <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                 <p style={sectionLabel}>Payment method</p>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full" style={{ opacity: cartItems.length === 0 ? 0.5 : 1, pointerEvents: cartItems.length === 0 ? "none" : "auto" }}>
+                <div className="flex flex-col gap-3 w-full" style={{ opacity: cartItems.length === 0 ? 0.5 : 1, pointerEvents: cartItems.length === 0 ? "none" : "auto" }}>
 
                   {/* Cash on delivery */}
-                  <button
-                    type="button"
-                    disabled={cartItems.length === 0}
-                    onClick={() => setPayment("cash")}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      padding: "14px 14px",
-                      border: payment === "cash" ? "1.5px solid #000000" : "1px solid #e2e8f0",
-                      background: payment === "cash" ? "#fafafa" : "#ffffff",
-                      cursor: "pointer",
-                      boxSizing: "border-box",
-                      transition: "all 0.2s ease",
-                    }}
-                  >
-                    <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <div className="flex flex-col gap-0 w-full">
+                    <button
+                      type="button"
+                      disabled={cartItems.length === 0}
+                      onClick={() => setPayment("cash")}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        minHeight: "56px",
+                        padding: "14px 16px",
+                        border: payment === "cash" ? "1.5px solid #000000" : "1px solid var(--lv-line, #e2e8f0)",
+                        background: payment === "cash" ? "#fafafa" : "#ffffff",
+                        cursor: "pointer",
+                        boxSizing: "border-box",
+                        width: "100%",
+                        textAlign: "left",
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <RadioCircle selected={payment === "cash"} />
+                        <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                          <span style={{ ...base, fontSize: "16px", fontWeight: payment === "cash" ? 500 : 400, color: "var(--ink)" }}>Cash on delivery</span>
+                          <span className="t-small text-[var(--lv-ink-muted)]">Pay when your parcel arrives</span>
+                        </div>
+                      </div>
                       <TruckIcon />
-                      <span style={{ ...base, fontSize: "16px", fontWeight: payment === "cash" ? 500 : 400 }}>Cash on delivery</span>
-                    </span>
-                    {payment === "cash" && <CheckCircle />}
-                  </button>
+                    </button>
+                  </div>
 
-                  {/* bKash: selectable once a valid merchant number is saved in Admin → Settings */}
-                  <button
-                    type="button"
-                    disabled={cartItems.length === 0 || !isBkashConfigured}
-                    onClick={() => setPayment("bkash")}
-                    aria-disabled={!isBkashConfigured}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      padding: "14px 14px",
-                      border: payment === "bkash" ? "1.5px solid #d12053" : "1px solid #e2e8f0",
-                      background: payment === "bkash" ? "#fff5f7" : "#ffffff",
-                      cursor: isBkashConfigured ? "pointer" : "not-allowed",
-                      opacity: isBkashConfigured ? 1 : 0.55,
-                      boxSizing: "border-box",
-                      transition: "all 0.2s ease",
-                    }}
-                  >
-                    <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  {/* bKash */}
+                  <div className="flex flex-col gap-0 w-full">
+                    <button
+                      type="button"
+                      disabled={cartItems.length === 0 || !isBkashConfigured}
+                      onClick={() => isBkashConfigured && setPayment("bkash")}
+                      aria-disabled={!isBkashConfigured}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        minHeight: "56px",
+                        padding: "14px 16px",
+                        border: payment === "bkash" ? "1.5px solid #000000" : "1px solid var(--lv-line, #e2e8f0)",
+                        background: !isBkashConfigured ? "#fcfcfc" : payment === "bkash" ? "#fafafa" : "#ffffff",
+                        cursor: isBkashConfigured ? "pointer" : "not-allowed",
+                        opacity: isBkashConfigured ? 1 : 0.55,
+                        boxSizing: "border-box",
+                        width: "100%",
+                        textAlign: "left",
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <RadioCircle selected={payment === "bkash"} />
+                        <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                          <span style={{ ...base, fontSize: "16px", fontWeight: payment === "bkash" ? 500 : 400, color: "var(--ink)" }}>bKash</span>
+                          <span className="t-small text-[var(--lv-ink-muted)]">
+                            {!isBkashConfigured ? "Not available right now" : "Send Money, then enter the Transaction ID"}
+                          </span>
+                        </div>
+                      </div>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src="/payment-icons/bkash.svg" alt="" width={40} height={40} style={{ display: "block", margin: "-8px -4px -8px -8px" }} />
-                      <span style={{ ...base, fontSize: "16px", fontWeight: payment === "bkash" ? 500 : 400 }}>bKash</span>
-                    </span>
-                    {!isBkashConfigured ? (
-                      <span style={{ ...base, fontSize: "13px", color: "var(--ink-muted)" }}>Coming soon</span>
-                    ) : (
-                      payment === "bkash" && <CheckCircle />
-                    )}
-                  </button>
+                      <img src="/payment-icons/bkash.svg" alt="bKash" className="h-7 w-auto object-contain" />
+                    </button>
 
-                  {/* Nagad: selectable once a valid merchant number is saved in Admin → Settings */}
-                  <button
-                    type="button"
-                    disabled={cartItems.length === 0 || !isNagadConfigured}
-                    onClick={() => setPayment("nagad")}
-                    aria-disabled={!isNagadConfigured}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      padding: "14px 14px",
-                      border: payment === "nagad" ? "1.5px solid #e65c00" : "1px solid #e2e8f0",
-                      background: payment === "nagad" ? "#fff9f5" : "#ffffff",
-                      cursor: isNagadConfigured ? "pointer" : "not-allowed",
-                      opacity: isNagadConfigured ? 1 : 0.55,
-                      boxSizing: "border-box",
-                      transition: "all 0.2s ease",
-                    }}
-                  >
-                    <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src="/payment-icons/nagad.svg" alt="" width={40} height={40} style={{ display: "block", margin: "-8px -4px -8px -8px" }} />
-                      <span style={{ ...base, fontSize: "16px", fontWeight: payment === "nagad" ? 500 : 400 }}>Nagad</span>
-                    </span>
-                    {!isNagadConfigured ? (
-                      <span style={{ ...base, fontSize: "13px", color: "var(--ink-muted)" }}>Coming soon</span>
-                    ) : (
-                      payment === "nagad" && <CheckCircle />
+                    {/* bKash Instruction box: opens directly under bKash row */}
+                    {payment === "bkash" && isBkashConfigured && (
+                      <div className="border border-t-0 border-[var(--lv-line,rgba(0,0,0,0.15))] bg-[#fafafa] p-4 sm:p-5 flex flex-col gap-4">
+                        {/* Number Row */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-white border border-[var(--lv-line,rgba(0,0,0,0.1))]">
+                          <div className="flex flex-col">
+                            <span className="t-small text-[var(--lv-ink-muted)]">Send Money to our bKash number</span>
+                            <span className="text-[20px] font-mono tracking-[0.04em] text-[#0d0d0d] tabular-nums font-semibold">{bkashNumber}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(bkashNumber, "bkashNumber")}
+                            className="lv-btn lv-btn--outline !min-h-9 !px-3 !text-[13px] self-start sm:self-auto"
+                          >
+                            {copiedField === "bkashNumber" ? "Copied" : "Copy"}
+                          </button>
+                        </div>
+
+                        {/* Amount Row */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-white border border-[var(--lv-line,rgba(0,0,0,0.1))]">
+                          <div className="flex flex-col">
+                            <span className="t-small text-[var(--lv-ink-muted)]">Exact amount to send</span>
+                            <span className="text-[20px] font-mono tracking-[0.04em] text-[#0d0d0d] tabular-nums font-semibold">{formatBdt(totalVal)}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(String(totalVal), "bkashAmount")}
+                            className="lv-btn lv-btn--outline !min-h-9 !px-3 !text-[13px] self-start sm:self-auto"
+                          >
+                            {copiedField === "bkashAmount" ? "Copied" : "Copy"}
+                          </button>
+                        </div>
+
+                        {/* Steps */}
+                        <ol className="t-small m-0 pl-5 list-decimal flex flex-col gap-1 text-[#3a3a3a]">
+                          <li>Open bKash (or dial *247#) and choose <strong>Send Money</strong>, not Payment.</li>
+                          <li>Send <strong>{formatBdt(totalVal)}</strong> to the number above.</li>
+                          <li>Enter the Transaction ID and the number you sent from below.</li>
+                        </ol>
+
+                        {/* Required Fields */}
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          <div className="flex-1">
+                            <InputField
+                              label="Transaction ID (TrxID) *"
+                              value={trxId}
+                              onChange={(v) => {
+                                const upper = v.toUpperCase().replace(/\s/g, '');
+                                setTrxId(upper);
+                                if (errors.trxId) setErrors((prev) => ({ ...prev, trxId: "" }));
+                              }}
+                              error={errors.trxId}
+                              placeholder="e.g. 9J47AB12"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <InputField
+                              label="Your bKash number *"
+                              type="tel"
+                              value={senderPhone}
+                              onChange={(v) => {
+                                setSenderPhone(v);
+                                if (errors.senderPhone) setErrors((prev) => ({ ...prev, senderPhone: "" }));
+                              }}
+                              error={errors.senderPhone}
+                              placeholder="01XXXXXXXXX"
+                            />
+                          </div>
+                        </div>
+
+                        <p className="t-small m-0 text-[var(--lv-ink-muted)]">We check the payment and confirm your order by phone before dispatch.</p>
+                      </div>
                     )}
-                  </button>
+                  </div>
+
+                  {/* Nagad */}
+                  <div className="flex flex-col gap-0 w-full">
+                    <button
+                      type="button"
+                      disabled={cartItems.length === 0 || !isNagadConfigured}
+                      onClick={() => isNagadConfigured && setPayment("nagad")}
+                      aria-disabled={!isNagadConfigured}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        minHeight: "56px",
+                        padding: "14px 16px",
+                        border: payment === "nagad" ? "1.5px solid #000000" : "1px solid var(--lv-line, #e2e8f0)",
+                        background: !isNagadConfigured ? "#fcfcfc" : payment === "nagad" ? "#fafafa" : "#ffffff",
+                        cursor: isNagadConfigured ? "pointer" : "not-allowed",
+                        opacity: isNagadConfigured ? 1 : 0.55,
+                        boxSizing: "border-box",
+                        width: "100%",
+                        textAlign: "left",
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <RadioCircle selected={payment === "nagad"} />
+                        <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                          <span style={{ ...base, fontSize: "16px", fontWeight: payment === "nagad" ? 500 : 400, color: "var(--ink)" }}>Nagad</span>
+                          <span className="t-small text-[var(--lv-ink-muted)]">
+                            {!isNagadConfigured ? "Not available right now" : "Send Money, then enter the Transaction ID"}
+                          </span>
+                        </div>
+                      </div>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src="/payment-icons/nagad.svg" alt="Nagad" className="h-7 w-auto object-contain" />
+                    </button>
+
+                    {/* Nagad Instruction box: opens directly under Nagad row */}
+                    {payment === "nagad" && isNagadConfigured && (
+                      <div className="border border-t-0 border-[var(--lv-line,rgba(0,0,0,0.15))] bg-[#fafafa] p-4 sm:p-5 flex flex-col gap-4">
+                        {/* Number Row */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-white border border-[var(--lv-line,rgba(0,0,0,0.1))]">
+                          <div className="flex flex-col">
+                            <span className="t-small text-[var(--lv-ink-muted)]">Send Money to our Nagad number</span>
+                            <span className="text-[20px] font-mono tracking-[0.04em] text-[#0d0d0d] tabular-nums font-semibold">{nagadNumber}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(nagadNumber, "nagadNumber")}
+                            className="lv-btn lv-btn--outline !min-h-9 !px-3 !text-[13px] self-start sm:self-auto"
+                          >
+                            {copiedField === "nagadNumber" ? "Copied" : "Copy"}
+                          </button>
+                        </div>
+
+                        {/* Amount Row */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-white border border-[var(--lv-line,rgba(0,0,0,0.1))]">
+                          <div className="flex flex-col">
+                            <span className="t-small text-[var(--lv-ink-muted)]">Exact amount to send</span>
+                            <span className="text-[20px] font-mono tracking-[0.04em] text-[#0d0d0d] tabular-nums font-semibold">{formatBdt(totalVal)}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(String(totalVal), "nagadAmount")}
+                            className="lv-btn lv-btn--outline !min-h-9 !px-3 !text-[13px] self-start sm:self-auto"
+                          >
+                            {copiedField === "nagadAmount" ? "Copied" : "Copy"}
+                          </button>
+                        </div>
+
+                        {/* Steps */}
+                        <ol className="t-small m-0 pl-5 list-decimal flex flex-col gap-1 text-[#3a3a3a]">
+                          <li>Open Nagad (or dial *167#) and choose <strong>Send Money</strong>, not Payment.</li>
+                          <li>Send <strong>{formatBdt(totalVal)}</strong> to the number above.</li>
+                          <li>Enter the Transaction ID and the number you sent from below.</li>
+                        </ol>
+
+                        {/* Required Fields */}
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          <div className="flex-1">
+                            <InputField
+                              label="Transaction ID (TrxID) *"
+                              value={trxId}
+                              onChange={(v) => {
+                                const upper = v.toUpperCase().replace(/\s/g, '');
+                                setTrxId(upper);
+                                if (errors.trxId) setErrors((prev) => ({ ...prev, trxId: "" }));
+                              }}
+                              error={errors.trxId}
+                              placeholder="e.g. 9J47AB12"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <InputField
+                              label="Your Nagad number *"
+                              type="tel"
+                              value={senderPhone}
+                              onChange={(v) => {
+                                setSenderPhone(v);
+                                if (errors.senderPhone) setErrors((prev) => ({ ...prev, senderPhone: "" }));
+                              }}
+                              error={errors.senderPhone}
+                              placeholder="01XXXXXXXXX"
+                            />
+                          </div>
+                        </div>
+
+                        <p className="t-small m-0 text-[var(--lv-ink-muted)]">We check the payment and confirm your order by phone before dispatch.</p>
+                      </div>
+                    )}
+                  </div>
 
                 </div>
-
-                {/* Manual mobile payment (no gateway yet): customer uses "Send Money" to our number, then enters the TrxID */}
-                {(payment === "bkash" || payment === "nagad") && (() => {
-                  const isBkash = payment === "bkash";
-                  const wallet = isBkash ? "bKash" : "Nagad";
-                  const number = isBkash ? bkashNumber : nagadNumber;
-                  const ussd = isBkash ? "*247#" : "*167#";
-                  return (
-                    <div className="border border-[var(--lv-line)] p-4 sm:p-5 flex flex-col gap-4">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex flex-col">
-                          <span className="t-small text-[var(--lv-ink-muted)]">Send Money to our {wallet} number</span>
-                          <span className="text-[20px] tracking-[0.04em] text-[#0d0d0d] tabular-nums">{number}</span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => navigator.clipboard?.writeText(number).catch(() => {})}
-                          className="lv-btn lv-btn--outline !min-h-9 !px-3 !text-[13px]"
-                        >
-                          Copy
-                        </button>
-                      </div>
-                      <ol className="t-small m-0 pl-5 list-decimal flex flex-col gap-1 text-[#3a3a3a]">
-                        <li>Open the {wallet} app (or dial {ussd}) and choose <strong>Send Money</strong>.</li>
-                        <li>Send exactly <strong>{formatBdt(totalVal)}</strong> to <strong>{number}</strong>.</li>
-                        <li>Enter the Transaction ID (TrxID) from your confirmation SMS below, then confirm your order.</li>
-                      </ol>
-                      <div className="flex flex-col sm:flex-row gap-3">
-                        <div className="flex-1">
-                          <InputField
-                            label={`${wallet} Transaction ID (TrxID) *`}
-                            value={trxId}
-                            onChange={(v) => { setTrxId(v); if (errors.trxId) setErrors(prev => ({ ...prev, trxId: "" })); }}
-                            error={errors.trxId}
-                            placeholder="e.g. 9J47AB12"
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <InputField
-                            label={`Number you sent from (optional)`}
-                            type="tel"
-                            value={senderPhone}
-                            onChange={setSenderPhone}
-                            placeholder="01XXXXXXXXX"
-                          />
-                        </div>
-                      </div>
-                      <p className="t-small m-0 text-[var(--lv-ink-muted)]">We check the payment and confirm your order by phone before dispatch.</p>
-                    </div>
-                  );
-                })()}
 
               </div>
             </div>
@@ -1057,8 +1184,19 @@ export function CheckoutPage() {
                   onClick={handleProceedToPayment}
                   className="lv-btn lv-btn--solid lv-btn--block disabled:!bg-neutral-200 disabled:!border-neutral-200 disabled:!text-neutral-500 disabled:cursor-not-allowed"
                 >
-                  {isSubmitting ? "Placing your order…" : "Confirm order"}
+                  {isSubmitting
+                    ? payment === "bkash" || payment === "nagad"
+                      ? "Confirming order…"
+                      : "Placing your order…"
+                    : payment === "bkash" || payment === "nagad"
+                    ? "Confirm order"
+                    : "Place order"}
                 </button>
+                {(payment === "bkash" || payment === "nagad") && (
+                  <p className="t-small m-0 text-center text-[var(--lv-ink-muted)]">
+                    We&apos;ll check your payment and confirm your order by phone.
+                  </p>
+                )}
               </div>
             </div>
 

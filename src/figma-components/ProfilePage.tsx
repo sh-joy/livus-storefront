@@ -15,6 +15,14 @@ import {
 import productImg from "@/imports/ProductDetails/71b3cd582dab7174e13346a8d88abe33548d2aa7.png";
 import { SmartImage } from "@/components/storefront/SmartImage";
 import { formatBdt } from "@/lib/utils";
+import {
+  BANGLADESH_DIVISIONS,
+  DIVISION_DISTRICTS_MAP,
+  normalizeDivision,
+  normalizeDistrict,
+  formatLocation,
+  type BangladeshDivision,
+} from "@/lib/bangladesh-geo";
 
 const base: CSSProperties = {
   fontFamily: "var(--font-body, 'Overused Grotesk', sans-serif)",
@@ -122,30 +130,7 @@ const statusStyle: Record<string, CSSProperties> = {
 
 import { authClient, useSession, signOut } from "@/lib/auth-client";
 
-const REGIONS_LIST = [
-  "Dhaka Division",
-  "Chittagong Division",
-  "Sylhet Division",
-  "Rajshahi Division",
-  "Khulna Division",
-  "Barishal Division",
-  "Rangpur Division",
-  "Mymensingh Division",
-];
-
-const REGION_CITIES_MAP: Record<string, string[]> = {
-  "Dhaka Division": ["Dhaka", "Gazipur", "Narayanganj", "Savar", "Uttara", "Faridpur", "Tangail", "Manikganj"],
-  "Chittagong Division": ["Chittagong", "Cox's Bazar", "Comilla", "Feni", "Noakhali", "Brahmanbaria", "Chandpur"],
-  "Sylhet Division": ["Sylhet", "Moulvibazar", "Habiganj", "Sunamganj"],
-  "Rajshahi Division": ["Rajshahi", "Bogra", "Pabna", "Naogaon", "Natore", "Nawabganj"],
-  "Khulna Division": ["Khulna", "Jessore", "Kushtia", "Satkhira", "Bagerhat"],
-  "Barishal Division": ["Barishal", "Barisal", "Bhola", "Patuakhali", "Barguna", "Jhalokati", "Pirojpur"],
-  "Barisal Division": ["Barishal", "Barisal", "Bhola", "Patuakhali", "Barguna", "Jhalokati", "Pirojpur"],
-  "Rangpur Division": ["Rangpur", "Dinajpur", "Saidpur", "Kurigram"],
-  "Mymensingh Division": ["Mymensingh", "Jamalpur", "Netrokona", "Sherpur"],
-};
-
-const ALL_CITIES = Array.from(new Set(Object.values(REGION_CITIES_MAP).flat()));
+const REGIONS_LIST = Array.from(BANGLADESH_DIVISIONS);
 
 interface SelectFieldProps {
   label: string;
@@ -259,8 +244,22 @@ export function ProfilePage() {
           if (custData.phone) setPhone(custData.phone);
           if (custData.address) setAddress(custData.address);
           if (custData.apt) setApt(custData.apt);
-          if (custData.city) setCity(custData.city);
-          if (custData.district) setRegion(custData.district);
+          if (custData.district) {
+            const normDiv = normalizeDivision(custData.district);
+            if (normDiv) {
+              setRegion(normDiv);
+              if (custData.city) {
+                const normDist = normalizeDistrict(custData.city);
+                const validDistricts = DIVISION_DISTRICTS_MAP[normDiv] || [];
+                if (normDist && validDistricts.includes(normDist)) {
+                  setCity(normDist);
+                }
+              }
+            } else {
+              setRegion(custData.district);
+              if (custData.city) setCity(custData.city);
+            }
+          }
           if (custData.postalCode) setZip(custData.postalCode);
         }
       }
@@ -370,7 +369,8 @@ export function ProfilePage() {
     }
   };
 
-  const availableCities = region && REGION_CITIES_MAP[region] ? REGION_CITIES_MAP[region] : ALL_CITIES;
+  const normCurrentDiv = normalizeDivision(region);
+  const availableDistricts = normCurrentDiv && DIVISION_DISTRICTS_MAP[normCurrentDiv] ? DIVISION_DISTRICTS_MAP[normCurrentDiv] : [];
 
   // Order Cancellation State
   const [cancelConfirmOrder, setCancelConfirmOrder] = useState<Order | null>(null);
@@ -537,23 +537,22 @@ export function ProfilePage() {
                 <InputField label="Street address" value={address} onChange={setAddress} autoComplete="street-address" />
                 <InputField label="Apt / Suite / Floor" value={apt} onChange={setApt} />
                 <SelectField
-                  label="State / Region"
+                  label="Division"
                   value={region}
                   onChange={(selectedReg) => {
-                    setRegion(selectedReg);
-                    if (selectedReg && REGION_CITIES_MAP[selectedReg] && !REGION_CITIES_MAP[selectedReg].includes(city)) {
-                      setCity(REGION_CITIES_MAP[selectedReg][0] || "");
-                    }
+                    const norm = normalizeDivision(selectedReg) || selectedReg;
+                    setRegion(norm);
+                    setCity("");
                   }}
-                  options={REGIONS_LIST}
-                  placeholder="Select State / Region"
+                  options={Array.from(BANGLADESH_DIVISIONS)}
+                  placeholder="Select Division"
                 />
                 <SelectField
-                  label="City"
+                  label="District"
                   value={city}
                   onChange={setCity}
-                  options={availableCities}
-                  placeholder="Select City"
+                  options={Array.from(availableDistricts)}
+                  placeholder={region ? "Select District" : "Select a division first"}
                 />
                 <InputField label="ZIP / Post code" value={zip} onChange={setZip} autoComplete="postal-code" />
               </div>

@@ -11,6 +11,13 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { signOrderConfirmationToken } from '@/lib/order-token';
 import { eq, or } from 'drizzle-orm';
+import {
+  normalizeDivision,
+  normalizeDistrict,
+  isValidBdMobile,
+  isValidTrxId,
+  normalizeBdPhone,
+} from '@/lib/bangladesh-geo';
 
 /** Live order summary for the checkout page — computed by the same code that saves the order. */
 export async function getCheckoutQuoteAction(
@@ -155,8 +162,10 @@ export async function placeOrderAction(data: CheckoutFormValues & { promoCode?: 
   const cleanStreet = payload.streetAddress ? payload.streetAddress.trim() : '';
   const cleanApt = payload.aptSuite ? payload.aptSuite.trim() : '';
   const fullShippingAddress = [cleanStreet, cleanApt ? `Apt/Suite: ${cleanApt}` : ''].filter(Boolean).join(', ');
-  const cleanCity = payload.city ? payload.city.trim() : '';
-  const cleanRegion = payload.stateRegion.trim();
+  const cleanDivision = normalizeDivision(payload.division || payload.stateRegion) || payload.stateRegion?.trim() || '';
+  const cleanDistrict = normalizeDistrict(payload.district || payload.city) || payload.city?.trim() || '';
+  const cleanCity = cleanDistrict;
+  const cleanRegion = cleanDivision;
   const cleanZip = payload.zipCode ? payload.zipCode.trim() : '';
 
   if (!fullShippingAddress) {
@@ -177,17 +186,21 @@ export async function placeOrderAction(data: CheckoutFormValues & { promoCode?: 
       return { success: false, message: 'bKash payments are currently unavailable. Please choose Cash on Delivery.' };
     }
     const cleanTrx = (payload.trxId || '').trim().toUpperCase();
-    if (!cleanTrx || !/^[A-Za-z0-9]{8,16}$/.test(cleanTrx)) {
+    if (!cleanTrx || !isValidTrxId(cleanTrx)) {
       return { success: false, message: 'Please provide a valid 8-16 character alphanumeric bKash Transaction ID (TrxID).' };
     }
     const existingTrx = await db.query.orders.findFirst({
       where: eq(orders.paymentTrxId, cleanTrx),
     });
     if (existingTrx) {
-      return { success: false, message: 'This Transaction ID has already been submitted for another order. Please check and try again.' };
+      return { success: false, message: 'This Transaction ID has already been used. Please check it and try again.' };
+    }
+    const cleanSender = normalizeBdPhone(payload.senderPhone);
+    if (!payload.senderPhone || !isValidBdMobile(cleanSender)) {
+      return { success: false, message: 'Please provide a valid 11-digit Bangladeshi mobile number that you sent the bKash payment from.' };
     }
     verifiedTrxId = cleanTrx;
-    verifiedSenderPhone = payload.senderPhone ? payload.senderPhone.trim().replace(/\D/g, '') : null;
+    verifiedSenderPhone = cleanSender;
     paymentMethodLabel = 'bKash (Manual)';
     paymentStatusLabel = 'Awaiting Verification';
   } else if (payload.paymentMethod === 'nagad') {
@@ -196,17 +209,21 @@ export async function placeOrderAction(data: CheckoutFormValues & { promoCode?: 
       return { success: false, message: 'Nagad payments are currently unavailable. Please choose Cash on Delivery.' };
     }
     const cleanTrx = (payload.trxId || '').trim().toUpperCase();
-    if (!cleanTrx || !/^[A-Za-z0-9]{8,16}$/.test(cleanTrx)) {
+    if (!cleanTrx || !isValidTrxId(cleanTrx)) {
       return { success: false, message: 'Please provide a valid 8-16 character alphanumeric Nagad Transaction ID (TrxID).' };
     }
     const existingTrx = await db.query.orders.findFirst({
       where: eq(orders.paymentTrxId, cleanTrx),
     });
     if (existingTrx) {
-      return { success: false, message: 'This Transaction ID has already been submitted for another order. Please check and try again.' };
+      return { success: false, message: 'This Transaction ID has already been used. Please check it and try again.' };
+    }
+    const cleanSender = normalizeBdPhone(payload.senderPhone);
+    if (!payload.senderPhone || !isValidBdMobile(cleanSender)) {
+      return { success: false, message: 'Please provide a valid 11-digit Bangladeshi mobile number that you sent the Nagad payment from.' };
     }
     verifiedTrxId = cleanTrx;
-    verifiedSenderPhone = payload.senderPhone ? payload.senderPhone.trim().replace(/\D/g, '') : null;
+    verifiedSenderPhone = cleanSender;
     paymentMethodLabel = 'Nagad (Manual)';
     paymentStatusLabel = 'Awaiting Verification';
   } else if (payload.paymentMethod === 'online') {

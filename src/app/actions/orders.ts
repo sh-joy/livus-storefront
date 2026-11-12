@@ -10,6 +10,7 @@ import { restoreStockForOrderItems } from '@/lib/order-pricing';
 import { sendOrderStatusNotificationEmail } from '@/lib/email';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { verifyOrderConfirmationToken } from '@/lib/order-token';
+import { formatLocation } from '@/lib/bangladesh-geo';
 
 // NOTE: the old createOrderAction / getOrderByIdAction were removed. They were public endpoints that
 // trusted browser-supplied totals and exposed any order by number. Orders are placed via
@@ -51,7 +52,8 @@ function formatOrder(ord: OrderWithItems) {
     customerName: ord.customerName,
     phone: ord.phone,
     email: ord.email,
-    address: `${ord.shippingAddress}${ord.city ? `, ${ord.city}` : ''}`,
+    location: formatLocation(ord.city, ord.district),
+    address: [ord.shippingAddress, formatLocation(ord.city, ord.district)].filter(Boolean).join(', '),
     total: money(totalNum),
     status: ord.status || 'Pending',
     subtotal: money(subtotalNum),
@@ -433,8 +435,12 @@ export async function getConfirmedOrderDetailsAction(orderNumber: string) {
       authorized: true as const,
       orderNumber: ord.orderNumber,
       customerName: ord.customerName,
-      location: `${ord.shippingAddress}${ord.city ? `, ${ord.city}` : ''}`,
+      location: formatLocation(ord.city, ord.district),
+      shippingAddress: ord.shippingAddress,
       paymentMethod: ord.paymentMethod || 'Cash on Delivery',
+      paymentStatus: ord.paymentStatus || 'Unpaid (COD)',
+      paymentTrxId: ord.paymentTrxId || undefined,
+      paymentSenderPhone: ord.paymentSenderPhone || undefined,
       totalAmount: totalNum,
       status: ord.status || 'Pending',
       itemsCount: ord.items?.length || 0,

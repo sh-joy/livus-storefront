@@ -56,6 +56,8 @@ interface OrderRecord {
   totalAmount: number;
   paymentMethod: string;
   paymentStatus: string;
+  paymentTrxId?: string;
+  paymentSenderPhone?: string;
   status: string;
   createdAt: string;
   items: OrderItem[];
@@ -134,6 +136,20 @@ export default function AdminDashboardPage() {
   const pendingOrdersCount = ordersList.filter((o) => (o.status || '').toLowerCase() === 'pending').length;
   const deliveredOrdersCount = ordersList.filter((o) => (o.status || '').toLowerCase() === 'delivered').length;
   const fulfillmentPct = totalOrdersCount > 0 ? ((deliveredOrdersCount / totalOrdersCount) * 100).toFixed(1) : "0.0";
+
+  const isAwaitingVerification = (o: OrderRecord) => {
+    const method = (o.paymentMethod || "").toLowerCase();
+    const isWallet = method.includes("bkash") || method.includes("nagad");
+    const payStatus = (o.paymentStatus || "").toLowerCase();
+    return (
+      isWallet &&
+      (payStatus.includes("awaiting") ||
+        payStatus.includes("pending") ||
+        payStatus === "unpaid" ||
+        payStatus === "")
+    );
+  };
+  const awaitingVerificationCount = ordersList.filter(isAwaitingVerification).length;
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -284,8 +300,8 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* 2. 4 TOP METRIC CARDS GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* 2. TOP METRIC CARDS GRID */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         
         {/* Card 1: Order Value */}
         <div className="border border-neutral-200 bg-white p-4 font-sans rounded-none shadow-none flex flex-col justify-between">
@@ -308,7 +324,25 @@ export default function AdminDashboardPage() {
           <p className="text-[11px] text-neutral-400 mt-1">Across all Bangladesh divisions</p>
         </div>
 
-        {/* Card 3: Total Cancelled */}
+        {/* Card 3: Wallet Awaiting Verification */}
+        <Link
+          href="/admin/orders?filter=awaiting"
+          className="border border-amber-300 bg-amber-50/40 hover:bg-amber-50 p-4 font-sans rounded-none shadow-none flex flex-col justify-between transition-colors cursor-pointer group"
+        >
+          <div className="flex items-center justify-between">
+            <p className="text-xs uppercase font-medium text-amber-800">Awaiting Verification</p>
+            <span className="text-[10px] text-amber-700 font-medium group-hover:underline">View →</span>
+          </div>
+          <div className="flex items-center gap-2 mt-2">
+            <p className="text-2xl font-bold text-amber-900 font-mono">{awaitingVerificationCount}</p>
+            <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-amber-700">
+              bKash / Nagad
+            </span>
+          </div>
+          <p className="text-[11px] text-amber-700 mt-1">Manual wallet payments to check</p>
+        </Link>
+
+        {/* Card 4: Total Cancelled */}
         <div className="border border-neutral-200 bg-white p-4 font-sans rounded-none shadow-none flex flex-col justify-between">
           <p className="text-xs uppercase font-medium text-amber-700">Cancelled Orders</p>
           <div className="flex items-center gap-2 mt-2">
@@ -320,7 +354,7 @@ export default function AdminDashboardPage() {
           <p className="text-[11px] text-neutral-400 mt-1">Returned items to inventory</p>
         </div>
 
-        {/* Card 4: Fulfillment Rate */}
+        {/* Card 5: Fulfillment Rate */}
         <div className="border border-neutral-200 bg-white p-4 font-sans rounded-none shadow-none flex flex-col justify-between">
           <p className="text-xs uppercase font-medium text-neutral-500">Fulfillment Rate</p>
           <div className="flex items-center gap-2 mt-2">
@@ -617,6 +651,8 @@ export default function AdminDashboardPage() {
             totalAmount: Number(sidebarOrder.totalAmount) || 0,
             paymentMethod: sidebarOrder.paymentMethod,
             paymentStatus: sidebarOrder.paymentStatus,
+            paymentTrxId: sidebarOrder.paymentTrxId || undefined,
+            paymentSenderPhone: sidebarOrder.paymentSenderPhone || undefined,
             status: sidebarOrder.status,
             createdAt: String(sidebarOrder.createdAt),
             items: (sidebarOrder.items || []).map((it) => ({

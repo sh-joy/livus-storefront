@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +16,12 @@ import {
 import { getAllInventorySkusAction } from "@/app/actions/products";
 import { OrderDetailsDrawer } from "@/components/OrderDetailsDrawer";
 import { formatBdt } from "@/lib/utils";
+import {
+  BANGLADESH_DIVISIONS,
+  DIVISION_DISTRICTS_MAP,
+  formatLocation,
+  type BangladeshDivision,
+} from "@/lib/bangladesh-geo";
 import {
   Search,
   SlidersHorizontal,
@@ -33,40 +40,8 @@ import {
   Barcode,
   Eye,
   Check,
+  AlertCircle,
 } from "lucide-react";
-
-const REGION_CITIES_MAP: Record<string, string[]> = {
-  "Dhaka Division": [
-    "Dhaka", "Gazipur", "Narayanganj", "Tangail", "Faridpur",
-    "Manikganj", "Munshiganj", "Narsingdi", "Rajbari", "Shariatpur",
-    "Gopalganj", "Madaripur"
-  ],
-  "Chittagong Division": [
-    "Chittagong", "Cox's Bazar", "Cumilla", "Feni", "Noakhali",
-    "Brahmanbaria", "Chandpur", "Khagrachhari", "Rangamati", "Bandarban"
-  ],
-  "Sylhet Division": [
-    "Sylhet", "Moulvibazar", "Habiganj", "Sunamganj"
-  ],
-  "Rajshahi Division": [
-    "Rajshahi", "Bogra", "Pabna", "Naogaon", "Natore",
-    "Nawabganj", "Joypurhat", "Sirajganj"
-  ],
-  "Khulna Division": [
-    "Khulna", "Jeshore", "Kushtia", "Satkhira", "Bagerhat",
-    "Chuadanga", "Jhenaidah", "Magura", "Meherpur", "Narail"
-  ],
-  "Barishal Division": [
-    "Barishal", "Bhola", "Barguna", "Jhalokati", "Patuakhali", "Pirojpur"
-  ],
-  "Rangpur Division": [
-    "Rangpur", "Dinajpur", "Gaibandha", "Kurigram", "Lalmonirhat",
-    "Nilphamari", "Panchagarh", "Thakurgaon"
-  ],
-  "Mymensingh Division": [
-    "Mymensingh", "Jamalpur", "Netrokona", "Sherpur"
-  ]
-};
 
 interface OrderItem {
   id?: string;
@@ -116,7 +91,8 @@ interface SkuOption {
   productId?: string;
 }
 
-export default function AdminOrdersPage() {
+function AdminOrdersContent() {
+  const searchParams = useSearchParams();
   const [ordersList, setOrdersList] = useState<OrderRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -124,6 +100,13 @@ export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    const f = searchParams ? searchParams.get("filter") : null;
+    if (f === "awaiting" || f === "awaiting_verification") {
+      setStatusFilter("awaiting_verification");
+    }
+  }, [searchParams]);
 
   // Inventory SKUs
   const [inventorySkus, setInventorySkus] = useState<SkuOption[]>([]);
@@ -149,8 +132,8 @@ export default function AdminOrdersPage() {
   const [createPhone, setCreatePhone] = useState("");
   const [createEmail, setCreateEmail] = useState("");
   const [createAddress, setCreateAddress] = useState("");
-  const [createDistrict, setCreateDistrict] = useState("Dhaka Division");
-  const [createCity, setCreateCity] = useState("Dhaka");
+  const [createDivision, setCreateDivision] = useState<BangladeshDivision>("Dhaka");
+  const [createDistrict, setCreateDistrict] = useState("Dhaka");
   const [createStatus, setCreateStatus] = useState("Pending");
   const [itemTitle, setItemTitle] = useState("LIVUS Apparel Jersey");
   const [itemVariant, setItemVariant] = useState("Primary");
@@ -303,8 +286,8 @@ export default function AdminOrdersPage() {
 
   const handleCreateOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!createName.trim() || !createPhone.trim() || !createDistrict.trim()) {
-      alert("Please fill in customer name, phone, and district.");
+    if (!createName.trim() || !createPhone.trim() || !createDivision.trim() || !createDistrict.trim()) {
+      alert("Please fill in customer name, phone, division, and district.");
       return;
     }
 
@@ -315,8 +298,8 @@ export default function AdminOrdersPage() {
         phone: createPhone,
         email: createEmail,
         shippingAddress: createAddress,
-        city: createCity,
-        district: createDistrict,
+        city: createDistrict,
+        district: createDivision,
         status: createStatus,
         items: [
           {
@@ -382,14 +365,35 @@ export default function AdminOrdersPage() {
     }
   };
 
+  const isAwaitingVerification = (o: OrderRecord) => {
+    const method = (o.paymentMethod || '').toLowerCase();
+    const pStatus = (o.paymentStatus || '').toLowerCase();
+    return (
+      (method.includes('bkash') || method.includes('nagad')) &&
+      !pStatus.includes('verified') &&
+      !pStatus.includes('paid') &&
+      !pStatus.includes('not received') &&
+      !pStatus.includes('fail') &&
+      !pStatus.includes('reject') &&
+      (o.status || '').toLowerCase() !== 'cancelled'
+    );
+  };
+
   const filteredOrders = ordersList.filter((o) => {
-    const matchesStatus = statusFilter === "all" || o.status.toLowerCase() === statusFilter.toLowerCase();
+    let matchesStatus = true;
+    if (statusFilter === "awaiting" || statusFilter === "awaiting_verification") {
+      matchesStatus = isAwaitingVerification(o);
+    } else if (statusFilter !== "all") {
+      matchesStatus = o.status.toLowerCase() === statusFilter.toLowerCase();
+    }
     const q = searchQuery.toLowerCase().trim();
     const matchesQuery =
       !q ||
       o.orderNumber.toLowerCase().includes(q) ||
       o.customerName.toLowerCase().includes(q) ||
       o.phone.toLowerCase().includes(q) ||
+      (o.paymentTrxId && o.paymentTrxId.toLowerCase().includes(q)) ||
+      (o.paymentSenderPhone && o.paymentSenderPhone.toLowerCase().includes(q)) ||
       (o.city && o.city.toLowerCase().includes(q)) ||
       (o.district && o.district.toLowerCase().includes(q)) ||
       (o.items && o.items.some((i) => i.productName?.toLowerCase().includes(q)));
@@ -414,6 +418,38 @@ export default function AdminOrdersPage() {
     }
   };
 
+  const getPaymentBadge = (ord: OrderRecord) => {
+    const method = (ord.paymentMethod || '').toLowerCase();
+    const pStatus = (ord.paymentStatus || '').toLowerCase();
+
+    if (method.includes('bkash')) {
+      if (pStatus.includes('paid') || pStatus.includes('verified')) {
+        return <Badge className="bg-emerald-50 text-emerald-800 border-emerald-300 rounded-none text-[11px] font-medium px-2 py-0.5">bKash: Verified</Badge>;
+      }
+      if (pStatus.includes('not received') || pStatus.includes('fail') || pStatus.includes('reject')) {
+        return <Badge className="bg-rose-50 text-rose-800 border-rose-300 rounded-none text-[11px] font-medium px-2 py-0.5">Payment not received</Badge>;
+      }
+      return <Badge className="bg-amber-50 text-amber-800 border-amber-300 rounded-none text-[11px] font-medium px-2 py-0.5">bKash: Awaiting verification</Badge>;
+    }
+
+    if (method.includes('nagad')) {
+      if (pStatus.includes('paid') || pStatus.includes('verified')) {
+        return <Badge className="bg-emerald-50 text-emerald-800 border-emerald-300 rounded-none text-[11px] font-medium px-2 py-0.5">Nagad: Verified</Badge>;
+      }
+      if (pStatus.includes('not received') || pStatus.includes('fail') || pStatus.includes('reject')) {
+        return <Badge className="bg-rose-50 text-rose-800 border-rose-300 rounded-none text-[11px] font-medium px-2 py-0.5">Payment not received</Badge>;
+      }
+      return <Badge className="bg-amber-50 text-amber-800 border-amber-300 rounded-none text-[11px] font-medium px-2 py-0.5">Nagad: Awaiting verification</Badge>;
+    }
+
+    if (method.includes('cash') || method.includes('cod')) {
+      return <Badge variant="outline" className="rounded-none text-[11px] font-medium text-neutral-600 border-neutral-300 px-2 py-0.5">COD</Badge>;
+    }
+
+    return <Badge variant="outline" className="rounded-none text-[11px]">{ord.paymentMethod || 'COD'}</Badge>;
+  };
+
+  const awaitingCount = ordersList.filter(isAwaitingVerification).length;
   const pendingCount = ordersList.filter((o) => o.status === "Pending").length;
   const processingCount = ordersList.filter((o) => o.status === "Processing").length;
   const shippedCount = ordersList.filter((o) => o.status === "Shipped").length;
@@ -447,6 +483,7 @@ export default function AdminOrdersPage() {
                   onChange={(e) => setStatusFilter(e.target.value)}
                 >
                   <option value="all">All Order Statuses</option>
+                  <option value="awaiting_verification">Awaiting verification ({awaitingCount})</option>
                   <option value="pending">Pending</option>
                   <option value="processing">Processing</option>
                   <option value="shipped">Shipped</option>
@@ -499,32 +536,85 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
-      {/* 5 Metric Cards Grid (Including Cancelled Orders Card) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="border border-neutral-200 bg-white p-4 font-sans rounded-none shadow-none">
+      {/* 6 Metric Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+        <button
+          type="button"
+          onClick={() => setStatusFilter(statusFilter === "awaiting_verification" ? "all" : "awaiting_verification")}
+          className={`border p-4 font-sans rounded-none shadow-none text-left transition-colors cursor-pointer ${
+            statusFilter === "awaiting_verification"
+              ? "border-amber-500 bg-amber-50"
+              : "border-neutral-200 bg-white hover:bg-neutral-50"
+          }`}
+        >
+          <p className="text-xs uppercase font-medium text-amber-700">Awaiting Verification</p>
+          <p className="text-2xl font-bold mt-1 text-amber-900">{awaitingCount}</p>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setStatusFilter(statusFilter === "pending" ? "all" : "pending")}
+          className={`border p-4 font-sans rounded-none shadow-none text-left transition-colors cursor-pointer ${
+            statusFilter === "pending"
+              ? "border-black bg-neutral-50"
+              : "border-neutral-200 bg-white hover:bg-neutral-50"
+          }`}
+        >
           <p className="text-xs uppercase font-medium text-neutral-500">Pending Orders</p>
           <p className="text-2xl font-bold mt-1 text-neutral-900">{pendingCount}</p>
-        </div>
+        </button>
 
-        <div className="border border-neutral-200 bg-white p-4 font-sans rounded-none shadow-none">
+        <button
+          type="button"
+          onClick={() => setStatusFilter(statusFilter === "processing" ? "all" : "processing")}
+          className={`border p-4 font-sans rounded-none shadow-none text-left transition-colors cursor-pointer ${
+            statusFilter === "processing"
+              ? "border-blue-500 bg-blue-50"
+              : "border-neutral-200 bg-white hover:bg-neutral-50"
+          }`}
+        >
           <p className="text-xs uppercase font-medium text-blue-700">Processing Orders</p>
           <p className="text-2xl font-bold mt-1 text-blue-600">{processingCount}</p>
-        </div>
+        </button>
 
-        <div className="border border-neutral-200 bg-white p-4 font-sans rounded-none shadow-none">
+        <button
+          type="button"
+          onClick={() => setStatusFilter(statusFilter === "shipped" ? "all" : "shipped")}
+          className={`border p-4 font-sans rounded-none shadow-none text-left transition-colors cursor-pointer ${
+            statusFilter === "shipped"
+              ? "border-purple-500 bg-purple-50"
+              : "border-neutral-200 bg-white hover:bg-neutral-50"
+          }`}
+        >
           <p className="text-xs uppercase font-medium text-purple-700">Shipped Orders</p>
           <p className="text-2xl font-bold mt-1 text-purple-600">{shippedCount}</p>
-        </div>
+        </button>
 
-        <div className="border border-neutral-200 bg-white p-4 font-sans rounded-none shadow-none">
+        <button
+          type="button"
+          onClick={() => setStatusFilter(statusFilter === "delivered" ? "all" : "delivered")}
+          className={`border p-4 font-sans rounded-none shadow-none text-left transition-colors cursor-pointer ${
+            statusFilter === "delivered"
+              ? "border-emerald-500 bg-emerald-50"
+              : "border-neutral-200 bg-white hover:bg-neutral-50"
+          }`}
+        >
           <p className="text-xs uppercase font-medium text-emerald-700">Delivered Orders</p>
           <p className="text-2xl font-bold mt-1 text-emerald-600">{deliveredCount}</p>
-        </div>
+        </button>
 
-        <div className="border border-neutral-200 bg-white p-4 font-sans rounded-none shadow-none">
+        <button
+          type="button"
+          onClick={() => setStatusFilter(statusFilter === "cancelled" ? "all" : "cancelled")}
+          className={`border p-4 font-sans rounded-none shadow-none text-left transition-colors cursor-pointer ${
+            statusFilter === "cancelled"
+              ? "border-rose-500 bg-rose-50"
+              : "border-neutral-200 bg-white hover:bg-neutral-50"
+          }`}
+        >
           <p className="text-xs uppercase font-medium text-rose-700">Cancelled Orders</p>
           <p className="text-2xl font-bold mt-1 text-rose-600">{cancelledCount}</p>
-        </div>
+        </button>
       </div>
 
       {/* Table Section */}
@@ -587,6 +677,7 @@ export default function AdminOrdersPage() {
                 <TableHead className="font-semibold text-xs text-foreground">Location</TableHead>
                 <TableHead className="font-semibold text-xs text-foreground">Items</TableHead>
                 <TableHead className="font-semibold text-xs text-foreground">Total Price</TableHead>
+                <TableHead className="font-semibold text-xs text-foreground">Payment</TableHead>
                 <TableHead className="font-semibold text-xs text-foreground">Status</TableHead>
                 <TableHead className="text-right font-semibold text-xs text-foreground pr-4">Action</TableHead>
               </TableRow>
@@ -594,7 +685,7 @@ export default function AdminOrdersPage() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12 text-neutral-400 text-xs">
+                  <TableCell colSpan={9} className="text-center py-12 text-neutral-400 text-xs">
                     <div className="flex flex-col items-center gap-2">
                       <Loader2 className="size-5 animate-spin text-neutral-500" />
                       <span>Loading orders from database...</span>
@@ -603,7 +694,7 @@ export default function AdminOrdersPage() {
                 </TableRow>
               ) : filteredOrders.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12 text-neutral-400 text-xs">
+                  <TableCell colSpan={9} className="text-center py-12 text-neutral-400 text-xs">
                     No orders match your filter criteria.
                   </TableCell>
                 </TableRow>
@@ -641,11 +732,8 @@ export default function AdminOrdersPage() {
                       {/* Location */}
                       <TableCell className="py-3">
                         <span className="text-xs text-neutral-700 font-medium block">
-                          {ord.district || ord.city || "Bangladesh"}
+                          {formatLocation(ord.city, ord.district)}
                         </span>
-                        {ord.city && ord.district && (
-                          <span className="text-[11px] text-neutral-400 block">{ord.city}</span>
-                        )}
                       </TableCell>
 
                       {/* Items */}
@@ -658,6 +746,11 @@ export default function AdminOrdersPage() {
                       {/* Total Price */}
                       <TableCell className="py-3 font-semibold text-xs text-foreground">
                         {formatBdt(ord.totalAmount)}
+                      </TableCell>
+
+                      {/* Payment */}
+                      <TableCell className="py-3">
+                        {getPaymentBadge(ord)}
                       </TableCell>
 
                       {/* Status */}
@@ -869,41 +962,42 @@ export default function AdminOrdersPage() {
               />
             </div>
 
-            {/* Region / Division & City Dropdowns */}
+            {/* Division & District Dropdowns */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-neutral-700 font-semibold block mb-1">State / Region (District) *</label>
+                <label className="text-neutral-700 font-semibold block mb-1">Division *</label>
                 <select
                   required
-                  value={createDistrict}
+                  value={createDivision}
                   onChange={(e) => {
-                    const newRegion = e.target.value;
-                    setCreateDistrict(newRegion);
-                    const validCities = REGION_CITIES_MAP[newRegion] || [];
-                    if (createCity && !validCities.includes(createCity)) {
-                      setCreateCity("");
+                    const newDiv = e.target.value as BangladeshDivision;
+                    setCreateDivision(newDiv);
+                    const dists = DIVISION_DISTRICTS_MAP[newDiv] || [];
+                    if (!dists.includes(createDistrict)) {
+                      setCreateDistrict(dists[0] || "");
                     }
                   }}
                   className="w-full p-2 border border-neutral-300 bg-white outline-none focus:border-black cursor-pointer rounded-none"
                 >
-                  <option value="" disabled>Select State / Region *</option>
-                  {Object.keys(REGION_CITIES_MAP).map((regionName) => (
-                    <option key={regionName} value={regionName}>{regionName}</option>
+                  <option value="" disabled>Select Division *</option>
+                  {BANGLADESH_DIVISIONS.map((divName) => (
+                    <option key={divName} value={divName}>{divName}</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="text-neutral-700 font-semibold block mb-1">City *</label>
+                <label className="text-neutral-700 font-semibold block mb-1">District *</label>
                 <select
-                  value={createCity}
-                  onChange={(e) => setCreateCity(e.target.value)}
-                  disabled={!createDistrict}
+                  required
+                  value={createDistrict}
+                  onChange={(e) => setCreateDistrict(e.target.value)}
+                  disabled={!createDivision}
                   className="w-full p-2 border border-neutral-300 bg-white outline-none focus:border-black cursor-pointer rounded-none disabled:bg-neutral-100 disabled:cursor-not-allowed"
                 >
-                  <option value="">{createDistrict ? "Select City *" : "Select State / Region first *"}</option>
-                  {(REGION_CITIES_MAP[createDistrict] || []).map((cityName) => (
-                    <option key={cityName} value={cityName}>{cityName}</option>
+                  <option value="">{createDivision ? "Select District *" : "Select a division first *"}</option>
+                  {((createDivision ? DIVISION_DISTRICTS_MAP[createDivision] : []) || []).map((distName) => (
+                    <option key={distName} value={distName}>{distName}</option>
                   ))}
                 </select>
               </div>
@@ -1141,5 +1235,13 @@ export default function AdminOrdersPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function AdminOrdersPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-sm text-neutral-500">Loading orders...</div>}>
+      <AdminOrdersContent />
+    </Suspense>
   );
 }

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isValidBdMobile, isValidTrxId } from '@/lib/bangladesh-geo';
 
 export const CheckoutFormSchema = z.object({
   fullName: z
@@ -22,8 +23,10 @@ export const CheckoutFormSchema = z.object({
     .or(z.literal('')),
   streetAddress: z.string().optional(),
   aptSuite: z.string().optional(),
-  stateRegion: z.string().min(2, 'State / Region (District) is required'),
-  city: z.string().optional(),
+  division: z.string().optional(),
+  district: z.string().optional(),
+  stateRegion: z.string().min(2, 'Please choose your division'),
+  city: z.string().min(2, 'Please choose your district'),
   zipCode: z.string().optional(),
   deliveryInstructions: z.string().optional(),
   paymentMethod: z.enum(['online', 'cash', 'bkash', 'nagad']),
@@ -42,6 +45,39 @@ export const CheckoutFormSchema = z.object({
       })
     )
     .min(1, 'Your cart is empty. Please add items before checking out.'),
+}).superRefine((data, ctx) => {
+  if (data.paymentMethod === 'bkash' || data.paymentMethod === 'nagad') {
+    const walletName = data.paymentMethod === 'bkash' ? 'bKash' : 'Nagad';
+    const cleanTrx = (data.trxId || '').trim();
+    if (!cleanTrx) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['trxId'],
+        message: `Please enter your ${walletName} Transaction ID (TrxID)`,
+      });
+    } else if (!isValidTrxId(cleanTrx)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['trxId'],
+        message: 'Transaction ID must be 8-16 alphanumeric characters.',
+      });
+    }
+
+    const cleanSender = (data.senderPhone || '').trim();
+    if (!cleanSender) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['senderPhone'],
+        message: `Please enter your ${walletName} mobile number`,
+      });
+    } else if (!isValidBdMobile(cleanSender)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['senderPhone'],
+        message: 'Please enter a valid 11-digit Bangladeshi mobile number.',
+      });
+    }
+  }
 });
 
 export type CheckoutFormValues = z.infer<typeof CheckoutFormSchema>;

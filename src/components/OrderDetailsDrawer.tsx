@@ -131,20 +131,16 @@ export function OrderDetailsDrawer({
   const [status, setStatus] = useState<string>(order.status || 'Pending');
   const [paymentStatus, setPaymentStatus] = useState<string>(order.paymentStatus || 'Unpaid');
   const [verifyingPayment, setVerifyingPayment] = useState(false);
+  const [copiedTrxId, setCopiedTrxId] = useState(false);
+  const [copiedSenderPhone, setCopiedSenderPhone] = useState(false);
 
-  const handleVerifyPayment = async (action: 'verify' | 'reject') => {
-    let cancelOrder = false;
-    if (action === 'reject') {
-      cancelOrder = window.confirm('Reject payment and cancel this order to release reserved stock back to inventory?\n\n- Click OK to cancel order and return stock\n- Click Cancel to mark payment failed only');
-    }
+  const handleVerifyPayment = async (action: 'verify' | 'not_received') => {
     setVerifyingPayment(true);
     try {
-      const res = await verifyOrderPaymentAction(order.id, action, cancelOrder);
+      const res = await verifyOrderPaymentAction(order.id, action, false);
       if (res.success) {
-        setPaymentStatus(action === 'verify' ? (order.paymentMethod?.toLowerCase().includes('bkash') ? 'Paid (bKash Verified)' : 'Paid (Nagad Verified)') : 'Payment Failed / Rejected');
-        if (cancelOrder) {
-          setStatus('Cancelled');
-        }
+        const nextStatus = action === 'verify' ? 'Paid (Verified)' : 'Payment not received';
+        setPaymentStatus(nextStatus);
       } else {
         alert(res.message);
       }
@@ -971,56 +967,120 @@ export function OrderDetailsDrawer({
                 <span className="text-black text-sm font-medium">৳{grandTotal.toLocaleString()} BDT</span>
               </div>
             
-            {/* P0.3: Manual Wallet Verification (bKash / Nagad) */}
-            <div className="p-3 bg-neutral-50 border border-neutral-200 text-xs space-y-2 mt-2">
-              <div className="flex items-center justify-between">
-                <span className="text-neutral-500 font-medium">Payment Status:</span>
+            {/* Payment Box */}
+            <div className="p-3 bg-neutral-50 border border-neutral-200 text-xs space-y-3 mt-3">
+              <div className="flex items-center justify-between pb-2 border-b border-neutral-200">
+                <span className="font-semibold text-neutral-900 uppercase tracking-wider text-[11px]">Payment</span>
                 <span className={`px-2 py-0.5 font-mono text-[11px] font-semibold ${
                   paymentStatus.toLowerCase().includes('paid') || paymentStatus.toLowerCase().includes('verified')
                     ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                    : paymentStatus.toLowerCase().includes('fail') || paymentStatus.toLowerCase().includes('reject')
+                    : paymentStatus.toLowerCase().includes('not received') || paymentStatus.toLowerCase().includes('fail') || paymentStatus.toLowerCase().includes('reject')
                     ? 'bg-rose-100 text-rose-800 border border-rose-300'
                     : 'bg-amber-100 text-amber-800 border border-amber-300'
                 }`}>
                   {paymentStatus}
                 </span>
               </div>
-              {(order.paymentMethod?.toLowerCase().includes('bkash') || order.paymentMethod?.toLowerCase().includes('nagad')) && (
-                <div className="pt-2 border-t border-neutral-200 grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <span className="block text-neutral-500">TrxID to check</span>
-                    <span className="font-mono font-semibold text-neutral-900 select-all">{order.paymentTrxId || '—'}</span>
-                  </div>
-                  <div>
-                    <span className="block text-neutral-500">Sent from</span>
-                    <span className="font-mono text-neutral-900 select-all">{order.paymentSenderPhone || 'Not given'}</span>
-                  </div>
-                  <p className="col-span-2 text-[11px] text-neutral-500">
-                    Find this TrxID in your {order.paymentMethod?.toLowerCase().includes('bkash') ? 'bKash' : 'Nagad'} app or statement and check the amount is ৳{order.totalAmount.toLocaleString()}, then verify.
-                  </p>
+
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <span className="block text-neutral-500 text-[11px]">Method</span>
+                  <span className="font-medium text-neutral-900">{order.paymentMethod || 'Cash on Delivery'}</span>
                 </div>
-              )}
-              {(order.paymentMethod?.toLowerCase().includes('bkash') || order.paymentMethod?.toLowerCase().includes('nagad')) && (
-                <div className="pt-2 border-t border-neutral-200 flex items-center justify-end gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={verifyingPayment}
-                    onClick={() => handleVerifyPayment('reject')}
-                    className="h-7 text-[11px] rounded-none border-rose-300 text-rose-700 hover:bg-rose-50"
-                  >
-                    Reject Payment
-                  </Button>
-                  <Button
-                    size="sm"
-                    disabled={verifyingPayment}
-                    onClick={() => handleVerifyPayment('verify')}
-                    className="h-7 text-[11px] rounded-none bg-emerald-600 hover:bg-emerald-700 text-white"
-                  >
-                    {verifyingPayment ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Check className="w-3 h-3 mr-1" />}
-                    Verify Payment
-                  </Button>
+                <div>
+                  <span className="block text-neutral-500 text-[11px]">Amount Expected</span>
+                  <span className="font-semibold text-neutral-900">৳{order.totalAmount.toLocaleString()} BDT</span>
                 </div>
+              </div>
+
+              {(order.paymentMethod?.toLowerCase().includes('bkash') || order.paymentMethod?.toLowerCase().includes('nagad')) && (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-neutral-200 text-xs">
+                    <div>
+                      <span className="block text-neutral-500 text-[11px] mb-0.5">TrxID</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-semibold text-neutral-900 select-all break-all">
+                          {order.paymentTrxId || '—'}
+                        </span>
+                        {order.paymentTrxId && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(order.paymentTrxId!);
+                              setCopiedTrxId(true);
+                              setTimeout(() => setCopiedTrxId(false), 2000);
+                            }}
+                            className="p-1 hover:bg-neutral-200 text-neutral-600 rounded transition-colors inline-flex items-center gap-1 text-[10px]"
+                            title="Copy TrxID"
+                          >
+                            {copiedTrxId ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                            <span className="text-[10px]">{copiedTrxId ? 'Copied' : 'Copy'}</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="block text-neutral-500 text-[11px] mb-0.5">Sender Number</span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {order.paymentSenderPhone ? (
+                          <>
+                            <a
+                              href={`tel:${order.paymentSenderPhone}`}
+                              className="font-mono font-medium text-black hover:underline inline-flex items-center gap-1"
+                            >
+                              <Phone className="w-3 h-3 text-neutral-500" />
+                              {order.paymentSenderPhone}
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText(order.paymentSenderPhone!);
+                                setCopiedSenderPhone(true);
+                                setTimeout(() => setCopiedSenderPhone(false), 2000);
+                              }}
+                              className="p-1 hover:bg-neutral-200 text-neutral-600 rounded transition-colors inline-flex items-center gap-1 text-[10px]"
+                              title="Copy Sender Number"
+                            >
+                              {copiedSenderPhone ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                              <span className="text-[10px]">{copiedSenderPhone ? 'Copied' : 'Copy'}</span>
+                            </button>
+                          </>
+                        ) : (
+                          <span className="font-mono text-neutral-500">Not given</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-1 text-[11px] text-neutral-500">
+                    <span>Submitted: </span>
+                    <span className="text-neutral-700 font-medium">{order.createdAt || 'Just now'}</span>
+                  </div>
+
+                  <div className="pt-2 border-t border-neutral-200 flex items-center justify-end gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      type="button"
+                      disabled={verifyingPayment}
+                      onClick={() => handleVerifyPayment('not_received')}
+                      className="h-8 text-[11px] rounded-none border-rose-300 text-rose-700 hover:bg-rose-50"
+                    >
+                      Payment not received
+                    </Button>
+                    <Button
+                      size="sm"
+                      type="button"
+                      disabled={verifyingPayment}
+                      onClick={() => handleVerifyPayment('verify')}
+                      className="h-8 text-[11px] rounded-none bg-emerald-600 hover:bg-emerald-700 text-white"
+                    >
+                      {verifyingPayment ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Check className="w-3 h-3 mr-1" />}
+                      Mark as verified
+                    </Button>
+                  </div>
+                </>
               )}
             </div></div>
 

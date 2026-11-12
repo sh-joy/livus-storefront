@@ -446,6 +446,72 @@ export function CheckoutPage() {
     );
   }
 
+
+  /** Send Money instructions + proof fields, shown under the selected bKash / Nagad row. */
+  const renderWalletBox = (wallet: string, number: string, ussd: string, key: string) => (
+    <div className="border border-t-0 border-[var(--lv-line)] px-4 sm:px-5 pb-5 flex flex-col gap-5">
+      <div className="divide-y divide-[var(--lv-line)]">
+        {[
+          { label: `Send Money to our ${wallet} number`, value: number, copy: number, id: `${key}Number` },
+          { label: "Exact amount to send", value: formatBdt(totalVal), copy: String(totalVal), id: `${key}Amount` },
+        ].map((row) => (
+          <div key={row.id} className="flex items-center justify-between gap-4 py-4">
+            <div className="flex flex-col gap-1 min-w-0">
+              <span className="t-small text-[var(--lv-ink-muted)]">{row.label}</span>
+              <span className="text-[20px] leading-none tabular-nums tracking-[0.01em] text-[#0d0d0d]" style={{ fontWeight: 500 }}>
+                {row.value}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleCopy(row.copy, row.id)}
+              className="t-small shrink-0 underline underline-offset-4 decoration-[var(--lv-line)] hover:decoration-[#0d0d0d] text-[#0d0d0d] bg-transparent border-0 p-0 cursor-pointer"
+            >
+              {copiedField === row.id ? "Copied" : "Copy"}
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <ol className="m-0 p-0 list-none flex flex-col gap-2">
+        {[
+          <>Open {wallet} (or dial {ussd}) and choose <strong className="font-medium">Send Money</strong>, not Payment.</>,
+          <>Send <strong className="font-medium">{formatBdt(totalVal)}</strong> to the number above.</>,
+          <>Enter the Transaction ID and the number you sent from below.</>,
+        ].map((step, i) => (
+          <li key={i} className="t-small flex gap-3 text-[#3a3a3a]">
+            <span className="tabular-nums text-[var(--lv-ink-muted)] w-4 shrink-0">{i + 1}.</span>
+            <span>{step}</span>
+          </li>
+        ))}
+      </ol>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <InputField
+          label="Transaction ID (TrxID) *"
+          value={trxId}
+          onChange={(v) => {
+            setTrxId(v.toUpperCase().replace(/\s/g, ""));
+            if (errors.trxId) setErrors((prev) => ({ ...prev, trxId: "" }));
+          }}
+          error={errors.trxId}
+        />
+        <InputField
+          label={`Your ${wallet} number *`}
+          type="tel"
+          value={senderPhone}
+          onChange={(v) => {
+            setSenderPhone(v);
+            if (errors.senderPhone) setErrors((prev) => ({ ...prev, senderPhone: "" }));
+          }}
+          error={errors.senderPhone}
+        />
+      </div>
+
+      <p className="t-small m-0 text-[var(--lv-ink-muted)]">We check the payment and confirm your order by phone before dispatch.</p>
+    </div>
+  );
+
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: "#ffffff" }}>
       <SiteNav />
@@ -705,7 +771,7 @@ export function CheckoutPage() {
                         minHeight: "56px",
                         padding: "14px 16px",
                         border: payment === "bkash" ? "1.5px solid #000000" : "1px solid var(--lv-line, #e2e8f0)",
-                        background: !isBkashConfigured ? "#fcfcfc" : payment === "bkash" ? "#fafafa" : "#ffffff",
+                        background: !isBkashConfigured ? "#fcfcfc" : "#ffffff",
                         cursor: isBkashConfigured ? "pointer" : "not-allowed",
                         opacity: isBkashConfigured ? 1 : 0.55,
                         boxSizing: "border-box",
@@ -728,78 +794,7 @@ export function CheckoutPage() {
                     </button>
 
                     {/* bKash Instruction box: opens directly under bKash row */}
-                    {payment === "bkash" && isBkashConfigured && (
-                      <div className="border border-t-0 border-[var(--lv-line,rgba(0,0,0,0.15))] bg-[#fafafa] p-4 sm:p-5 flex flex-col gap-4">
-                        {/* Number Row */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-white border border-[var(--lv-line,rgba(0,0,0,0.1))]">
-                          <div className="flex flex-col">
-                            <span className="t-small text-[var(--lv-ink-muted)]">Send Money to our bKash number</span>
-                            <span className="text-[20px] font-mono tracking-[0.04em] text-[#0d0d0d] tabular-nums font-semibold">{bkashNumber}</span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleCopy(bkashNumber, "bkashNumber")}
-                            className="lv-btn lv-btn--outline !min-h-9 !px-3 !text-[13px] self-start sm:self-auto"
-                          >
-                            {copiedField === "bkashNumber" ? "Copied" : "Copy"}
-                          </button>
-                        </div>
-
-                        {/* Amount Row */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-white border border-[var(--lv-line,rgba(0,0,0,0.1))]">
-                          <div className="flex flex-col">
-                            <span className="t-small text-[var(--lv-ink-muted)]">Exact amount to send</span>
-                            <span className="text-[20px] font-mono tracking-[0.04em] text-[#0d0d0d] tabular-nums font-semibold">{formatBdt(totalVal)}</span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleCopy(String(totalVal), "bkashAmount")}
-                            className="lv-btn lv-btn--outline !min-h-9 !px-3 !text-[13px] self-start sm:self-auto"
-                          >
-                            {copiedField === "bkashAmount" ? "Copied" : "Copy"}
-                          </button>
-                        </div>
-
-                        {/* Steps */}
-                        <ol className="t-small m-0 pl-5 list-decimal flex flex-col gap-1 text-[#3a3a3a]">
-                          <li>Open bKash (or dial *247#) and choose <strong>Send Money</strong>, not Payment.</li>
-                          <li>Send <strong>{formatBdt(totalVal)}</strong> to the number above.</li>
-                          <li>Enter the Transaction ID and the number you sent from below.</li>
-                        </ol>
-
-                        {/* Required Fields */}
-                        <div className="flex flex-col sm:flex-row gap-3">
-                          <div className="flex-1">
-                            <InputField
-                              label="Transaction ID (TrxID) *"
-                              value={trxId}
-                              onChange={(v) => {
-                                const upper = v.toUpperCase().replace(/\s/g, '');
-                                setTrxId(upper);
-                                if (errors.trxId) setErrors((prev) => ({ ...prev, trxId: "" }));
-                              }}
-                              error={errors.trxId}
-                              placeholder="e.g. 9J47AB12"
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <InputField
-                              label="Your bKash number *"
-                              type="tel"
-                              value={senderPhone}
-                              onChange={(v) => {
-                                setSenderPhone(v);
-                                if (errors.senderPhone) setErrors((prev) => ({ ...prev, senderPhone: "" }));
-                              }}
-                              error={errors.senderPhone}
-                              placeholder="01XXXXXXXXX"
-                            />
-                          </div>
-                        </div>
-
-                        <p className="t-small m-0 text-[var(--lv-ink-muted)]">We check the payment and confirm your order by phone before dispatch.</p>
-                      </div>
-                    )}
+                    {payment === "bkash" && isBkashConfigured && renderWalletBox("bKash", bkashNumber, "*247#", "bkash")}
                   </div>
 
                   {/* Nagad */}
@@ -816,7 +811,7 @@ export function CheckoutPage() {
                         minHeight: "56px",
                         padding: "14px 16px",
                         border: payment === "nagad" ? "1.5px solid #000000" : "1px solid var(--lv-line, #e2e8f0)",
-                        background: !isNagadConfigured ? "#fcfcfc" : payment === "nagad" ? "#fafafa" : "#ffffff",
+                        background: !isNagadConfigured ? "#fcfcfc" : "#ffffff",
                         cursor: isNagadConfigured ? "pointer" : "not-allowed",
                         opacity: isNagadConfigured ? 1 : 0.55,
                         boxSizing: "border-box",
@@ -839,78 +834,7 @@ export function CheckoutPage() {
                     </button>
 
                     {/* Nagad Instruction box: opens directly under Nagad row */}
-                    {payment === "nagad" && isNagadConfigured && (
-                      <div className="border border-t-0 border-[var(--lv-line,rgba(0,0,0,0.15))] bg-[#fafafa] p-4 sm:p-5 flex flex-col gap-4">
-                        {/* Number Row */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-white border border-[var(--lv-line,rgba(0,0,0,0.1))]">
-                          <div className="flex flex-col">
-                            <span className="t-small text-[var(--lv-ink-muted)]">Send Money to our Nagad number</span>
-                            <span className="text-[20px] font-mono tracking-[0.04em] text-[#0d0d0d] tabular-nums font-semibold">{nagadNumber}</span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleCopy(nagadNumber, "nagadNumber")}
-                            className="lv-btn lv-btn--outline !min-h-9 !px-3 !text-[13px] self-start sm:self-auto"
-                          >
-                            {copiedField === "nagadNumber" ? "Copied" : "Copy"}
-                          </button>
-                        </div>
-
-                        {/* Amount Row */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-white border border-[var(--lv-line,rgba(0,0,0,0.1))]">
-                          <div className="flex flex-col">
-                            <span className="t-small text-[var(--lv-ink-muted)]">Exact amount to send</span>
-                            <span className="text-[20px] font-mono tracking-[0.04em] text-[#0d0d0d] tabular-nums font-semibold">{formatBdt(totalVal)}</span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleCopy(String(totalVal), "nagadAmount")}
-                            className="lv-btn lv-btn--outline !min-h-9 !px-3 !text-[13px] self-start sm:self-auto"
-                          >
-                            {copiedField === "nagadAmount" ? "Copied" : "Copy"}
-                          </button>
-                        </div>
-
-                        {/* Steps */}
-                        <ol className="t-small m-0 pl-5 list-decimal flex flex-col gap-1 text-[#3a3a3a]">
-                          <li>Open Nagad (or dial *167#) and choose <strong>Send Money</strong>, not Payment.</li>
-                          <li>Send <strong>{formatBdt(totalVal)}</strong> to the number above.</li>
-                          <li>Enter the Transaction ID and the number you sent from below.</li>
-                        </ol>
-
-                        {/* Required Fields */}
-                        <div className="flex flex-col sm:flex-row gap-3">
-                          <div className="flex-1">
-                            <InputField
-                              label="Transaction ID (TrxID) *"
-                              value={trxId}
-                              onChange={(v) => {
-                                const upper = v.toUpperCase().replace(/\s/g, '');
-                                setTrxId(upper);
-                                if (errors.trxId) setErrors((prev) => ({ ...prev, trxId: "" }));
-                              }}
-                              error={errors.trxId}
-                              placeholder="e.g. 9J47AB12"
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <InputField
-                              label="Your Nagad number *"
-                              type="tel"
-                              value={senderPhone}
-                              onChange={(v) => {
-                                setSenderPhone(v);
-                                if (errors.senderPhone) setErrors((prev) => ({ ...prev, senderPhone: "" }));
-                              }}
-                              error={errors.senderPhone}
-                              placeholder="01XXXXXXXXX"
-                            />
-                          </div>
-                        </div>
-
-                        <p className="t-small m-0 text-[var(--lv-ink-muted)]">We check the payment and confirm your order by phone before dispatch.</p>
-                      </div>
-                    )}
+                    {payment === "nagad" && isNagadConfigured && renderWalletBox("Nagad", nagadNumber, "*167#", "nagad")}
                   </div>
 
                 </div>

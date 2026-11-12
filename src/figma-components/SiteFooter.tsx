@@ -284,7 +284,7 @@ export function SiteFooter({ compact = false }: SiteFooterProps) {
       {/* Main: logo + about/contact (left), link columns (right) */}
       <div
         className={`px-[var(--lv-gutter)] pb-6 md:pb-8 ${
-          compact ? "pt-[clamp(32px,4vw,56px)]" : "pt-[clamp(40px,6vw,88px)]"
+          compact ? "pt-[clamp(32px,4vw,56px)]" : "pt-20 md:pt-[148px]"
         }`}
       >
         <div className="flex flex-col lg:flex-row lg:justify-between gap-6 md:gap-10">

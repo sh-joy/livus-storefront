@@ -1,14 +1,12 @@
 import Image, { type StaticImageData } from 'next/image';
-import Link from 'next/link';
-import { Wind, Activity, Wallet, Truck, Shield, Zap, Award, RefreshCw, ArrowRight } from 'lucide-react';
+import { Wind, Activity, Wallet, Truck, Shield, Zap, Award, RefreshCw, Sun, Layers } from 'lucide-react';
 import type { AboutLayout, WhyIcon } from '@/lib/about-layout';
-import { RichText } from '@/components/storefront/RichText';
 
 // Brand photos already used on the homepage: stand-ins until the owner uploads About photos in admin.
 import heroFallback from '@/imports/Homepage/cd8123b8a9ab8a34443daf47f95966a2cb8719ce.png';
-import storyFallback from '@/imports/Homepage/21edf1b8dee7cef23ed2ec91e1a1b0550b6c38c9.png';
-import himFallback from '@/imports/Homepage/d0bebc10c59b7c075b3c9a8b180df7af46874e97.png';
-import herFallback from '@/imports/Homepage/567e4da671b456cb109158110b48b3f597529eca.png';
+import sideFallback from '@/imports/Homepage/21edf1b8dee7cef23ed2ec91e1a1b0550b6c38c9.png';
+import bandLeftFallback from '@/imports/Homepage/d0bebc10c59b7c075b3c9a8b180df7af46874e97.png';
+import bandRightFallback from '@/imports/Homepage/567e4da671b456cb109158110b48b3f597529eca.png';
 
 const ICONS: Record<WhyIcon, typeof Wind> = {
   wind: Wind,
@@ -20,30 +18,39 @@ const ICONS: Record<WhyIcon, typeof Wind> = {
   award: Award,
   'refresh-cw': RefreshCw,
 };
+const PILLAR_ICONS = [Activity, Sun, Layers];
 
-const pick = (url: string, fallback: StaticImageData): string | StaticImageData => (url ? url : fallback);
+const pick = (url: string | undefined, fallback: StaticImageData): string | StaticImageData => (url ? url : fallback);
 
-/** Section label used across the page: small uppercase eyebrow with a short rule. */
-function Eyebrow({ children }: { children: React.ReactNode }) {
+/* Light, large type, the look of the reference page. Overused Grotesk is a variable font, so 300 is real. */
+const statement = 'm-0 !font-light text-[clamp(40px,5.2vw,72px)] leading-[1.1] tracking-[-0.03em]';
+const pillarTitle = 'm-0 !font-light text-[clamp(32px,3.4vw,50px)] leading-none tracking-[-0.02em]';
+const itemTitle = 'm-0 !font-light text-[clamp(24px,2.2vw,30px)] leading-none';
+const smallText = 'm-0 text-[15px] leading-[1.55] text-neutral-600';
+
+/** "First part. Rest" → first part in ink, the rest in grey (two-tone statement). */
+function TwoTone({ text }: { text: string }) {
+  const m = text.match(/^([^.:]+[.:])\s+([\s\S]+)$/);
+  if (!m) return <>{text}</>;
   return (
-    <p className="t-eyebrow m-0 flex items-center gap-3 text-neutral-500">
-      <span aria-hidden className="inline-block h-px w-8 bg-neutral-400" />
-      {children}
-    </p>
+    <>
+      {m[1]} <span className="text-neutral-400">{m[2]}</span>
+    </>
   );
 }
 
 export function AboutLayoutView({ layout }: { layout: AboutLayout }) {
-  const { hero, manifesto, pillars, story, why, stats, cta } = layout;
-  const pillarItems = pillars.items.filter((p) => p.title);
-  const whyItems = why.items.filter((w) => w.title);
-  const statItems = stats.items.filter((s) => s.value && s.label);
+  const { hero, manifesto, pillars, story, why, stats } = layout;
+  const pillarItems = pillars.items.filter((p) => p.title).slice(0, 3);
+  const whyItems = why.items.filter((w) => w.title).slice(0, 4);
+  const statItems = stats.items.filter((s) => s.value && s.label).slice(0, 4);
+  const sideImage = pillarItems.find((p) => p.imageUrl)?.imageUrl;
 
   return (
     <div className="bg-white text-[#0d0d0d]">
-      {/* 1 ─ Hero: tall photo + big statement, with the manifesto underneath */}
+      {/* 1 ─ Hero: photo left, big light statement right */}
       {hero.enabled ? (
-        <section className="grid lg:grid-cols-2 border-b border-[var(--lv-line)]">
+        <section className="grid lg:grid-cols-2">
           <div className="relative aspect-[4/5] lg:aspect-auto lg:min-h-[calc(100svh-96px)] bg-[#f0f0f0] overflow-hidden">
             <Image
               src={pick(hero.imageUrl, heroFallback)}
@@ -54,14 +61,11 @@ export function AboutLayoutView({ layout }: { layout: AboutLayout }) {
               className="object-cover object-top"
             />
           </div>
-          <div className="flex flex-col justify-center gap-[clamp(24px,3vw,40px)] px-[var(--lv-gutter)] lg:px-[clamp(32px,5vw,88px)] py-[clamp(40px,7vw,112px)]">
-            <Eyebrow>About LIVUS</Eyebrow>
-            <h1 className="t-display m-0" style={{ fontSize: 'clamp(44px, 6.2vw, 104px)', lineHeight: 0.92 }}>
-              {hero.headline}
-            </h1>
-            {hero.lead && <p className="t-lead m-0 max-w-[520px]">{hero.lead}</p>}
+          <div className="flex flex-col justify-center gap-[clamp(28px,3.5vw,48px)] px-[var(--lv-gutter)] lg:px-[clamp(32px,4.5vw,80px)] py-[clamp(48px,7vw,112px)]">
+            <h1 className={statement}>{hero.headline}</h1>
+            {hero.lead && <p className="m-0 text-[17px] leading-[1.55] text-neutral-600 max-w-[520px]">{hero.lead}</p>}
             {manifesto.enabled && manifesto.text && (
-              <p className="m-0 max-w-[560px] text-[13px] leading-[1.75] tracking-[0.08em] uppercase text-neutral-600 border-t border-[var(--lv-line)] pt-[clamp(20px,2.4vw,32px)]">
+              <p className="m-0 max-w-[600px] text-[clamp(14px,1.15vw,17px)] leading-[1.6] tracking-[0.01em] uppercase text-neutral-800">
                 {manifesto.text}
               </p>
             )}
@@ -71,61 +75,25 @@ export function AboutLayoutView({ layout }: { layout: AboutLayout }) {
         <h1 className="sr-only">About LIVUS: Bangladeshi sportswear brand</h1>
       )}
 
-      {/* Manifesto on its own when the hero is hidden */}
-      {!hero.enabled && manifesto.enabled && manifesto.text && (
-        <section className="px-[var(--lv-gutter)] py-[clamp(56px,8vw,120px)] border-b border-[var(--lv-line)]">
-          <p className="m-0 mx-auto max-w-[880px] text-center text-[clamp(15px,1.4vw,19px)] leading-[1.7] tracking-[0.08em] uppercase">
-            {manifesto.text}
-          </p>
-        </section>
-      )}
-
-      {/* 2 ─ Pillars: numbered columns, no boxes */}
+      {/* 2 ─ Pillars stacked and centred on the left, tall photo on the right */}
       {pillars.enabled && pillarItems.length > 0 && (
-        <section className="px-[var(--lv-gutter)] py-[clamp(56px,8vw,120px)]">
-          <div className="flex flex-col gap-4 mb-[clamp(32px,4vw,56px)]">
-            <Eyebrow>Our approach</Eyebrow>
-            {pillars.heading && <h2 className="t-h2 m-0">{pillars.heading}</h2>}
-          </div>
-          <div className="grid gap-x-[clamp(20px,3vw,48px)] gap-y-12 md:grid-cols-3">
-            {pillarItems.map((p, i) => (
-              <article key={i} className="flex flex-col gap-4">
-                {p.imageUrl && (
-                  <div className="relative aspect-[4/5] bg-[#f0f0f0] overflow-hidden mb-2">
-                    <Image src={p.imageUrl} alt={p.title} fill sizes="(max-width: 767px) 100vw, 33vw" className="object-cover" />
-                  </div>
-                )}
-                <div className="border-t border-[#0d0d0d] pt-4 flex items-baseline justify-between gap-4">
-                  <h3 className="t-h3 m-0">{p.title}</h3>
-                  <span className="t-small text-neutral-400 tabular-nums">{String(i + 1).padStart(2, '0')}</span>
-                </div>
-                {p.description && <p className="t-body m-0 text-neutral-600 max-w-[420px]">{p.description}</p>}
-              </article>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* 3 ─ Story: text panel + photo (mirror of the hero) */}
-      {story.enabled && (story.headline || story.body) && (
         <section className="grid lg:grid-cols-2">
-          <div className="order-2 lg:order-1 flex flex-col justify-center gap-[clamp(20px,2.4vw,32px)] bg-[#f4f4f2] px-[var(--lv-gutter)] lg:px-[clamp(32px,5vw,88px)] py-[clamp(48px,7vw,112px)]">
-            <Eyebrow>{story.foundingYear ? `Our story · Since ${story.foundingYear}` : 'Our story'}</Eyebrow>
-            {story.headline && (
-              <h2 className="t-h2 m-0 max-w-[640px]" style={{ fontSize: 'clamp(32px, 4.2vw, 64px)' }}>
-                {story.headline}
-              </h2>
-            )}
-            {story.body && (
-              <div className="t-body text-neutral-700 max-w-[560px] lv-prose">
-                <RichText text={story.body} />
-              </div>
-            )}
+          <div className="flex flex-col justify-center gap-[clamp(48px,6vw,88px)] px-[var(--lv-gutter)] lg:px-[clamp(32px,5vw,96px)] py-[clamp(64px,8vw,120px)] bg-[#fafafa]">
+            {pillarItems.map((p, i) => {
+              const Icon = PILLAR_ICONS[i] ?? Activity;
+              return (
+                <div key={i} className="flex flex-col items-center text-center gap-4 mx-auto max-w-[520px]">
+                  <Icon className="size-6 stroke-[1.25]" aria-hidden />
+                  <h2 className={pillarTitle}>{p.title}</h2>
+                  {p.description && <p className={smallText}>{p.description}</p>}
+                </div>
+              );
+            })}
           </div>
-          <div className="order-1 lg:order-2 relative aspect-[4/5] lg:aspect-auto lg:min-h-[640px] bg-[#f0f0f0] overflow-hidden">
+          <div className="relative aspect-[4/5] lg:aspect-auto lg:min-h-[760px] bg-[#f0f0f0] overflow-hidden">
             <Image
-              src={pick(story.imageUrl, storyFallback)}
-              alt="LIVUS sportswear in use"
+              src={pick(sideImage, sideFallback)}
+              alt="LIVUS sportswear"
               fill
               sizes="(max-width: 1023px) 100vw, 50vw"
               className="object-cover object-top"
@@ -134,78 +102,63 @@ export function AboutLayoutView({ layout }: { layout: AboutLayout }) {
         </section>
       )}
 
-      {/* 4 ─ Why LIVUS: open row divided by hairlines */}
-      {why.enabled && whyItems.length > 0 && (
-        <section className="px-[var(--lv-gutter)] py-[clamp(56px,8vw,120px)]">
-          <div className="flex flex-col gap-4 mb-[clamp(32px,4vw,56px)]">
-            <Eyebrow>What you get</Eyebrow>
-            {why.heading && <h2 className="t-h2 m-0">{why.heading}</h2>}
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 border-t border-[#0d0d0d]">
-            {whyItems.map((w, i) => {
-              const Icon = ICONS[w.icon] ?? Wind;
-              return (
-                <div
-                  key={i}
-                  className={`flex flex-col gap-3 py-8 border-b border-[var(--lv-line)] lg:border-b-0 ${
-                    i > 0 ? 'lg:border-l lg:pl-6' : ''
-                  } ${i % 2 === 1 ? 'sm:pl-6 sm:border-l lg:pl-6' : ''} lg:pr-6`}
-                >
-                  <Icon className="size-6 stroke-[1.5]" aria-hidden />
-                  <h3 className="m-0 text-[17px] font-semibold tracking-[-0.01em]">{w.title}</h3>
-                  {w.description && <p className="t-small m-0 text-neutral-600 max-w-[300px]">{w.description}</p>}
-                </div>
-              );
-            })}
+      {/* 3 ─ One big two-tone statement */}
+      {story.enabled && story.headline && (
+        <section className="px-[var(--lv-gutter)] py-[clamp(72px,10vw,160px)]">
+          <div className="max-w-[1120px] lg:pl-[clamp(0px,6vw,120px)]">
+            <p className={statement}>
+              {story.foundingYear ? `Since ${story.foundingYear}, ` : ''}
+              <TwoTone text={story.headline} />
+            </p>
+            {story.body && <p className={`${smallText} mt-8 max-w-[560px]`}>{story.body}</p>}
           </div>
         </section>
+      )}
+
+      {/* 4 ─ Full-width photo band with a white statement, then four benefits */}
+      {why.enabled && whyItems.length > 0 && (
+        <>
+          <section className="relative grid grid-cols-2 h-[clamp(360px,48vw,680px)] overflow-hidden bg-[#0d0d0d]">
+            <div className="relative">
+              <Image src={pick(story.imageUrl, bandLeftFallback)} alt="" aria-hidden fill sizes="50vw" className="object-cover object-top" />
+            </div>
+            <div className="relative">
+              <Image src={bandRightFallback} alt="" aria-hidden fill sizes="50vw" className="object-cover object-top" />
+            </div>
+            <div className="absolute inset-0 bg-black/25" aria-hidden />
+            {why.heading && (
+              <h2 className={`${statement} absolute inset-0 flex items-center justify-center text-center px-[var(--lv-gutter)] !text-white`}>
+                <span className="max-w-[760px]">{why.heading}</span>
+              </h2>
+            )}
+          </section>
+
+          <section className="px-[var(--lv-gutter)] py-[clamp(64px,8vw,120px)]">
+            <div className="mx-auto max-w-[1000px] grid gap-x-10 gap-y-[clamp(48px,6vw,80px)] sm:grid-cols-2">
+              {whyItems.map((w, i) => {
+                const Icon = ICONS[w.icon] ?? Wind;
+                return (
+                  <div key={i} className="flex flex-col items-center text-center gap-4">
+                    <Icon className="size-6 stroke-[1.25]" aria-hidden />
+                    <h3 className={itemTitle}>{w.title}</h3>
+                    {w.description && <p className={`${smallText} max-w-[340px]`}>{w.description}</p>}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        </>
       )}
 
       {/* 5 ─ Numbers: only when the owner has entered real figures */}
       {stats.enabled && statItems.length > 0 && (
-        <section className="bg-[#0d0d0d] text-white px-[var(--lv-gutter)] py-[clamp(56px,7vw,104px)]">
-          {stats.heading && <h2 className="t-h2 m-0 mb-10 !text-white">{stats.heading}</h2>}
-          <div className={`grid gap-10 grid-cols-2 ${statItems.length >= 4 ? 'lg:grid-cols-4' : statItems.length === 3 ? 'lg:grid-cols-3' : ''}`}>
-            {statItems.map((s, i) => (
-              <div key={i} className="flex flex-col gap-2 border-t border-white/25 pt-5">
-                <span className="font-semibold tracking-[-0.05em] leading-none" style={{ fontSize: 'clamp(44px, 5.5vw, 88px)' }}>
-                  {s.value}
-                </span>
-                <span className="t-eyebrow text-white/70">{s.label}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* 6 ─ Close: two big shop panels, same language as the homepage */}
-      {cta.enabled && (
-        <section className="px-[var(--lv-gutter)] pb-[clamp(56px,8vw,120px)] pt-[clamp(8px,2vw,24px)]">
-          {(cta.heading || cta.lead) && (
-            <div className="flex flex-col gap-3 mb-[clamp(24px,3vw,40px)] md:flex-row md:items-end md:justify-between md:gap-10">
-              {cta.heading && <h2 className="t-h2 m-0">{cta.heading}</h2>}
-              {cta.lead && <p className="t-lead m-0 max-w-[440px]">{cta.lead}</p>}
+        <section className={`grid grid-cols-2 ${statItems.length >= 4 ? 'lg:grid-cols-4' : statItems.length === 3 ? 'lg:grid-cols-3' : ''}`}>
+          {statItems.map((s, i) => (
+            <div key={i} className="flex flex-col justify-end gap-3 bg-[#0d0d0d] text-white aspect-[3/4] p-[clamp(16px,2vw,28px)] border-r border-white/10 last:border-r-0">
+              <span className="!font-light tracking-[-0.04em] leading-none text-[clamp(48px,6vw,96px)]">{s.value}</span>
+              <span className="text-[14px] text-white/75">{s.label}</span>
             </div>
-          )}
-          <div className="grid gap-2 sm:grid-cols-2">
-            {[
-              { href: cta.buttonMenHref || '/for-him', label: cta.buttonMenText || "Shop men's sportswear", line: 'For Him', src: himFallback },
-              { href: cta.buttonWomenHref || '/for-her', label: cta.buttonWomenText || "Shop women's sportswear", line: 'For Her', src: herFallback },
-            ].map((c) => (
-              <Link key={c.href} href={c.href} className="group relative block aspect-[4/5] sm:aspect-square overflow-hidden bg-[#f0f0f0] no-underline">
-                <Image src={c.src} alt="" aria-hidden fill sizes="(max-width: 639px) 100vw, 50vw" className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]" />
-                <div className="absolute inset-0 flex flex-col justify-between p-[clamp(16px,2.4vw,32px)]">
-                  <span className="t-display" style={{ fontSize: 'clamp(48px, 6vw, 96px)', lineHeight: 0.85 }}>
-                    {c.line}
-                  </span>
-                  <span className="lv-btn lv-btn--light self-end !px-5 group-hover:!bg-[#0d0d0d] group-hover:!text-white group-hover:!border-[#0d0d0d]">
-                    {c.label}
-                    <ArrowRight className="size-4" aria-hidden />
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
+          ))}
         </section>
       )}
     </div>

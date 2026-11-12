@@ -69,15 +69,15 @@ export const DEFAULT_PILLARS = {
 
 export const DEFAULT_STORY = {
   enabled: true,
-  headline: 'Made for every pitch, court and street.',
-  body: 'LIVUS started with a simple idea: sportswear should work as hard as you do and suit the place you live. So we design jerseys and training wear for our climate and our game, release them in small drops, and keep the fit athletic and easy to wear, from the first whistle to the walk home.',
+  headline: 'LIVUS started with a simple idea: sportswear should work as hard as you do, and suit the place you live.',
+  body: '',
   imageUrl: '',
   foundingYear: '',
 };
 
 export const DEFAULT_WHY = {
   enabled: true,
-  heading: 'Why LIVUS',
+  heading: 'Sport is better in the right kit.',
   items: [
     {
       icon: 'wind' as WhyIcon,

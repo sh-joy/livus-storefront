@@ -372,7 +372,7 @@ export default function ProductDetails({ product, allProducts = [], shippingText
                 className="object-cover z-10"
                 src={imgUrl}
                 fallbackSrc="/images/for_him.jpg"
-                {...(idx === 0 ? { priority: true, preload: true } : { loading: 'lazy' as const })}
+                {...(idx === 0 ? { preload: true } : { loading: 'lazy' as const })}
               />
             </div>
           ))}

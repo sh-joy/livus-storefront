@@ -47,7 +47,6 @@ function CategoryPanel({ href, line1, line2, cta, src, preload = false }: { href
         sizes="(max-width: 639px) 100vw, 50vw"
         className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
         preload={preload}
-        priority={preload}
       />
       <div className="absolute inset-0 flex flex-col justify-between p-[clamp(16px,2.4vw,32px)]">
         <h2 className="t-display m-0" style={{ fontSize: "clamp(56px, 7vw, 112px)", lineHeight: 0.85 }}>

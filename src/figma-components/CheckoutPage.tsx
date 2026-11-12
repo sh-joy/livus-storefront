@@ -449,8 +449,8 @@ export function CheckoutPage() {
 
   /** Send Money instructions + proof fields, shown under the selected bKash / Nagad row. */
   const renderWalletBox = (wallet: string, number: string, ussd: string, key: string) => (
-    <div className="border border-t-0 border-[var(--lv-line)] px-4 sm:px-5 pb-5 flex flex-col gap-5">
-      <div className="divide-y divide-[var(--lv-line)]">
+    <div className="border border-t-0 border-[var(--lv-line)] px-4 sm:px-5 pb-5 flex flex-col gap-4">
+      <div className="divide-y divide-[var(--lv-line)] border-b border-[var(--lv-line)]">
         {[
           { label: `Send Money to our ${wallet} number`, value: number, copy: number, id: `${key}Number` },
           { label: "Exact amount to send", value: formatBdt(totalVal), copy: String(totalVal), id: `${key}Amount` },
@@ -735,7 +735,7 @@ export function CheckoutPage() {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
-                        minHeight: "56px",
+                        minHeight: "60px",
                         padding: "14px 16px",
                         border: payment === "cash" ? "1.5px solid #000000" : "1px solid var(--lv-line, #e2e8f0)",
                         background: payment === "cash" ? "#fafafa" : "#ffffff",
@@ -767,7 +767,7 @@ export function CheckoutPage() {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
-                        minHeight: "56px",
+                        minHeight: "60px",
                         padding: "14px 16px",
                         border: payment === "bkash" ? "1.5px solid #000000" : "1px solid var(--lv-line, #e2e8f0)",
                         background: !isBkashConfigured ? "#fcfcfc" : "#ffffff",
@@ -787,7 +787,7 @@ export function CheckoutPage() {
                         </div>
                       </div>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src="/payment-icons/bkash.svg" alt="bKash" className="h-12 w-12 shrink-0 object-contain" />
+                      <img src="/payment-icons/bkash.svg" alt="bKash" className="h-12 w-12 -my-3 shrink-0 object-contain" />
                     </button>
 
                     {/* bKash Instruction box: opens directly under bKash row */}
@@ -805,7 +805,7 @@ export function CheckoutPage() {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
-                        minHeight: "56px",
+                        minHeight: "60px",
                         padding: "14px 16px",
                         border: payment === "nagad" ? "1.5px solid #000000" : "1px solid var(--lv-line, #e2e8f0)",
                         background: !isNagadConfigured ? "#fcfcfc" : "#ffffff",
@@ -825,7 +825,7 @@ export function CheckoutPage() {
                         </div>
                       </div>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src="/payment-icons/nagad.svg" alt="Nagad" className="h-12 w-12 shrink-0 object-contain" />
+                      <img src="/payment-icons/nagad.svg" alt="Nagad" className="h-12 w-12 -my-3 shrink-0 object-contain" />
                     </button>
 
                     {/* Nagad Instruction box: opens directly under Nagad row */}

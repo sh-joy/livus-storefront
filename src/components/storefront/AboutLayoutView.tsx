@@ -97,27 +97,32 @@ export function AboutLayoutView({ layout }: { layout: AboutLayout }) {
 
       {/* 3 ─ One big two-tone statement, centred */}
       {story.enabled && story.headline && (
-        <section className="px-[var(--lv-gutter)] py-[clamp(72px,10vw,160px)]">
-          <p className="t-h2 m-0 mx-auto max-w-[1000px] text-center" style={{ fontSize: 'clamp(32px, 4.4vw, 64px)' }}>
+        <section className="px-[var(--lv-gutter)] pt-[clamp(72px,9vw,140px)] pb-[clamp(48px,6vw,88px)]">
+          <p className="t-h2 m-0 mx-auto max-w-[1080px] text-center" style={{ fontSize: 'clamp(32px, 4.4vw, 64px)' }}>
             {story.foundingYear ? `Since ${story.foundingYear}, ` : ''}
             <TwoTone text={story.headline} />
           </p>
-          {story.body && <p className="t-body m-0 mt-8 mx-auto max-w-[560px] text-center text-neutral-600">{story.body}</p>}
+          {story.body && <p className="t-lead m-0 mt-8 mx-auto max-w-[620px] text-center">{story.body}</p>}
         </section>
       )}
 
-      {/* 4 ─ Four benefits */}
+      {/* 4 ─ Four benefits as shaded cards, divided by a thin gap */}
       {why.enabled && whyItems.length > 0 && (
-        <section className="px-[var(--lv-gutter)] pb-[clamp(64px,8vw,120px)]">
-          {why.heading && <h2 className="t-h2 m-0 mb-[clamp(40px,5vw,72px)] text-center">{why.heading}</h2>}
-          <div className="mx-auto max-w-[1000px] grid gap-x-10 gap-y-[clamp(48px,6vw,72px)] sm:grid-cols-2">
+        <section className="px-[var(--lv-gutter)] pb-[clamp(72px,9vw,140px)]">
+          {why.heading && <h2 className="t-h2 m-0 mb-[clamp(32px,4vw,56px)] text-center">{why.heading}</h2>}
+          <div className="grid gap-2 sm:grid-cols-2">
             {whyItems.map((w, i) => {
               const Icon = ICONS[w.icon] ?? Wind;
               return (
-                <div key={i} className="flex flex-col items-center text-center gap-3">
-                  <Icon className="size-6 stroke-[1.5]" aria-hidden />
-                  <h3 className="t-h3 m-0">{w.title}</h3>
-                  {w.description && <p className="t-body m-0 text-neutral-600 max-w-[340px]">{w.description}</p>}
+                <div
+                  key={i}
+                  className="flex flex-col justify-between gap-[clamp(40px,5vw,72px)] bg-[#f4f4f2] p-[clamp(24px,3.2vw,48px)] min-h-[clamp(220px,22vw,320px)]"
+                >
+                  <Icon className="size-[clamp(28px,2.4vw,36px)] stroke-[1.25]" aria-hidden />
+                  <div className="flex flex-col gap-3">
+                    <h3 className="t-h3 m-0" style={{ fontSize: 'clamp(26px, 2.6vw, 38px)' }}>{w.title}</h3>
+                    {w.description && <p className="t-lead m-0 max-w-[440px]">{w.description}</p>}
+                  </div>
                 </div>
               );
             })}

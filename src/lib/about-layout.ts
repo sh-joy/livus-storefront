@@ -69,7 +69,7 @@ export const DEFAULT_PILLARS = {
 
 export const DEFAULT_STORY = {
   enabled: true,
-  headline: 'LIVUS started with a simple idea: sportswear should work as hard as you do, and suit the place you live.',
+  headline: 'Every piece we make has one job: to keep up with you, from the first whistle to the walk home.',
   body: '',
   imageUrl: '',
   foundingYear: '',
@@ -77,7 +77,7 @@ export const DEFAULT_STORY = {
 
 export const DEFAULT_WHY = {
   enabled: true,
-  heading: 'Sport is better in the right kit.',
+  heading: '',
   items: [
     {
       icon: 'wind' as WhyIcon,

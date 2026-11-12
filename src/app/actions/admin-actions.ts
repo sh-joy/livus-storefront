@@ -1,5 +1,6 @@
 'use server';
 
+import { normalizeBdPhone } from '@/lib/bangladesh-geo';
 import { requireAdmin } from '@/lib/admin-guard';
 import { db } from '@/db';
 import { products, categories, promoCodes, orders, orderItems, colorVariants, variantImages, stockInventory, customers, user, account, session, storeSettings, shippingRegions } from '@/db/schema';
@@ -1729,6 +1730,9 @@ export async function updateAdminStoreSettingsAction(data: {
   if (!intIn(data.vatPercent, 0, 50)) return { success: false, message: 'VAT must be a whole number between 0 and 50.' };
   if (!intIn(data.freeShippingThresholdBdt, 0, 1000000)) return { success: false, message: 'Free delivery threshold must be 0 or more.' };
   if (!intIn(data.defaultDeliveryChargeBdt, 0, 10000)) return { success: false, message: 'Default delivery fee must be between 0 and 10,000.' };
+  // Accept +880 / 880 / spaces / dashes; always store the canonical 01XXXXXXXXX form.
+  if (data.bKashMerchantNumber !== undefined) data.bKashMerchantNumber = normalizeBdPhone(data.bKashMerchantNumber);
+  if (data.nagadMerchantNumber !== undefined) data.nagadMerchantNumber = normalizeBdPhone(data.nagadMerchantNumber);
   for (const [label, v] of [['bKash', data.bKashMerchantNumber], ['Nagad', data.nagadMerchantNumber]] as const) {
     if (v !== undefined && v.trim() !== '' && !/^01[3-9]\d{8}$/.test(v.trim())) {
       return { success: false, message: `${label} number must be a valid 11-digit Bangladeshi mobile number.` };

@@ -24,7 +24,7 @@ function CardIcon() {
 
 function TruckIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
       <path d="M1 3H15V16H1V3Z" stroke="#1a1a1a" strokeWidth="1.2" strokeLinejoin="round" />
       <path d="M15 8H19L22 11V16H15V8Z" stroke="#1a1a1a" strokeWidth="1.2" strokeLinejoin="round" />
       <circle cx="5.5" cy="18.5" r="2.5" stroke="#1a1a1a" strokeWidth="1.2" />
@@ -145,8 +145,8 @@ export function CheckoutPage() {
     freeShippingThresholdBdt?: number;
   } | null>(null);
 
-  const bkashNumber = storeSettingsData?.bKashMerchantNumber || (storeSettingsData as any)?.bkashMerchantNumber || '';
-  const nagadNumber = storeSettingsData?.nagadMerchantNumber || '';
+  const bkashNumber = normalizeBdPhone(storeSettingsData?.bKashMerchantNumber || (storeSettingsData as any)?.bkashMerchantNumber || '');
+  const nagadNumber = normalizeBdPhone(storeSettingsData?.nagadMerchantNumber || '');
 
   const isBkashConfigured = Boolean(
     bkashNumber && /^01[3-9]\d{8}$/.test(bkashNumber.trim())
@@ -724,7 +724,7 @@ export function CheckoutPage() {
                         </div>
                       </div>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src="/payment-icons/bkash.svg" alt="bKash" className="h-7 w-auto object-contain" />
+                      <img src="/payment-icons/bkash.svg" alt="bKash" className="h-12 w-12 shrink-0 object-contain" />
                     </button>
 
                     {/* bKash Instruction box: opens directly under bKash row */}
@@ -835,7 +835,7 @@ export function CheckoutPage() {
                         </div>
                       </div>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src="/payment-icons/nagad.svg" alt="Nagad" className="h-7 w-auto object-contain" />
+                      <img src="/payment-icons/nagad.svg" alt="Nagad" className="h-12 w-12 shrink-0 object-contain" />
                     </button>
 
                     {/* Nagad Instruction box: opens directly under Nagad row */}

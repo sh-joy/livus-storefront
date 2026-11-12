@@ -181,7 +181,7 @@ export async function placeOrderAction(data: CheckoutFormValues & { promoCode?: 
   let verifiedSenderPhone: string | null = null;
 
   if (payload.paymentMethod === 'bkash') {
-    const configuredNumber = (storeSettingsRow?.bKashMerchantNumber || '').trim();
+    const configuredNumber = normalizeBdPhone(storeSettingsRow?.bKashMerchantNumber);
     if (!/^01[3-9]\d{8}$/.test(configuredNumber)) {
       return { success: false, message: 'bKash payments are currently unavailable. Please choose Cash on Delivery.' };
     }
@@ -204,7 +204,7 @@ export async function placeOrderAction(data: CheckoutFormValues & { promoCode?: 
     paymentMethodLabel = 'bKash (Manual)';
     paymentStatusLabel = 'Awaiting Verification';
   } else if (payload.paymentMethod === 'nagad') {
-    const configuredNumber = (storeSettingsRow?.nagadMerchantNumber || '').trim();
+    const configuredNumber = normalizeBdPhone(storeSettingsRow?.nagadMerchantNumber);
     if (!/^01[3-9]\d{8}$/.test(configuredNumber)) {
       return { success: false, message: 'Nagad payments are currently unavailable. Please choose Cash on Delivery.' };
     }

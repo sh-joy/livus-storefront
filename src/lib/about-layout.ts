@@ -36,13 +36,13 @@ export type StatItem = z.infer<typeof StatItemSchema>;
 export const DEFAULT_HERO = {
   enabled: true,
   headline: 'Built for sport. Made for Bangladesh.',
-  lead: 'Jerseys, training tops and activewear engineered for heat, movement and high performance.',
+  lead: 'Jerseys, training tops and activewear made for heat, movement and everyday wear.',
   imageUrl: '',
 };
 
 export const DEFAULT_MANIFESTO = {
   enabled: true,
-  text: 'LIVUS IS FOR EVERY ATHLETE WHO TRAINS, PLAYS AND MOVES ACROSS BANGLADESH. WE BUILD PERFORMANCE GEAR THAT ENDURES HEAT AND HUMIDITY, FEELS WEIGHTLESS ON THE BODY, AND NEVER COMPROMISES ON THE STREET.',
+  text: 'LIVUS IS FOR EVERYONE WHO TRAINS, PLAYS AND MOVES. WE MAKE SPORTSWEAR FOR BANGLADESH: LIGHT ENOUGH FOR THE HEAT, CUT FOR MOVEMENT, AND SHARP ENOUGH TO WEAR LONG AFTER THE GAME.',
 };
 
 export const DEFAULT_PILLARS = {
@@ -51,17 +51,17 @@ export const DEFAULT_PILLARS = {
   items: [
     {
       title: 'Made to move',
-      description: 'Engineered fit and lightweight fabrics built for training hard without restriction.',
+      description: 'Athletic cuts and light fabrics that let you train hard without holding you back.',
       imageUrl: '',
     },
     {
       title: 'Made for here',
-      description: 'Breathable activewear crafted to withstand Bangladesh heat, humidity, and daily grit.',
+      description: 'Breathable pieces designed for Bangladesh heat, humidity and everyday wear.',
       imageUrl: '',
     },
     {
       title: 'Small drops',
-      description: 'Focused capsule releases and limited runs so every piece gets obsessive attention.',
+      description: 'Limited runs and focused releases, so every piece gets our full attention.',
       imageUrl: '',
     },
   ],
@@ -69,8 +69,8 @@ export const DEFAULT_PILLARS = {
 
 export const DEFAULT_STORY = {
   enabled: true,
-  headline: 'Rooted in Dhaka. Built for every pitch and court.',
-  body: 'We started LIVUS because finding modern athletic wear designed specifically for our climate was impossible. Traditional jerseys trapped heat, while imports lacked access and sizing suited for our athletes. We set out to change that by making training gear you can wear from the first whistle to the walk home.',
+  headline: 'Made for every pitch, court and street.',
+  body: 'LIVUS started with a simple idea: sportswear should work as hard as you do and suit the place you live. So we design jerseys and training wear for our climate and our game, release them in small drops, and keep the fit athletic and easy to wear, from the first whistle to the walk home.',
   imageUrl: '',
   foundingYear: '',
 };
@@ -82,22 +82,22 @@ export const DEFAULT_WHY = {
     {
       icon: 'wind' as WhyIcon,
       title: 'Breathable fabrics',
-      description: 'Ventilated weaves that pull sweat away and keep you dry in training.',
+      description: 'Light, airy fabrics chosen for training in the heat.',
     },
     {
       icon: 'activity' as WhyIcon,
       title: 'Athletic fit',
-      description: 'Ergonomic cuts tailored for agile movement and functional layering.',
+      description: 'Cuts that move with you, on the pitch and off it.',
     },
     {
       icon: 'wallet' as WhyIcon,
       title: 'Cash on Delivery, bKash & Nagad',
-      description: 'Pay comfortably upon parcel arrival or securely via mobile banking.',
+      description: 'Pay when your parcel arrives, or with bKash or Nagad.',
     },
     {
       icon: 'truck' as WhyIcon,
       title: 'Nationwide delivery',
-      description: 'Reliable parcel delivery across all 64 districts in Bangladesh.',
+      description: 'Delivered to your door anywhere in Bangladesh.',
     },
   ],
 };
@@ -111,7 +111,7 @@ export const DEFAULT_STATS = {
 export const DEFAULT_CTA = {
   enabled: true,
   heading: 'Ready to train?',
-  lead: 'Explore the latest collection engineered for match-day intensity and daily training.',
+  lead: 'Find your kit for match day, training and everything in between.',
   buttonMenText: "Shop men's sportswear",
   buttonMenHref: '/for-him',
   buttonWomenText: "Shop women's sportswear",

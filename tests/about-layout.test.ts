@@ -17,7 +17,7 @@ describe('About Page Redesign & Layout Model (Agent A)', () => {
 
     // Manifesto
     expect(layout.manifesto.enabled).toBe(true);
-    expect(layout.manifesto.text).toContain('LIVUS IS FOR EVERY ATHLETE');
+    expect(layout.manifesto.text).toContain('LIVUS IS FOR EVERYONE WHO TRAINS');
 
     // 3 Pillars
     expect(layout.pillars.enabled).toBe(true);
@@ -28,7 +28,8 @@ describe('About Page Redesign & Layout Model (Agent A)', () => {
 
     // Story
     expect(layout.story.enabled).toBe(true);
-    expect(layout.story.headline).toContain('Rooted in Dhaka');
+    expect(layout.story.headline).toContain('Made for every pitch');
+    expect(layout.story.headline + layout.story.body).not.toMatch(/Dhaka|64 districts|founded/i); // no unverified facts
     // Golden rule: founding year must NEVER have a placeholder or invented year
     expect(layout.story.foundingYear).toBe('');
 

@@ -108,7 +108,7 @@ export function AboutLayoutView({ layout }: { layout: AboutLayout }) {
 
       {/* 4 ─ Four benefits as shaded cards, divided by a thin gap */}
       {why.enabled && whyItems.length > 0 && (
-        <section className="px-[var(--lv-gutter)] pb-[clamp(64px,8vw,120px)]">
+        <section className="px-[var(--lv-gutter)]">
           {why.heading && <h2 className="t-h2 m-0 mb-[clamp(32px,4vw,56px)] text-center">{why.heading}</h2>}
           <div className="grid gap-2 sm:grid-cols-2">
             {whyItems.map((w, i) => {
@@ -144,10 +144,10 @@ export function AboutLayoutView({ layout }: { layout: AboutLayout }) {
 
       {/* 6 ─ Last: two photos; on hover a centred "For Men →" / "For Women →" (always visible on touch screens) */}
       {cta.enabled && cta.heading && (
-        <h2 className="t-h2 m-0 text-center px-[var(--lv-gutter)] pt-0 pb-[clamp(16px,2vw,28px)]">{cta.heading}</h2>
+        <h2 className="t-display m-0 text-center px-[var(--lv-gutter)] pt-20 md:pt-[148px] pb-[clamp(20px,2.6vw,40px)]" style={{ fontSize: 'clamp(34px, 4.6vw, 72px)', lineHeight: 1.08 }}>{cta.heading}</h2>
       )}
       {cta.enabled && (
-        <section className="grid grid-cols-1 sm:grid-cols-2">
+        <section className="grid grid-cols-1 sm:grid-cols-2 mb-[calc(80px_-_clamp(40px,6vw,88px))] md:mb-[calc(148px_-_clamp(40px,6vw,88px))]">
           {[
             { href: cta.buttonMenHref || '/for-him', label: 'For Men', src: menFallback },
             { href: cta.buttonWomenHref || '/for-her', label: 'For Women', src: womenFallback },
@@ -168,10 +168,10 @@ export function AboutLayoutView({ layout }: { layout: AboutLayout }) {
               />
               <div
                 aria-hidden
-                className="absolute inset-0 bg-black/35 transition-opacity duration-300 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 group-focus-visible:opacity-100"
+                className="absolute inset-0 bg-black/35 transition-opacity duration-300 sm:[@media(hover:hover)]:opacity-0 sm:[@media(hover:hover)]:group-hover:opacity-100 group-focus-visible:opacity-100"
               />
               <span
-                className="absolute inset-0 flex items-center justify-center gap-3 text-white transition-all duration-300 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:translate-y-2 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-hover:translate-y-0 group-focus-visible:opacity-100"
+                className="absolute inset-0 flex items-center justify-center gap-3 text-white transition-all duration-300 sm:[@media(hover:hover)]:opacity-0 sm:[@media(hover:hover)]:translate-y-2 sm:[@media(hover:hover)]:group-hover:opacity-100 sm:[@media(hover:hover)]:group-hover:translate-y-0 group-focus-visible:opacity-100"
               >
                 <span className="t-h2 !text-white">{c.label}</span>
                 <ArrowRight className="size-[clamp(24px,2.6vw,36px)] stroke-[1.5]" aria-hidden />

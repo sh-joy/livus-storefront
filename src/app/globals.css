@@ -426,8 +426,9 @@ footer .footer-btn-group a {
 .lv-btn--light   { background: #fff; color: var(--lv-ink); border-color: #fff; }
 .lv-btn--light:hover { background: transparent; color: #fff; }
 .lv-btn--block   { display: flex; width: 100%; }
-:focus-visible { outline: 2px solid #0d0d0d; outline-offset: 2px; }
-.lv-btn:focus-visible, .lv-link:focus-visible { outline: 2px solid #0d0d0d; outline-offset: 3px; }
+/* No focus rings on the storefront (owner's choice). Admin keeps the browser default. */
+html:not(:has(.admin-portal)) :focus,
+html:not(:has(.admin-portal)) :focus-visible { outline: none !important; --tw-ring-shadow: 0 0 #0000 !important; --tw-ring-offset-shadow: 0 0 #0000 !important; }
 
 /* Underline-on-hover link used in header and footer */
 .lv-link { position: relative; text-decoration: none; }

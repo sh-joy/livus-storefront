@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   parseConsentCookie,
   serializeConsentCookie,
+  applyGoogleConsentModeV2,
   CONSENT_COOKIE_NAME,
   CONSENT_VERSION,
   CONSENT_MAX_AGE_DAYS,
@@ -96,5 +97,37 @@ describe('Cookie Consent Banner & Consent Storage (Agent K)', () => {
     expect(SITE_CONTENT_KEYS).toContain('cookie_banner_text');
     expect(DEFAULT_CONTENT.cookie_banner_text).toContain('Essential cookies');
     expect(DEFAULT_CONTENT.cookie_banner_text).toContain('Cookie settings');
+  });
+
+  it('updates Google Consent Mode v2 dataLayer on choice update', () => {
+    const globalWin = global as any;
+    globalWin.window = global;
+    globalWin.dataLayer = [];
+
+    applyGoogleConsentModeV2({ analytics: false, marketing: false });
+    expect(globalWin.dataLayer).toHaveLength(1);
+    expect(globalWin.dataLayer[0]).toEqual([
+      'consent',
+      'update',
+      {
+        analytics_storage: 'denied',
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+      },
+    ]);
+
+    applyGoogleConsentModeV2({ analytics: true, marketing: true });
+    expect(globalWin.dataLayer).toHaveLength(2);
+    expect(globalWin.dataLayer[1]).toEqual([
+      'consent',
+      'update',
+      {
+        analytics_storage: 'granted',
+        ad_storage: 'granted',
+        ad_user_data: 'granted',
+        ad_personalization: 'granted',
+      },
+    ]);
   });
 });
